@@ -14,9 +14,10 @@ CREATE TABLE IF NOT EXISTS users (
   is_blocked BOOLEAN DEFAULT false,
   referrer_id INTEGER REFERENCES users(id),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_telegram_id (telegram_id)
+  last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_telegram_id ON users(telegram_id);
 
 -- Балансы пользователей
 CREATE TABLE IF NOT EXISTS balances (
@@ -40,10 +41,11 @@ CREATE TABLE IF NOT EXISTS transactions (
   crypto_tx_hash VARCHAR(255),
   moderator_id INTEGER REFERENCES users(id),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_user_transactions (user_id, created_at),
-  INDEX idx_status (status)
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_transactions ON transactions(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_status ON transactions(status);
 
 -- Игры
 CREATE TABLE IF NOT EXISTS games (
@@ -78,10 +80,11 @@ CREATE TABLE IF NOT EXISTS game_history (
   is_win BOOLEAN DEFAULT false,
   is_duel BOOLEAN DEFAULT false,
   opponent_id INTEGER REFERENCES users(id),
-  played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_user_games (user_id, played_at),
-  INDEX idx_game_stats (game_id, played_at)
+  played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_games ON game_history(user_id, played_at);
+CREATE INDEX IF NOT EXISTS idx_game_stats ON game_history(game_id, played_at);
 
 -- Реферальная система
 CREATE TABLE IF NOT EXISTS referrals (
@@ -91,9 +94,10 @@ CREATE TABLE IF NOT EXISTS referrals (
   commission_rate DECIMAL(5, 2) DEFAULT 5.00, -- процент от депозита
   total_earned DECIMAL(15, 2) DEFAULT 0.00,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(referred_id),
-  INDEX idx_referrer (referrer_id)
+  UNIQUE(referred_id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_referrer ON referrals(referrer_id);
 
 -- Начисления с рефералов
 CREATE TABLE IF NOT EXISTS referral_earnings (
@@ -116,9 +120,10 @@ CREATE TABLE IF NOT EXISTS duels (
   creator_result VARCHAR(50),
   opponent_result VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  completed_at TIMESTAMP,
-  INDEX idx_waiting_duels (status, created_at)
+  completed_at TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_waiting_duels ON duels(status, created_at);
 
 -- Статистика пользователей
 CREATE TABLE IF NOT EXISTS user_stats (
@@ -158,9 +163,10 @@ CREATE TABLE IF NOT EXISTS broadcast_recipients (
   is_sent BOOLEAN DEFAULT false,
   is_read BOOLEAN DEFAULT false,
   sent_at TIMESTAMP,
-  read_at TIMESTAMP,
-  INDEX idx_broadcast_stats (broadcast_id, is_sent, is_read)
+  read_at TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_broadcast_stats ON broadcast_recipients(broadcast_id, is_sent, is_read);
 
 -- Настройки системы
 CREATE TABLE IF NOT EXISTS settings (
@@ -191,9 +197,10 @@ CREATE TABLE IF NOT EXISTS channel_posts (
   win_amount DECIMAL(15, 2),
   is_win BOOLEAN NOT NULL,
   game_result VARCHAR(100),
-  posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_channel_posts (posted_at)
+  posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_channel_posts ON channel_posts(posted_at);
 
 -- Вставка базовых игр
 INSERT INTO games (name, type, is_active, rtp) VALUES
