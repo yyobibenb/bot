@@ -75,14 +75,64 @@ app.get("/", (req, res) => {
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
-      background: #f7f9f8;
+      background: linear-gradient(160deg, #f0fdf4, #e0f2fe);
       min-height: 100vh;
       color: var(--text-primary);
       padding: 24px;
       padding-bottom: 130px;
       overflow-x: hidden;
+      position: relative;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Gradient Blobs for Depth */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .blob-1 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.25), transparent 70%);
+      top: -100px;
+      left: -80px;
+      filter: blur(70px);
+    }
+
+    .blob-2 {
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);
+      bottom: -80px;
+      right: -60px;
+      filter: blur(60px);
+      animation-delay: -2s;
+    }
+
+    .blob-3 {
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.15), transparent 70%);
+      top: 40%;
+      right: -50px;
+      filter: blur(50px);
+      animation-delay: -4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -20px) scale(1.05); }
+    }
+
+    /* Content wrapper with higher z-index */
+    .content {
+      position: relative;
+      z-index: 1;
     }
 
     /* Profile Section */
@@ -326,6 +376,13 @@ app.get("/", (req, res) => {
   </style>
 </head>
 <body>
+  <!-- Gradient Blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Content Wrapper -->
+  <div class="content">
   <!-- Profile Section -->
   <div class="profile-section">
     <div class="avatar-glass" id="avatar">👤</div>
@@ -393,12 +450,13 @@ app.get("/", (req, res) => {
       <span class="tab-label">Пригласить</span>
     </button>
   </div>
+  </div> <!-- End Content Wrapper -->
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.setBackgroundColor('#f7f9f8');
-    tg.setHeaderColor('#f7f9f8');
+    tg.setBackgroundColor('#e8f7f9');
+    tg.setHeaderColor('#e8f7f9');
 
     console.log('Telegram WebApp initialized');
     console.log('Init data:', tg.initData);
