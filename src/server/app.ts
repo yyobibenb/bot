@@ -377,6 +377,60 @@ app.get("/", (req, res) => {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Screen navigation */
+    .screen {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* Game buttons */
+    .game-btn {
+      padding: 14px 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-primary);
+    }
+
+    .game-btn:hover {
+      background: var(--accent-green);
+      color: white;
+      border-color: var(--accent-green-dark);
+    }
+
+    .game-btn.selected {
+      background: var(--accent-green);
+      color: white;
+      border-color: var(--accent-green-dark);
+      transform: scale(1.05);
+    }
+
+    .game-btn small {
+      display: block;
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    /* Dice animation */
+    @keyframes spin {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.2); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    .spinning {
+      animation: spin 0.5s ease-in-out 3;
+    }
   </style>
 </head>
 <body>
@@ -388,43 +442,119 @@ app.get("/", (req, res) => {
   <!-- Content Wrapper -->
   <div class="content">
   <!-- Profile Section -->
-  <div class="profile-section">
-    <div class="avatar-glass" id="avatar">👤</div>
-    <div class="username" id="username">Loading...</div>
-    <div class="user-handle" id="handle">@username</div>
-  </div>
+  <div id="profile-screen" class="screen active">
+    <div class="profile-section">
+      <div class="avatar-glass" id="avatar">👤</div>
+      <div class="username" id="username">Loading...</div>
+      <div class="user-handle" id="handle">@username</div>
+    </div>
 
-  <!-- Balance Card - Centered -->
-  <div class="glass-card">
-    <div class="balance-label">Баланс кошелька</div>
-    <div>
-      <span class="balance-amount" id="balance">0.00</span>
-      <span class="balance-currency">USDT</span>
+    <!-- Balance Card - Centered -->
+    <div class="glass-card">
+      <div class="balance-label">Баланс кошелька</div>
+      <div>
+        <span class="balance-amount" id="balance">0.00</span>
+        <span class="balance-currency">USDT</span>
+      </div>
+    </div>
+
+    <!-- Stats - Above Buttons -->
+    <div class="stats">
+      <div class="stat">🎯 Игр: 12</div>
+      <div class="stat">🏆 Побед: 5</div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button class="btn secondary" onclick="handleDeposit()">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <polyline points="19 12 12 19 5 12"/>
+        </svg>
+        <span>Пополнить</span>
+      </button>
+      <button class="btn primary" onclick="handleWithdraw()">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"/>
+          <polyline points="5 12 12 5 19 12"/>
+        </svg>
+        <span>Вывести</span>
+      </button>
     </div>
   </div>
 
-  <!-- Stats - Above Buttons -->
-  <div class="stats">
-    <div class="stat">🎯 Игр: 12</div>
-    <div class="stat">🏆 Побед: 5</div>
+  <!-- Games Screen -->
+  <div id="games-screen" class="screen">
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎰 Выберите игру</h2>
+
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDiceGame()">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 48px;">🎲</div>
+        <div style="flex: 1;">
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Кубик</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">8 режимов • до 5.52x</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card" style="opacity: 0.6; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 48px;">🎳</div>
+        <div style="flex: 1;">
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Боулинг</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">Скоро...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card" style="opacity: 0.6; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 48px;">⚽</div>
+        <div style="flex: 1;">
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Футбол</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">Скоро...</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Action Buttons -->
-  <div class="actions">
-    <button class="btn secondary" onclick="handleDeposit()">
-      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"/>
-        <polyline points="19 12 12 19 5 12"/>
-      </svg>
-      <span>Пополнить</span>
-    </button>
-    <button class="btn primary" onclick="handleWithdraw()">
-      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="19" x2="12" y2="5"/>
-        <polyline points="5 12 12 5 19 12"/>
-      </svg>
-      <span>Вывести</span>
-    </button>
+  <!-- Dice Game Screen -->
+  <div id="dice-game-screen" class="screen">
+    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎲 Кубик</h2>
+
+    <div class="glass-card" style="text-align: center;">
+      <div style="font-size: 80px; margin: 20px 0;" id="dice-display">🎲</div>
+      <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <button class="game-btn" onclick="selectMode('higher')">Больше 3<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="selectMode('lower')">Меньше 4<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="selectMode('even')">Четное<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="selectMode('odd')">Нечетное<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="selectMode('exact')">Грань<br><small>5.52x</small></button>
+        <button class="game-btn" onclick="selectMode('duel')">Дуэль<br><small>1.84x</small></button>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Ставка (USDT)</label>
+        <input type="number" id="bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
+      </div>
+
+      <button class="btn primary" style="width: 100%;" onclick="playDice()" id="play-btn">Бросить кубик 🎲</button>
+
+      <div id="result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
+    </div>
+  </div>
+
+  <!-- Invite Screen -->
+  <div id="invite-screen" class="screen">
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">👥 Пригласить друзей</h2>
+    <div class="glass-card">
+      <p style="text-align: center; margin-bottom: 16px;">Приглашайте друзей и получайте 5% от их депозитов!</p>
+      <button class="btn primary" style="width: 100%;" onclick="shareInvite()">Поделиться ссылкой</button>
+    </div>
   </div>
 
   <!-- Bottom TabBar - BIGGER -->
@@ -525,6 +655,10 @@ app.get("/", (req, res) => {
         }).then(response => response.json())
           .then(data => {
             console.log('✅ User saved to backend:', data);
+            if (data.success && data.user) {
+              currentUser = data.user;
+              console.log('✅ Current user set:', currentUser);
+            }
             if (data.balance !== undefined) {
               document.getElementById('balance').textContent = data.balance.toFixed(2);
             }
@@ -570,25 +704,165 @@ app.get("/", (req, res) => {
       tg.showAlert('💸 Функция вывода скоро будет доступна!');
     }
 
+    // Global state
+    let currentUser = null;
+    let selectedGameMode = null;
+
     function handleNav(event, section) {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
-      // Update active state
+      // Update active state on tabs
       document.querySelectorAll('.tab').forEach(item => {
         item.classList.remove('active');
       });
       event.currentTarget.classList.add('active');
 
+      // Show appropriate screen
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+      });
+
       if (section === 'play') {
-        tg.showAlert('🎮 Игра скоро будет доступна!');
+        document.getElementById('games-screen').classList.add('active');
       } else if (section === 'invite') {
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-          const botUsername = 'YOUR_BOT_USERNAME';
-          const inviteUrl = \`https://t.me/\${botUsername}?start=\${user.id}\`;
-          const shareText = 'Присоединяйся ко мне в Casino App!';
-          tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
+        document.getElementById('invite-screen').classList.add('active');
+      } else if (section === 'profile') {
+        document.getElementById('profile-screen').classList.add('active');
+      }
+    }
+
+    function openDiceGame() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('dice-game-screen').classList.add('active');
+    }
+
+    function backToGames() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('games-screen').classList.add('active');
+    }
+
+    function selectMode(mode) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      selectedGameMode = mode;
+
+      // Update button states
+      document.querySelectorAll('.game-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      event.target.classList.add('selected');
+    }
+
+    async function playDice() {
+      if (!currentUser) {
+        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+        return;
+      }
+
+      if (!selectedGameMode) {
+        tg.showAlert('Выберите режим игры!');
+        return;
+      }
+
+      const betAmount = parseFloat(document.getElementById('bet-input').value);
+      if (betAmount <= 0) {
+        tg.showAlert('Введите корректную ставку!');
+        return;
+      }
+
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+
+      const playBtn = document.getElementById('play-btn');
+      const diceDisplay = document.getElementById('dice-display');
+      const resultDisplay = document.getElementById('result-display');
+
+      // Disable button
+      playBtn.disabled = true;
+      playBtn.textContent = 'Бросаем...';
+      resultDisplay.textContent = '';
+
+      // Animate dice
+      diceDisplay.classList.add('spinning');
+
+      try {
+        // Determine API endpoint based on mode
+        let endpoint = '';
+        let body = {
+          user_id: currentUser.id,
+          bet_amount: betAmount
+        };
+
+        if (selectedGameMode === 'higher' || selectedGameMode === 'lower') {
+          endpoint = '/api/games/dice/higher-lower';
+          body.choice = selectedGameMode;
+        } else if (selectedGameMode === 'even' || selectedGameMode === 'odd') {
+          endpoint = '/api/games/dice/even-odd';
+          body.choice = selectedGameMode;
+        } else if (selectedGameMode === 'duel') {
+          endpoint = '/api/games/dice/duel';
+        } else if (selectedGameMode === 'exact') {
+          const number = prompt('Введите число от 1 до 6:');
+          if (!number || number < 1 || number > 6) {
+            throw new Error('Неверное число!');
+          }
+          endpoint = '/api/games/dice/exact-number';
+          body.choice = parseInt(number);
         }
+
+        // Call API
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        // Wait for animation
+        setTimeout(() => {
+          diceDisplay.classList.remove('spinning');
+
+          if (data.success) {
+            // Show result
+            const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+            diceDisplay.textContent = diceEmojis[data.result - 1] || '🎲';
+
+            if (data.isWin) {
+              resultDisplay.style.color = 'var(--accent-green)';
+              resultDisplay.textContent = \`🎉 Выигрыш: \${data.winAmount.toFixed(2)} USDT! (x\${data.multiplier})\`;
+              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } else {
+              resultDisplay.style.color = '#ef4444';
+              resultDisplay.textContent = \`❌ Проигрыш. Результат: \${data.result}\`;
+              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            }
+
+            // Update balance
+            document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          } else {
+            throw new Error(data.error || 'Ошибка игры');
+          }
+
+          playBtn.disabled = false;
+          playBtn.textContent = 'Бросить кубик 🎲';
+        }, 1500);
+
+      } catch (error) {
+        diceDisplay.classList.remove('spinning');
+        tg.showAlert('Ошибка: ' + error.message);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Бросить кубик 🎲';
+      }
+    }
+
+    function shareInvite() {
+      const user = tg.initDataUnsafe?.user;
+      if (user) {
+        const botUsername = 'YOUR_BOT_USERNAME'; // Replace with actual bot username
+        const inviteUrl = \`https://t.me/\${botUsername}?start=ref\${user.id}\`;
+        const shareText = '🎰 Присоединяйся ко мне в Casino Bot! Играй и зарабатывай!';
+        tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
       }
     }
   </script>
