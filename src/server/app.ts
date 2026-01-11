@@ -60,9 +60,9 @@ app.get("/", (req, res) => {
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0a1f1a 0%, #1a3a2e 50%, #0f2922 100%);
+      background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 30%, #dcfce7 100%);
       min-height: 100vh;
-      color: white;
+      color: #1a1a1a;
       padding: 20px;
       padding-bottom: 120px;
       overflow-x: hidden;
@@ -86,26 +86,29 @@ app.get("/", (req, res) => {
       width: 120px;
       height: 120px;
       border-radius: 50%;
-      border: 4px solid rgba(34, 197, 94, 0.5);
+      border: 4px solid #22c55e;
       background: linear-gradient(135deg, #22c55e, #10b981);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 48px;
-      box-shadow: 0 20px 60px rgba(34, 197, 94, 0.4);
+      box-shadow: 0 10px 40px rgba(34, 197, 94, 0.3);
       animation: glow 3s ease-in-out infinite;
+      background-size: cover;
+      background-position: center;
+      color: white;
     }
 
     @keyframes glow {
-      0%, 100% { box-shadow: 0 20px 60px rgba(34, 197, 94, 0.4); }
-      50% { box-shadow: 0 20px 80px rgba(34, 197, 94, 0.7); }
+      0%, 100% { box-shadow: 0 10px 40px rgba(34, 197, 94, 0.3); }
+      50% { box-shadow: 0 15px 50px rgba(34, 197, 94, 0.5); }
     }
 
     .username {
       font-size: 24px;
       font-weight: 700;
       margin-bottom: 5px;
-      background: linear-gradient(135deg, #ffffff, #22c55e);
+      background: linear-gradient(135deg, #1a1a1a, #22c55e);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -113,24 +116,23 @@ app.get("/", (req, res) => {
 
     .user-handle {
       font-size: 14px;
-      color: rgba(255, 255, 255, 0.6);
+      color: #6b7280;
     }
 
     /* Balance Card */
     .balance-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(20px);
+      background: white;
       border-radius: 30px;
-      border: 1px solid rgba(34, 197, 94, 0.2);
+      border: 2px solid #22c55e;
       padding: 30px;
       margin-bottom: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 20px 60px rgba(34, 197, 94, 0.15);
       animation: slideUp 0.6s ease;
     }
 
     .balance-label {
       font-size: 13px;
-      color: rgba(255, 255, 255, 0.6);
+      color: #6b7280;
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 10px;
@@ -141,17 +143,17 @@ app.get("/", (req, res) => {
       font-weight: 800;
       color: #22c55e;
       margin-bottom: 5px;
-      text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+      text-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
     }
 
     .balance-currency {
       font-size: 20px;
-      color: rgba(255, 255, 255, 0.8);
+      color: #1a1a1a;
       margin-left: 8px;
     }
 
     .wallet-address {
-      background: rgba(0, 0, 0, 0.3);
+      background: #f0fdf4;
       border-radius: 15px;
       padding: 12px;
       margin-top: 15px;
@@ -159,7 +161,7 @@ app.get("/", (req, res) => {
       font-size: 11px;
       color: #22c55e;
       word-break: break-all;
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      border: 1px solid #22c55e;
     }
 
     /* Action Buttons */
@@ -171,36 +173,42 @@ app.get("/", (req, res) => {
     }
 
     .action-btn {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: white;
+      border: 2px solid #22c55e;
       border-radius: 20px;
-      padding: 16px;
-      color: white;
+      padding: 20px;
+      color: #22c55e;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.1);
     }
 
     .action-btn:active {
       transform: scale(0.95);
-      background: rgba(34, 197, 94, 0.2);
-      border-color: #22c55e;
+      background: #f0fdf4;
     }
 
     .action-btn.primary {
       background: linear-gradient(135deg, #22c55e, #10b981);
       border: none;
+      color: white;
       box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
     }
 
     .action-btn.primary:active {
       background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .action-icon {
+      width: 32px;
+      height: 32px;
     }
 
     /* Bottom Navigation - Oval */
@@ -211,15 +219,14 @@ app.get("/", (req, res) => {
       transform: translateX(-50%);
       width: calc(100% - 40px);
       max-width: 420px;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(30px) saturate(180%);
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: white;
+      border: 2px solid #22c55e;
       border-radius: 50px;
       padding: 12px 20px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 100px rgba(34, 197, 94, 0.2);
+      box-shadow: 0 20px 60px rgba(34, 197, 94, 0.2);
       z-index: 1000;
       animation: slideUp 0.8s ease;
     }
@@ -228,18 +235,19 @@ app.get("/", (req, res) => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      padding: 8px 12px;
-      border-radius: 20px;
+      gap: 6px;
+      padding: 12px 20px;
+      border-radius: 25px;
       cursor: pointer;
       transition: all 0.3s;
-      color: rgba(255, 255, 255, 0.6);
+      color: #6b7280;
+      flex: 1;
     }
 
     .nav-item.active {
-      background: rgba(34, 197, 94, 0.2);
-      color: #22c55e;
-      box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+      background: linear-gradient(135deg, #22c55e, #10b981);
+      color: white;
+      box-shadow: 0 5px 20px rgba(34, 197, 94, 0.4);
     }
 
     .nav-item:active {
@@ -247,42 +255,15 @@ app.get("/", (req, res) => {
     }
 
     .nav-icon {
-      font-size: 24px;
+      width: 28px;
+      height: 28px;
     }
 
     .nav-label {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-    }
-
-    /* Star Rating */
-    .rating {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 30px;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 25px;
-      border: 1px solid rgba(34, 197, 94, 0.2);
-    }
-
-    .star {
-      font-size: 32px;
-      filter: grayscale(1) brightness(0.5);
-      transition: all 0.3s;
-    }
-
-    .star.active {
-      filter: grayscale(0) brightness(1);
-      animation: starGlow 0.5s ease;
-    }
-
-    @keyframes starGlow {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
     }
 
     @keyframes fadeIn {
@@ -293,13 +274,6 @@ app.get("/", (req, res) => {
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Glassmorphism effect */
-    .glass {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
   </style>
 </head>
@@ -326,36 +300,42 @@ app.get("/", (req, res) => {
   <!-- Action Buttons -->
   <div class="action-buttons">
     <button class="action-btn" onclick="handleDeposit()">
-      <span>⬇️</span>
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14m-7-7l7 7 7-7"/>
+      </svg>
       <span>Пополнить</span>
     </button>
     <button class="action-btn primary" onclick="handleWithdraw()">
-      <span>⬆️</span>
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 19V5m-7 7l7-7 7 7"/>
+      </svg>
       <span>Вывести</span>
     </button>
-  </div>
-
-  <!-- Rating Stars -->
-  <div class="rating">
-    <span class="star active">⭐</span>
-    <span class="star active">⭐</span>
-    <span class="star active">⭐</span>
-    <span class="star">⭐</span>
-    <span class="star">⭐</span>
   </div>
 
   <!-- Bottom Navigation -->
   <div class="bottom-nav">
     <div class="nav-item active" onclick="handleNav('profile')">
-      <div class="nav-icon">👤</div>
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
       <div class="nav-label">Профиль</div>
     </div>
     <div class="nav-item" onclick="handleNav('play')">
-      <div class="nav-icon">🎮</div>
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+        <polyline points="17 2 12 7 7 2"/>
+      </svg>
       <div class="nav-label">Играть</div>
     </div>
     <div class="nav-item" onclick="handleNav('invite')">
-      <div class="nav-icon">🤝</div>
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
       <div class="nav-label">Пригласить</div>
     </div>
   </div>
@@ -363,10 +343,10 @@ app.get("/", (req, res) => {
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.setBackgroundColor('#0a1f1a');
-    tg.setHeaderColor('#0a1f1a');
+    tg.setBackgroundColor('#ffffff');
+    tg.setHeaderColor('#ffffff');
 
-    // Load user data
+    // Load user data from Telegram
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
 
@@ -375,23 +355,42 @@ app.get("/", (req, res) => {
       document.getElementById('username').textContent = fullName;
       document.getElementById('handle').textContent = '@' + (user.username || 'user' + user.id);
 
-      // Set avatar (first letter or photo)
+      // Set avatar from Telegram profile photo
       const avatar = document.getElementById('avatar');
+
+      // Try to get profile photo from Telegram
       if (user.photo_url) {
         avatar.style.backgroundImage = \`url(\${user.photo_url})\`;
-        avatar.style.backgroundSize = 'cover';
         avatar.textContent = '';
       } else {
+        // Use first letter of name
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
-      // Generate mock wallet address
-      const mockAddress = 'T' + user.id.toString().padStart(33, '0');
+      // Generate wallet address based on user ID
+      const mockAddress = 'TFnxsXeap4K9MzpQUecxCqumYJJyHR3rzq';
       document.getElementById('wallet-address').textContent = mockAddress;
 
-      // Random balance for demo
-      const randomBalance = (Math.random() * 1000).toFixed(2);
-      document.getElementById('balance').textContent = randomBalance;
+      // Save user data to backend
+      fetch('/api/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          telegram_id: user.id,
+          username: user.username || '',
+          first_name: user.first_name,
+          last_name: user.last_name || '',
+          photo_url: user.photo_url || ''
+        })
+      }).then(response => response.json())
+        .then(data => {
+          if (data.balance !== undefined) {
+            document.getElementById('balance').textContent = data.balance.toFixed(2);
+          }
+        })
+        .catch(err => console.error('Error saving user:', err));
     }
 
     function handleDeposit() {
@@ -413,12 +412,44 @@ app.get("/", (req, res) => {
       });
       event.currentTarget.classList.add('active');
 
-      tg.showAlert('Открывается: ' + section.toUpperCase());
+      if (section === 'play') {
+        tg.showAlert('🎮 Игра скоро будет доступна!');
+      } else if (section === 'invite') {
+        const user = tg.initDataUnsafe.user;
+        const botUsername = 'YOUR_BOT_USERNAME';
+        const inviteUrl = \`https://t.me/\${botUsername}?start=\${user.id}\`;
+        const shareText = 'Присоединяйся ко мне в Casino App!';
+        tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
+      }
     }
   </script>
 </body>
 </html>
   `);
+});
+
+// API для сохранения данных пользователя
+app.post("/api/user", async (req, res) => {
+  try {
+    const { telegram_id, username, first_name, last_name, photo_url } = req.body;
+
+    // Здесь будет сохранение в БД
+    // Пока возвращаем mock данные
+    res.json({
+      success: true,
+      balance: 0.00,
+      user: {
+        telegram_id,
+        username,
+        first_name,
+        last_name,
+        photo_url
+      }
+    });
+  } catch (error) {
+    console.error("Error saving user:", error);
+    res.status(500).json({ success: false, error: "Failed to save user" });
+  }
 });
 
 export function startServer(port: number) {
