@@ -301,7 +301,7 @@ app.get("/", (req, res) => {
       gap: 8px;
       padding: 12px 16px;
 
-      height: 78px;
+      height: 70px;
 
       background: var(--glass-bg);
       backdrop-filter: var(--blur);
@@ -340,8 +340,8 @@ app.get("/", (req, res) => {
     }
 
     .tab-icon {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
       transition: transform 0.25s ease;
     }
 
