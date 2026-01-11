@@ -1,6 +1,7 @@
 import * as bip39 from "bip39";
 import axios from "axios";
-const TronWeb = require("tronweb");
+const TronWebModule = require("tronweb");
+const TronWeb = TronWebModule.default || TronWebModule;
 
 export interface TronWallet {
   address: string;
@@ -13,7 +14,7 @@ export class TronHelper {
   private usdtContractAddress: string;
 
   constructor() {
-    this.tronWeb = new TronWeb({
+    this.tronWeb = new (TronWeb as any)({
       fullHost: "https://api.trongrid.io",
       headers: { "TRON-PRO-API-KEY": process.env.TRON_API_KEY || "" },
     });
