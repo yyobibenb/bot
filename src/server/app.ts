@@ -59,159 +59,217 @@ app.get("/", (req, res) => {
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 30%, #dcfce7 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
+      background: #F7F9F8;
+      background-image:
+        radial-gradient(circle at 0% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.08) 0%, transparent 50%);
       min-height: 100vh;
-      color: #1a1a1a;
+      color: #0F172A;
       padding: 20px;
       padding-bottom: 120px;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* Profile Section */
     .profile-section {
       text-align: center;
-      margin-bottom: 30px;
-      animation: fadeIn 0.5s ease;
+      margin-bottom: 24px;
+      animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .avatar-container {
       position: relative;
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 20px;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 16px;
     }
 
     .avatar {
-      width: 120px;
-      height: 120px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
-      border: 4px solid #22c55e;
       background: linear-gradient(135deg, #22c55e, #10b981);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
-      box-shadow: 0 10px 40px rgba(34, 197, 94, 0.3);
-      animation: glow 3s ease-in-out infinite;
+      font-size: 40px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
       background-size: cover;
       background-position: center;
       color: white;
+      animation: avatarPulse 3s ease-in-out infinite;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 10px 40px rgba(34, 197, 94, 0.3); }
-      50% { box-shadow: 0 15px 50px rgba(34, 197, 94, 0.5); }
+    .avatar:active {
+      transform: scale(0.97);
+    }
+
+    @keyframes avatarPulse {
+      0%, 100% { box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2); }
+      50% { box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35); }
     }
 
     .username {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 5px;
-      background: linear-gradient(135deg, #1a1a1a, #22c55e);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #0F172A;
+      letter-spacing: -0.02em;
     }
 
     .user-handle {
       font-size: 14px;
-      color: #6b7280;
+      font-weight: 400;
+      color: #6B7280;
     }
 
-    /* Balance Card */
+    /* Balance Card - Apple Style */
     .balance-card {
       background: white;
-      border-radius: 30px;
-      border: 2px solid #22c55e;
-      padding: 30px;
-      margin-bottom: 20px;
-      box-shadow: 0 20px 60px rgba(34, 197, 94, 0.15);
-      animation: slideUp 0.6s ease;
+      border-radius: 24px;
+      padding: 28px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .balance-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #22c55e, #10b981);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    }
+
+    .balance-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 100%);
+      pointer-events: none;
     }
 
     .balance-label {
-      font-size: 13px;
-      color: #6b7280;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
+      letter-spacing: 1.2px;
+      margin-bottom: 8px;
     }
 
     .balance-amount {
-      font-size: 48px;
-      font-weight: 800;
+      font-size: 44px;
+      font-weight: 700;
       color: #22c55e;
-      margin-bottom: 5px;
-      text-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+      letter-spacing: -0.03em;
+      line-height: 1;
     }
 
     .balance-currency {
-      font-size: 20px;
-      color: #1a1a1a;
-      margin-left: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #0F172A;
+      margin-left: 6px;
     }
 
     .wallet-address {
-      background: #f0fdf4;
-      border-radius: 15px;
-      padding: 12px;
-      margin-top: 15px;
-      font-family: 'Monaco', monospace;
-      font-size: 11px;
+      background: #F7F9F8;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-top: 14px;
+      font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+      font-size: 10px;
+      font-weight: 500;
       color: #22c55e;
       word-break: break-all;
-      border: 1px solid #22c55e;
+      letter-spacing: -0.02em;
     }
 
-    /* Action Buttons */
+    /* Action Buttons - Apple Hierarchy */
     .action-buttons {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-bottom: 30px;
+      margin-bottom: 24px;
     }
 
     .action-btn {
       background: white;
-      border: 2px solid #22c55e;
-      border-radius: 20px;
-      padding: 20px;
-      color: #22c55e;
-      font-size: 16px;
+      border: none;
+      border-radius: 16px;
+      padding: 20px 16px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Secondary button - white with green text */
+    .action-btn.secondary {
+      color: #22c55e;
+    }
+
+    .action-btn.secondary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 100%);
+      pointer-events: none;
+    }
+
+    /* Primary button - green gradient */
+    .action-btn.primary {
+      background: linear-gradient(135deg, #22c55e, #10b981);
+      color: white;
+      box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
+    }
+
+    .action-btn.primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+      pointer-events: none;
     }
 
     .action-btn:active {
-      transform: scale(0.95);
-      background: #f0fdf4;
-    }
-
-    .action-btn.primary {
-      background: linear-gradient(135deg, #22c55e, #10b981);
-      border: none;
-      color: white;
-      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
-    }
-
-    .action-btn.primary:active {
-      background: linear-gradient(135deg, #10b981, #059669);
+      transform: scale(0.97);
     }
 
     .action-icon {
-      width: 32px;
-      height: 32px;
+      width: 26px;
+      height: 26px;
     }
 
-    /* Bottom Navigation - Oval */
+    /* Bottom Navigation - Liquid Glass */
     .bottom-nav {
       position: fixed;
       bottom: 20px;
@@ -219,60 +277,65 @@ app.get("/", (req, res) => {
       transform: translateX(-50%);
       width: calc(100% - 40px);
       max-width: 420px;
-      background: white;
-      border: 2px solid #22c55e;
-      border-radius: 50px;
-      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 28px;
+      padding: 8px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      box-shadow: 0 20px 60px rgba(34, 197, 94, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
       z-index: 1000;
-      animation: slideUp 0.8s ease;
+      animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .nav-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
-      padding: 12px 20px;
-      border-radius: 25px;
+      gap: 4px;
+      padding: 10px 18px;
+      border-radius: 20px;
       cursor: pointer;
-      transition: all 0.3s;
-      color: #6b7280;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #6B7280;
       flex: 1;
     }
 
     .nav-item.active {
       background: linear-gradient(135deg, #22c55e, #10b981);
       color: white;
-      box-shadow: 0 5px 20px rgba(34, 197, 94, 0.4);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
     }
 
     .nav-item:active {
-      transform: scale(0.9);
+      transform: scale(0.95);
     }
 
     .nav-icon {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-item.active .nav-icon {
+      transform: translateY(-1px);
     }
 
     .nav-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
+      from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
@@ -289,7 +352,7 @@ app.get("/", (req, res) => {
 
   <!-- Balance Card -->
   <div class="balance-card">
-    <div class="balance-label">БАЛАНС КОШЕЛЬКА</div>
+    <div class="balance-label">Баланс кошелька</div>
     <div>
       <span class="balance-amount" id="balance">0.00</span>
       <span class="balance-currency">USDT</span>
@@ -299,15 +362,17 @@ app.get("/", (req, res) => {
 
   <!-- Action Buttons -->
   <div class="action-buttons">
-    <button class="action-btn" onclick="handleDeposit()">
-      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 5v14m-7-7l7 7 7-7"/>
+    <button class="action-btn secondary" onclick="handleDeposit()">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <polyline points="19 12 12 19 5 12"/>
       </svg>
       <span>Пополнить</span>
     </button>
     <button class="action-btn primary" onclick="handleWithdraw()">
-      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 19V5m-7 7l7-7 7 7"/>
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"/>
+        <polyline points="5 12 12 5 19 12"/>
       </svg>
       <span>Вывести</span>
     </button>
@@ -316,21 +381,21 @@ app.get("/", (req, res) => {
   <!-- Bottom Navigation -->
   <div class="bottom-nav">
     <div class="nav-item active" onclick="handleNav('profile')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </svg>
       <div class="nav-label">Профиль</div>
     </div>
     <div class="nav-item" onclick="handleNav('play')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
         <polyline points="17 2 12 7 7 2"/>
       </svg>
       <div class="nav-label">Играть</div>
     </div>
     <div class="nav-item" onclick="handleNav('invite')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
         <circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -343,8 +408,8 @@ app.get("/", (req, res) => {
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.setBackgroundColor('#ffffff');
-    tg.setHeaderColor('#ffffff');
+    tg.setBackgroundColor('#F7F9F8');
+    tg.setHeaderColor('#F7F9F8');
 
     // Load user data from Telegram
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
@@ -367,7 +432,7 @@ app.get("/", (req, res) => {
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
-      // Generate wallet address based on user ID
+      // Generate wallet address
       const mockAddress = 'TFnxsXeap4K9MzpQUecxCqumYJJyHR3rzq';
       document.getElementById('wallet-address').textContent = mockAddress;
 
@@ -406,7 +471,7 @@ app.get("/", (req, res) => {
     function handleNav(section) {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
-      // Update active state
+      // Update active state with smooth transition
       document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
       });
