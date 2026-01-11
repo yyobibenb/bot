@@ -350,21 +350,13 @@ app.get("/", (req, res) => {
       <div class="nav-icon">👤</div>
       <div class="nav-label">Профиль</div>
     </div>
-    <div class="nav-item" onclick="handleNav('p2p')">
-      <div class="nav-icon">💱</div>
-      <div class="nav-label">P2P</div>
+    <div class="nav-item" onclick="handleNav('play')">
+      <div class="nav-icon">🎮</div>
+      <div class="nav-label">Играть</div>
     </div>
-    <div class="nav-item" onclick="handleNav('deals')">
-      <div class="nav-icon">💼</div>
-      <div class="nav-label">Сделки</div>
-    </div>
-    <div class="nav-item" onclick="handleNav('create')">
-      <div class="nav-icon">➕</div>
-      <div class="nav-label">Создать</div>
-    </div>
-    <div class="nav-item" onclick="handleNav('qr')">
-      <div class="nav-icon">📱</div>
-      <div class="nav-label">QR</div>
+    <div class="nav-item" onclick="handleNav('invite')">
+      <div class="nav-icon">🤝</div>
+      <div class="nav-label">Пригласить</div>
     </div>
   </div>
 
