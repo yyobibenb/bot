@@ -79,7 +79,7 @@ app.get("/", (req, res) => {
       min-height: 100vh;
       color: var(--text-primary);
       padding: 24px;
-      padding-bottom: 120px;
+      padding-bottom: 130px;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -136,16 +136,17 @@ app.get("/", (req, res) => {
       color: var(--text-secondary);
     }
 
-    /* Glass Card - No borders! */
+    /* Glass Card - Balance Centered */
     .glass-card {
       margin-top: 20px;
-      padding: 24px 20px;
+      padding: 28px 24px;
       background: var(--glass-card);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
       border-radius: 22px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
       animation: slideUp 0.5s ease;
+      text-align: center;
     }
 
     .balance-label {
@@ -154,11 +155,11 @@ app.get("/", (req, res) => {
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
     .balance-amount {
-      font-size: 44px;
+      font-size: 52px;
       font-weight: 700;
       color: var(--accent-green);
       letter-spacing: -0.03em;
@@ -166,34 +167,23 @@ app.get("/", (req, res) => {
     }
 
     .balance-currency {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 600;
       color: var(--text-primary);
-      margin-left: 6px;
+      margin-left: 8px;
     }
 
-    .wallet-address {
-      background: rgba(247, 249, 248, 0.8);
-      border-radius: 12px;
-      padding: 10px 12px;
-      margin-top: 14px;
-      font-family: 'SF Mono', 'Monaco', monospace;
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--accent-green);
-      word-break: break-all;
-    }
-
-    /* Stats - Second Layer */
+    /* Stats - Above Buttons */
     .stats {
       display: flex;
       gap: 12px;
-      margin-top: 16px;
+      margin-top: 20px;
+      margin-bottom: 12px;
     }
 
     .stat {
       flex: 1;
-      padding: 12px;
+      padding: 14px 12px;
       border-radius: 16px;
       background: rgba(255, 255, 255, 0.65);
       backdrop-filter: blur(16px);
@@ -205,11 +195,11 @@ app.get("/", (req, res) => {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
 
-    /* Action Buttons - No borders! */
+    /* Action Buttons */
     .actions {
       display: flex;
       gap: 12px;
-      margin-top: 20px;
+      margin-top: 8px;
     }
 
     .btn {
@@ -248,26 +238,28 @@ app.get("/", (req, res) => {
       height: 20px;
     }
 
-    /* Bottom TabBar - iOS 17 Style with Icons */
+    /* Bottom TabBar - Bigger! */
     .tabbar {
       position: fixed;
       bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 450px;
 
       display: flex;
       gap: 8px;
-      padding: 10px 14px;
+      padding: 12px 16px;
 
-      height: 72px;
+      height: 82px;
 
       background: var(--glass-bg);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
 
-      border-radius: 28px;
+      border-radius: 30px;
       box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.12),
+        0 12px 36px rgba(0, 0, 0, 0.14),
         inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
       z-index: 1000;
@@ -283,10 +275,10 @@ app.get("/", (req, res) => {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 6px;
 
-      padding: 8px 12px;
-      border-radius: 20px;
+      padding: 10px 14px;
+      border-radius: 22px;
       color: var(--text-secondary);
 
       cursor: pointer;
@@ -298,13 +290,14 @@ app.get("/", (req, res) => {
     }
 
     .tab-icon {
-      font-size: 24px;
+      width: 28px;
+      height: 28px;
       transition: transform 0.25s ease;
     }
 
     .tab-label {
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: 0.2px;
     }
 
@@ -313,12 +306,12 @@ app.get("/", (req, res) => {
       color: var(--accent-green-dark);
 
       box-shadow:
-        0 6px 18px rgba(34, 197, 94, 0.25),
+        0 6px 18px rgba(34, 197, 94, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
 
     .tab.active .tab-icon {
-      transform: translateY(-1px);
+      transform: translateY(-2px);
     }
 
     @keyframes fadeIn {
@@ -340,33 +333,32 @@ app.get("/", (req, res) => {
     <div class="user-handle" id="handle">@username</div>
   </div>
 
-  <!-- Balance Card -->
+  <!-- Balance Card - Centered -->
   <div class="glass-card">
     <div class="balance-label">Баланс кошелька</div>
     <div>
       <span class="balance-amount" id="balance">0.00</span>
       <span class="balance-currency">USDT</span>
     </div>
-    <div class="wallet-address" id="wallet-address">Loading wallet...</div>
+  </div>
 
-    <!-- Stats - Second Layer -->
-    <div class="stats">
-      <div class="stat">🎯 Игр: 12</div>
-      <div class="stat">🏆 Побед: 5</div>
-    </div>
+  <!-- Stats - Above Buttons -->
+  <div class="stats">
+    <div class="stat">🎯 Игр: 12</div>
+    <div class="stat">🏆 Побед: 5</div>
   </div>
 
   <!-- Action Buttons -->
   <div class="actions">
     <button class="btn secondary" onclick="handleDeposit()">
-      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <polyline points="19 12 12 19 5 12"/>
       </svg>
       <span>Пополнить</span>
     </button>
     <button class="btn primary" onclick="handleWithdraw()">
-      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="19" x2="12" y2="5"/>
         <polyline points="5 12 12 5 19 12"/>
       </svg>
@@ -374,18 +366,30 @@ app.get("/", (req, res) => {
     </button>
   </div>
 
-  <!-- Bottom TabBar - iOS 17 Style -->
+  <!-- Bottom TabBar - BIGGER -->
   <div class="tabbar">
     <button class="tab active" onclick="handleNav(event, 'profile')">
-      <span class="tab-icon">👤</span>
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
       <span class="tab-label">Профиль</span>
     </button>
     <button class="tab" onclick="handleNav(event, 'play')">
-      <span class="tab-icon">🎲</span>
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+        <circle cx="12" cy="14" r="4"/>
+        <line x1="12" y1="6" x2="12" y2="6"/>
+      </svg>
       <span class="tab-label">Играть</span>
     </button>
     <button class="tab" onclick="handleNav(event, 'invite')">
-      <span class="tab-icon">➕</span>
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
       <span class="tab-label">Пригласить</span>
     </button>
   </div>
@@ -396,28 +400,35 @@ app.get("/", (req, res) => {
     tg.setBackgroundColor('#f7f9f8');
     tg.setHeaderColor('#f7f9f8');
 
+    console.log('Telegram WebApp initialized');
+    console.log('Init data:', tg.initData);
+    console.log('Init data unsafe:', tg.initDataUnsafe);
+
     // Load user data from Telegram
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
+
+      console.log('User data:', user);
 
       // Set username
       const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
       document.getElementById('username').textContent = fullName;
       document.getElementById('handle').textContent = '@' + (user.username || 'user' + user.id);
 
-      // Set avatar from Telegram profile photo
+      // Set avatar from Telegram
       const avatar = document.getElementById('avatar');
 
+      // Telegram WebApp API doesn't directly provide photo_url
+      // We need to get it from bot or use first letter
       if (user.photo_url) {
+        console.log('Photo URL:', user.photo_url);
         avatar.style.backgroundImage = \`url(\${user.photo_url})\`;
         avatar.textContent = '';
       } else {
+        // Use first letter as fallback
+        console.log('No photo, using first letter');
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
-
-      // Generate wallet address
-      const mockAddress = 'TFnxsXeap4K9MzpQUecxCqumYJJyHR3rzq';
-      document.getElementById('wallet-address').textContent = mockAddress;
 
       // Save user data to backend
       fetch('/api/user', {
@@ -430,15 +441,22 @@ app.get("/", (req, res) => {
           username: user.username || '',
           first_name: user.first_name,
           last_name: user.last_name || '',
-          photo_url: user.photo_url || ''
+          language_code: user.language_code || '',
+          is_premium: user.is_premium || false
         })
       }).then(response => response.json())
         .then(data => {
+          console.log('User saved:', data);
           if (data.balance !== undefined) {
             document.getElementById('balance').textContent = data.balance.toFixed(2);
           }
         })
         .catch(err => console.error('Error saving user:', err));
+    } else {
+      console.warn('No user data available from Telegram');
+      // Show placeholder data for testing
+      document.getElementById('username').textContent = 'Test User';
+      document.getElementById('handle').textContent = '@testuser';
     }
 
     function handleDeposit() {
@@ -463,11 +481,13 @@ app.get("/", (req, res) => {
       if (section === 'play') {
         tg.showAlert('🎮 Игра скоро будет доступна!');
       } else if (section === 'invite') {
-        const user = tg.initDataUnsafe.user;
-        const botUsername = 'YOUR_BOT_USERNAME';
-        const inviteUrl = \`https://t.me/\${botUsername}?start=\${user.id}\`;
-        const shareText = 'Присоединяйся ко мне в Casino App!';
-        tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+          const botUsername = 'YOUR_BOT_USERNAME';
+          const inviteUrl = \`https://t.me/\${botUsername}?start=\${user.id}\`;
+          const shareText = 'Присоединяйся ко мне в Casino App!';
+          tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
+        }
       }
     }
   </script>
@@ -479,7 +499,9 @@ app.get("/", (req, res) => {
 // API для сохранения данных пользователя
 app.post("/api/user", async (req, res) => {
   try {
-    const { telegram_id, username, first_name, last_name, photo_url } = req.body;
+    const { telegram_id, username, first_name, last_name, language_code, is_premium } = req.body;
+
+    console.log('Received user data:', { telegram_id, username, first_name, last_name });
 
     res.json({
       success: true,
@@ -489,7 +511,8 @@ app.post("/api/user", async (req, res) => {
         username,
         first_name,
         last_name,
-        photo_url
+        language_code,
+        is_premium
       }
     });
   } catch (error) {
