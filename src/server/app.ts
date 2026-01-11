@@ -951,7 +951,7 @@ app.post("/api/games/dice/higher-lower", async (req, res) => {
     }
 
     const result = await DiceGameService.playHigherLower(user_id, bet_amount, choice);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -972,7 +972,7 @@ app.post("/api/games/dice/even-odd", async (req, res) => {
     }
 
     const result = await DiceGameService.playEvenOdd(user_id, bet_amount, choice);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -989,7 +989,7 @@ app.post("/api/games/dice/exact-number", async (req, res) => {
     }
 
     const result = await DiceGameService.playExactNumber(user_id, bet_amount, parseInt(choice));
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1005,8 +1005,13 @@ app.post("/api/games/dice/sector", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
 
-    const result = await DiceGameService.playSector(user_id, bet_amount, parseInt(sector));
-    res.json({ success: true, ...result });
+    const sectorNum = parseInt(sector);
+    if (sectorNum !== 1 && sectorNum !== 2 && sectorNum !== 3) {
+      return res.status(400).json({ success: false, error: "Invalid sector. Must be 1, 2, or 3" });
+    }
+
+    const result = await DiceGameService.playSector(user_id, bet_amount, sectorNum as 1 | 2 | 3);
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1023,7 +1028,7 @@ app.post("/api/games/dice/duel", async (req, res) => {
     }
 
     const result = await DiceGameService.playDuel(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1040,7 +1045,7 @@ app.post("/api/games/dice/double", async (req, res) => {
     }
 
     const result = await DiceGameService.playDouble(user_id, bet_amount, choice);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1057,7 +1062,7 @@ app.post("/api/games/dice/triple", async (req, res) => {
     }
 
     const result = await DiceGameService.playTriple(user_id, bet_amount, choice);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1074,7 +1079,7 @@ app.post("/api/games/dice/sequence", async (req, res) => {
     }
 
     const result = await DiceGameService.playSequence(user_id, bet_amount, choices);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1124,7 +1129,7 @@ app.post("/api/games/bowling/strike", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playBowlingStrike(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing bowling:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1138,7 +1143,7 @@ app.post("/api/games/bowling/duel", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playBowlingDuel(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing bowling:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1154,7 +1159,7 @@ app.post("/api/games/football/goal", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playFootballGoal(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing football:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1168,7 +1173,7 @@ app.post("/api/games/football/miss", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playFootballMiss(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing football:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1182,7 +1187,7 @@ app.post("/api/games/football/duel", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playFootballDuel(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing football:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1198,7 +1203,7 @@ app.post("/api/games/basketball/goal", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playBasketballGoal(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing basketball:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1212,7 +1217,7 @@ app.post("/api/games/basketball/miss", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playBasketballMiss(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing basketball:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1228,7 +1233,7 @@ app.post("/api/games/darts/red", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playDartsRed(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing darts:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1242,7 +1247,7 @@ app.post("/api/games/darts/white", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playDartsWhite(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing darts:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1256,7 +1261,7 @@ app.post("/api/games/darts/center", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playDartsCenter(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing darts:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
@@ -1270,7 +1275,7 @@ app.post("/api/games/darts/miss", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
     const result = await OtherGamesService.playDartsMiss(user_id, bet_amount);
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     console.error("Error playing darts:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
