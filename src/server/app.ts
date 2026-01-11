@@ -48,157 +48,380 @@ app.get("/", (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Мини Приложение</title>
+  <title>Casino App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a1f1a 0%, #1a3a2e 50%, #0f2922 100%);
       min-height: 100vh;
+      color: white;
+      padding: 20px;
+      padding-bottom: 120px;
+      overflow-x: hidden;
+    }
+
+    /* Profile Section */
+    .profile-section {
+      text-align: center;
+      margin-bottom: 30px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid rgba(34, 197, 94, 0.5);
+      background: linear-gradient(135deg, #22c55e, #10b981);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      padding: 20px;
+      font-size: 48px;
+      box-shadow: 0 20px 60px rgba(34, 197, 94, 0.4);
+      animation: glow 3s ease-in-out infinite;
     }
 
-    .container {
-      max-width: 400px;
-      width: 100%;
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 20px 60px rgba(34, 197, 94, 0.4); }
+      50% { box-shadow: 0 20px 80px rgba(34, 197, 94, 0.7); }
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .header h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
+    .username {
+      font-size: 24px;
       font-weight: 700;
+      margin-bottom: 5px;
+      background: linear-gradient(135deg, #ffffff, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    .header p {
-      font-size: 16px;
-      opacity: 0.9;
+    .user-handle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
     }
 
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    /* Balance Card */
+    .balance-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.6s ease;
     }
 
-    .btn {
-      background: rgba(255, 255, 255, 0.15);
+    .balance-label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .balance-amount {
+      font-size: 48px;
+      font-weight: 800;
+      color: #22c55e;
+      margin-bottom: 5px;
+      text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+    }
+
+    .balance-currency {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-left: 8px;
+    }
+
+    .wallet-address {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      padding: 12px;
+      margin-top: 15px;
+      font-family: 'Monaco', monospace;
+      font-size: 11px;
+      color: #22c55e;
+      word-break: break-all;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 16px;
-      padding: 20px;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 20px;
+      padding: 16px;
       color: white;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 8px;
     }
 
-    .btn:active {
+    .action-btn:active {
       transform: scale(0.95);
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(34, 197, 94, 0.2);
+      border-color: #22c55e;
     }
 
-    .btn-icon {
-      font-size: 28px;
+    .action-btn.primary {
+      background: linear-gradient(135deg, #22c55e, #10b981);
+      border: none;
+      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
     }
 
-    .user-info {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 30px;
-      text-align: center;
+    .action-btn.primary:active {
+      background: linear-gradient(135deg, #10b981, #059669);
     }
 
-    .user-name {
-      font-size: 20px;
+    /* Bottom Navigation - Oval */
+    .bottom-nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 40px);
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 50px;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 100px rgba(34, 197, 94, 0.2);
+      z-index: 1000;
+      animation: slideUp 0.8s ease;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .nav-item.active {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    }
+
+    .nav-item:active {
+      transform: scale(0.9);
+    }
+
+    .nav-icon {
+      font-size: 24px;
+    }
+
+    .nav-label {
+      font-size: 10px;
       font-weight: 600;
-      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .user-id {
-      font-size: 14px;
-      opacity: 0.7;
+    /* Star Rating */
+    .rating {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 25px;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .star {
+      font-size: 32px;
+      filter: grayscale(1) brightness(0.5);
+      transition: all 0.3s;
+    }
+
+    .star.active {
+      filter: grayscale(0) brightness(1);
+      animation: starGlow 0.5s ease;
+    }
+
+    @keyframes starGlow {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Glassmorphism effect */
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🎮 Mini App</h1>
-      <p>Добро пожаловать!</p>
+  <!-- Profile Section -->
+  <div class="profile-section">
+    <div class="avatar-container">
+      <div class="avatar" id="avatar">👤</div>
     </div>
+    <div class="username" id="username">Loading...</div>
+    <div class="user-handle" id="handle">@username</div>
+  </div>
 
-    <div class="user-info" id="user-info">
-      <div class="user-name" id="user-name">Загрузка...</div>
-      <div class="user-id" id="user-id"></div>
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="balance-label">БАЛАНС КОШЕЛЬКА</div>
+    <div>
+      <span class="balance-amount" id="balance">0.00</span>
+      <span class="balance-currency">USDT</span>
     </div>
+    <div class="wallet-address" id="wallet-address">Loading wallet...</div>
+  </div>
 
-    <div class="buttons">
-      <button class="btn" onclick="handleProfile()">
-        <span class="btn-icon">👤</span>
-        <span>Профиль</span>
-      </button>
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button class="action-btn" onclick="handleDeposit()">
+      <span>⬇️</span>
+      <span>Пополнить</span>
+    </button>
+    <button class="action-btn primary" onclick="handleWithdraw()">
+      <span>⬆️</span>
+      <span>Вывести</span>
+    </button>
+  </div>
 
-      <button class="btn" onclick="handlePlay()">
-        <span class="btn-icon">🎮</span>
-        <span>Играть</span>
-      </button>
+  <!-- Rating Stars -->
+  <div class="rating">
+    <span class="star active">⭐</span>
+    <span class="star active">⭐</span>
+    <span class="star active">⭐</span>
+    <span class="star">⭐</span>
+    <span class="star">⭐</span>
+  </div>
 
-      <button class="btn" onclick="handleInvite()">
-        <span class="btn-icon">🤝</span>
-        <span>Пригласить</span>
-      </button>
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="handleNav('profile')">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">Профиль</div>
+    </div>
+    <div class="nav-item" onclick="handleNav('p2p')">
+      <div class="nav-icon">💱</div>
+      <div class="nav-label">P2P</div>
+    </div>
+    <div class="nav-item" onclick="handleNav('deals')">
+      <div class="nav-icon">💼</div>
+      <div class="nav-label">Сделки</div>
+    </div>
+    <div class="nav-item" onclick="handleNav('create')">
+      <div class="nav-icon">➕</div>
+      <div class="nav-label">Создать</div>
+    </div>
+    <div class="nav-item" onclick="handleNav('qr')">
+      <div class="nav-icon">📱</div>
+      <div class="nav-label">QR</div>
     </div>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
+    tg.setBackgroundColor('#0a1f1a');
+    tg.setHeaderColor('#0a1f1a');
 
-    // Показываем информацию о пользователе
+    // Load user data
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
-      document.getElementById('user-name').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-      document.getElementById('user-id').textContent = '@' + (user.username || 'user' + user.id);
+
+      // Set username
+      const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+      document.getElementById('username').textContent = fullName;
+      document.getElementById('handle').textContent = '@' + (user.username || 'user' + user.id);
+
+      // Set avatar (first letter or photo)
+      const avatar = document.getElementById('avatar');
+      if (user.photo_url) {
+        avatar.style.backgroundImage = \`url(\${user.photo_url})\`;
+        avatar.style.backgroundSize = 'cover';
+        avatar.textContent = '';
+      } else {
+        avatar.textContent = fullName.charAt(0).toUpperCase();
+      }
+
+      // Generate mock wallet address
+      const mockAddress = 'T' + user.id.toString().padStart(33, '0');
+      document.getElementById('wallet-address').textContent = mockAddress;
+
+      // Random balance for demo
+      const randomBalance = (Math.random() * 1000).toFixed(2);
+      document.getElementById('balance').textContent = randomBalance;
     }
 
-    function handleProfile() {
+    function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-      tg.showAlert('Открывается профиль...');
+      tg.showAlert('💰 Функция пополнения скоро будет доступна!');
     }
 
-    function handlePlay() {
+    function handleWithdraw() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-      tg.showAlert('Запускается игра...');
+      tg.showAlert('💸 Функция вывода скоро будет доступна!');
     }
 
-    function handleInvite() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-      const user = tg.initDataUnsafe.user;
-      const botUsername = 'YOUR_BOT_USERNAME'; // Замени на username бота
-      const inviteUrl = \`https://t.me/\${botUsername}?start=\${user.id}\`;
-      const shareUrl = \`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent('Присоединяйся ко мне!')}\`;
-      tg.openTelegramLink(shareUrl);
+    function handleNav(section) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+      // Update active state
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.currentTarget.classList.add('active');
+
+      tg.showAlert('Открывается: ' + section.toUpperCase());
     }
   </script>
 </body>
