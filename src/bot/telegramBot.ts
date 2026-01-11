@@ -6,7 +6,7 @@ import { db } from "../db/database";
 import { tronHelper } from "../utils/tron";
 
 const WELCOME_MESSAGE = `
-🤖 Добро пожаловать в Гарант-Бот!
+🤖 Добро пожаловать в P2P Гарант-Бот!
 
 Этот бот помогает проводить безопасные сделки с использованием USDT TRC20.
 
@@ -21,7 +21,7 @@ const WELCOME_MESSAGE = `
    3. Покупатель переводит USDT на адрес сделки
    4. После подтверждения оплаты выдается seed-фраза кошелька
 
-📱 Используйте кнопки ниже или откройте Mini App для удобного веб-интерфейса!
+📱 Откройте Mini App для работы с ботом!
 `;
 
 export class TelegramBotService {
@@ -291,13 +291,12 @@ export class TelegramBotService {
 
     // Передаём данные через URL как fallback для iOS где initData часто пустой
     const webAppUrl = `${baseUrl}?tgId=${telegramId}&tgUsername=${encodeURIComponent(username)}`;
-    
+
     await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
       parse_mode: "Markdown",
       reply_markup: {
         keyboard: [
-          [{ text: "🎮 Играть", web_app: { url: webAppUrl } }],
-          [{ text: "🤝 Пригласить" }, { text: "👤 Профиль" }],
+          [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
         ],
         resize_keyboard: true,
       },
@@ -593,21 +592,8 @@ ${ratingText}
     }
     this.telegramIdToChatId.set(telegramId, chatId);
 
-    if (text === "🎮 Играть") {
+    if (text === "🚀 Открыть Mini App") {
       return this.handleStart(msg);
-    }
-    if (text === "🤝 Пригласить") {
-      const inviteUrl = `https://t.me/${(await this.bot.getMe()).username}?start=${telegramId}`;
-      return this.bot.sendMessage(chatId, `🎁 Приглашайте друзей и получайте бонусы!\n\nВаша ссылка для приглашения:\n${inviteUrl}`, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🔗 Поделиться", url: `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent("Присоединяйся к лучшему Гарант-боту!")}` }]
-          ]
-        }
-      });
-    }
-    if (text === "👤 Профиль") {
-      return this.handleProfile(msg);
     }
 
     const state = this.userStates.get(telegramId);
