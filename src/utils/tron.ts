@@ -1,9 +1,6 @@
 import * as bip39 from "bip39";
-import { createRequire } from "module";
 import axios from "axios";
-
-const require = createRequire(import.meta.url);
-const { TronWeb } = require("tronweb");
+const TronWeb = require("tronweb");
 
 export interface TronWallet {
   address: string;
