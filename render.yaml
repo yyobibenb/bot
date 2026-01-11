@@ -2,8 +2,11 @@ services:
   - type: web
     name: garant-bot
     env: node
-    buildCommand: npm install && npm run build
+    region: frankfurt
+    plan: free
+    buildCommand: npm ci && npm run build
     startCommand: npm start
+    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 18
@@ -16,4 +19,10 @@ services:
       - key: WEB_APP_URL
         sync: false
       - key: PORT
-        value: 5000
+        value: 10000
+
+databases:
+  - name: garant-bot-db
+    databaseName: garant_bot
+    user: garant_user
+    plan: free
