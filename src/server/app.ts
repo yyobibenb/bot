@@ -51,6 +51,21 @@ app.get("/", (req, res) => {
   <title>Casino App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-active: rgba(255, 255, 255, 0.95);
+      --glass-card: rgba(255, 255, 255, 0.75);
+
+      --text-primary: #0f172a;
+      --text-secondary: #6b7280;
+
+      --accent-green: #22c55e;
+      --accent-green-dark: #16a34a;
+
+      --blur: blur(20px);
+      --radius-full: 999px;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -59,15 +74,12 @@ app.get("/", (req, res) => {
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
-      background: #F7F9F8;
-      background-image:
-        radial-gradient(circle at 0% 0%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.08) 0%, transparent 50%);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+      background: #f7f9f8;
       min-height: 100vh;
-      color: #0F172A;
-      padding: 20px;
-      padding-bottom: 120px;
+      color: var(--text-primary);
+      padding: 24px;
+      padding-bottom: 100px;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -77,104 +89,72 @@ app.get("/", (req, res) => {
     .profile-section {
       text-align: center;
       margin-bottom: 24px;
-      animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeIn 0.5s ease;
     }
 
-    .avatar-container {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 16px;
-    }
-
-    .avatar {
-      width: 100px;
-      height: 100px;
+    .avatar-glass {
+      width: 96px;
+      height: 96px;
+      margin: 20px auto 16px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #22c55e, #10b981);
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 40px;
       font-weight: 600;
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+      color: white;
+      box-shadow:
+        0 0 0 6px rgba(34, 197, 94, 0.15),
+        0 12px 32px rgba(0, 0, 0, 0.12);
       background-size: cover;
       background-position: center;
-      color: white;
-      animation: avatarPulse 3s ease-in-out infinite;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.3s ease;
     }
 
-    .avatar:active {
+    .avatar-glass:active {
       transform: scale(0.97);
-    }
-
-    @keyframes avatarPulse {
-      0%, 100% { box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2); }
-      50% { box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35); }
     }
 
     .username {
       font-size: 22px;
       font-weight: 600;
       margin-bottom: 4px;
-      color: #0F172A;
+      color: var(--text-primary);
       letter-spacing: -0.02em;
     }
 
     .user-handle {
       font-size: 14px;
       font-weight: 400;
-      color: #6B7280;
+      color: var(--text-secondary);
     }
 
-    /* Balance Card - Apple Style */
-    .balance-card {
-      background: white;
-      border-radius: 24px;
-      padding: 28px 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-      position: relative;
-      overflow: hidden;
-      animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .balance-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #22c55e, #10b981);
-      box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
-    }
-
-    .balance-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 80px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 100%);
-      pointer-events: none;
+    /* Glass Card - No borders! */
+    .glass-card {
+      margin-top: 20px;
+      padding: 24px 20px;
+      background: var(--glass-card);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      animation: slideUp 0.5s ease;
     }
 
     .balance-label {
       font-size: 11px;
       font-weight: 600;
-      color: #6B7280;
+      color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 1.2px;
+      letter-spacing: 1px;
       margin-bottom: 8px;
     }
 
     .balance-amount {
       font-size: 44px;
       font-weight: 700;
-      color: #22c55e;
+      color: var(--accent-green);
       letter-spacing: -0.03em;
       line-height: 1;
     }
@@ -182,151 +162,110 @@ app.get("/", (req, res) => {
     .balance-currency {
       font-size: 18px;
       font-weight: 600;
-      color: #0F172A;
+      color: var(--text-primary);
       margin-left: 6px;
     }
 
     .wallet-address {
-      background: #F7F9F8;
+      background: rgba(247, 249, 248, 0.8);
       border-radius: 12px;
       padding: 10px 12px;
       margin-top: 14px;
-      font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+      font-family: 'SF Mono', 'Monaco', monospace;
       font-size: 10px;
       font-weight: 500;
-      color: #22c55e;
+      color: var(--accent-green);
       word-break: break-all;
-      letter-spacing: -0.02em;
     }
 
-    /* Action Buttons - Apple Hierarchy */
-    .action-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    /* Action Buttons - No borders! */
+    .actions {
+      display: flex;
       gap: 12px;
-      margin-bottom: 24px;
+      margin-top: 20px;
     }
 
-    .action-btn {
-      background: white;
-      border: none;
-      border-radius: 16px;
-      padding: 20px 16px;
+    .btn {
+      flex: 1;
+      padding: 16px;
+      border-radius: 18px;
       font-size: 15px;
       font-weight: 600;
+      border: none;
       cursor: pointer;
+      transition: all 0.2s ease;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
+      gap: 6px;
     }
 
-    /* Secondary button - white with green text */
-    .action-btn.secondary {
-      color: #22c55e;
-    }
-
-    .action-btn.secondary::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 100%;
-      background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 100%);
-      pointer-events: none;
-    }
-
-    /* Primary button - green gradient */
-    .action-btn.primary {
-      background: linear-gradient(135deg, #22c55e, #10b981);
-      color: white;
-      box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
-    }
-
-    .action-btn.primary::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 50%;
-      background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
-      pointer-events: none;
-    }
-
-    .action-btn:active {
+    .btn:active {
       transform: scale(0.97);
     }
 
-    .action-icon {
-      width: 26px;
-      height: 26px;
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
+      color: white;
+      box-shadow: 0 6px 18px rgba(34, 197, 94, 0.25);
     }
 
-    /* Bottom Navigation - Liquid Glass */
-    .bottom-nav {
+    .btn.secondary {
+      background: white;
+      color: var(--accent-green);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Bottom TabBar - Telegram Style Segmented Control */
+    .tabbar-glass {
       position: fixed;
-      bottom: 20px;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
-      width: calc(100% - 40px);
-      max-width: 420px;
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border-radius: 28px;
-      padding: 8px;
+
       display: flex;
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
+      gap: 6px;
+      padding: 6px;
+
+      background: var(--glass-bg);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+
+      border-radius: var(--radius-full);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
       z-index: 1000;
-      animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: slideUp 0.6s ease;
     }
 
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 10px 18px;
-      border-radius: 20px;
+    .tab-item {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+
+      border-radius: var(--radius-full);
+      font-size: 15px;
+      font-weight: 500;
+
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      color: #6B7280;
-      flex: 1;
+      transition: all 0.25s ease;
+
+      white-space: nowrap;
     }
 
-    .nav-item.active {
-      background: linear-gradient(135deg, #22c55e, #10b981);
-      color: white;
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-    }
+    .tab-item.active {
+      background: var(--glass-active);
+      color: var(--text-primary);
 
-    .nav-item:active {
-      transform: scale(0.95);
-    }
-
-    .nav-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .nav-item.active .nav-icon {
-      transform: translateY(-1px);
-    }
-
-    .nav-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     @keyframes fadeIn {
@@ -343,15 +282,13 @@ app.get("/", (req, res) => {
 <body>
   <!-- Profile Section -->
   <div class="profile-section">
-    <div class="avatar-container">
-      <div class="avatar" id="avatar">👤</div>
-    </div>
+    <div class="avatar-glass" id="avatar">👤</div>
     <div class="username" id="username">Loading...</div>
     <div class="user-handle" id="handle">@username</div>
   </div>
 
   <!-- Balance Card -->
-  <div class="balance-card">
+  <div class="glass-card">
     <div class="balance-label">Баланс кошелька</div>
     <div>
       <span class="balance-amount" id="balance">0.00</span>
@@ -361,16 +298,16 @@ app.get("/", (req, res) => {
   </div>
 
   <!-- Action Buttons -->
-  <div class="action-buttons">
-    <button class="action-btn secondary" onclick="handleDeposit()">
-      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <div class="actions">
+    <button class="btn secondary" onclick="handleDeposit()">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <polyline points="19 12 12 19 5 12"/>
       </svg>
       <span>Пополнить</span>
     </button>
-    <button class="action-btn primary" onclick="handleWithdraw()">
-      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button class="btn primary" onclick="handleWithdraw()">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="19" x2="12" y2="5"/>
         <polyline points="5 12 12 5 19 12"/>
       </svg>
@@ -378,38 +315,24 @@ app.get("/", (req, res) => {
     </button>
   </div>
 
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="handleNav('profile')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-      <div class="nav-label">Профиль</div>
-    </div>
-    <div class="nav-item" onclick="handleNav('play')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
-        <polyline points="17 2 12 7 7 2"/>
-      </svg>
-      <div class="nav-label">Играть</div>
-    </div>
-    <div class="nav-item" onclick="handleNav('invite')">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      <div class="nav-label">Пригласить</div>
-    </div>
+  <!-- Bottom TabBar - Telegram Segmented Style -->
+  <div class="tabbar-glass">
+    <button class="tab-item active" onclick="handleNav(event, 'profile')">
+      Профиль
+    </button>
+    <button class="tab-item" onclick="handleNav(event, 'play')">
+      Играть
+    </button>
+    <button class="tab-item" onclick="handleNav(event, 'invite')">
+      Пригласить
+    </button>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.setBackgroundColor('#F7F9F8');
-    tg.setHeaderColor('#F7F9F8');
+    tg.setBackgroundColor('#f7f9f8');
+    tg.setHeaderColor('#f7f9f8');
 
     // Load user data from Telegram
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
@@ -423,12 +346,10 @@ app.get("/", (req, res) => {
       // Set avatar from Telegram profile photo
       const avatar = document.getElementById('avatar');
 
-      // Try to get profile photo from Telegram
       if (user.photo_url) {
         avatar.style.backgroundImage = \`url(\${user.photo_url})\`;
         avatar.textContent = '';
       } else {
-        // Use first letter of name
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
@@ -468,11 +389,11 @@ app.get("/", (req, res) => {
       tg.showAlert('💸 Функция вывода скоро будет доступна!');
     }
 
-    function handleNav(section) {
+    function handleNav(event, section) {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
-      // Update active state with smooth transition
-      document.querySelectorAll('.nav-item').forEach(item => {
+      // Update active state
+      document.querySelectorAll('.tab-item').forEach(item => {
         item.classList.remove('active');
       });
       event.currentTarget.classList.add('active');
@@ -498,8 +419,6 @@ app.post("/api/user", async (req, res) => {
   try {
     const { telegram_id, username, first_name, last_name, photo_url } = req.body;
 
-    // Здесь будет сохранение в БД
-    // Пока возвращаем mock данные
     res.json({
       success: true,
       balance: 0.00,
