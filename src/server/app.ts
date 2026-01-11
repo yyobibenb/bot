@@ -301,7 +301,7 @@ app.get("/", (req, res) => {
       gap: 8px;
       padding: 12px 16px;
 
-      height: 72px;
+      height: 78px;
 
       background: var(--glass-bg);
       backdrop-filter: var(--blur);
@@ -340,8 +340,8 @@ app.get("/", (req, res) => {
     }
 
     .tab-icon {
-      width: 28px;
-      height: 28px;
+      width: 40px;
+      height: 40px;
       transition: transform 0.25s ease;
     }
 
@@ -457,83 +457,104 @@ app.get("/", (req, res) => {
 
   <script>
     const tg = window.Telegram.WebApp;
+
+    console.log('=== Telegram WebApp Debug START ===');
+    console.log('1. WebApp доступен?', typeof window.Telegram !== 'undefined');
+    console.log('2. tg.isVersionAtLeast:', tg.isVersionAtLeast ? tg.isVersionAtLeast('6.0') : 'N/A');
+    console.log('3. Platform:', tg.platform);
+    console.log('4. Version:', tg.version);
+    console.log('5. initData length:', tg.initData ? tg.initData.length : 0);
+    console.log('6. initData (raw):', tg.initData);
+    console.log('7. initDataUnsafe (parsed):', JSON.stringify(tg.initDataUnsafe, null, 2));
+
+    // Ready and expand
+    tg.ready();
     tg.expand();
     tg.setBackgroundColor('#e8f7f9');
     tg.setHeaderColor('#e8f7f9');
 
-    console.log('=== Telegram WebApp Debug ===');
-    console.log('WebApp available:', typeof window.Telegram !== 'undefined');
-    console.log('tg object:', tg);
-    console.log('tg.initData:', tg.initData);
-    console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
-    console.log('Platform:', tg.platform);
-    console.log('Version:', tg.version);
+    // Function to load user data
+    function loadUserData() {
+      console.log('=== Попытка загрузки данных пользователя ===');
 
-    // Wait a bit for Telegram to initialize
-    setTimeout(() => {
-      console.log('=== After timeout ===');
-      console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
-
-      // Load user data from Telegram
+      // Check if user data exists
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const user = tg.initDataUnsafe.user;
+        const user = tg.initDataUnsafe.user;
 
-      console.log('✅ User data found:', user);
-
-      // Set username
-      const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-      document.getElementById('username').textContent = fullName;
-      document.getElementById('handle').textContent = '@' + (user.username || 'user' + user.id);
-
-      // Set avatar from Telegram
-      const avatar = document.getElementById('avatar');
-
-      // Telegram WebApp API doesn't directly provide photo_url
-      // We need to get it from bot or use first letter
-      if (user.photo_url) {
+        console.log('✅ ДАННЫЕ НАЙДЕНЫ!');
+        console.log('User ID:', user.id);
+        console.log('First name:', user.first_name);
+        console.log('Last name:', user.last_name);
+        console.log('Username:', user.username);
+        console.log('Language:', user.language_code);
         console.log('Photo URL:', user.photo_url);
-        avatar.style.backgroundImage = \`url(\${user.photo_url})\`;
-        avatar.textContent = '';
-      } else {
-        // Use first letter as fallback
-        console.log('No photo, using first letter');
+
+        // Set username
+        const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+        document.getElementById('username').textContent = fullName;
+        document.getElementById('handle').textContent = '@' + (user.username || 'user' + user.id);
+
+        // Set avatar from Telegram
+        const avatar = document.getElementById('avatar');
+
+        // Use first letter as avatar
+        console.log('Устанавливаю аватар с первой буквой:', fullName.charAt(0));
         avatar.textContent = fullName.charAt(0).toUpperCase();
+
+        // Try to get photo from bot API (need to implement)
+        // For now, just use first letter
+
+        // Save user data to backend
+        fetch('/api/user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            telegram_id: user.id,
+            username: user.username || '',
+            first_name: user.first_name,
+            last_name: user.last_name || '',
+            language_code: user.language_code || '',
+            is_premium: user.is_premium || false
+          })
+        }).then(response => response.json())
+          .then(data => {
+            console.log('✅ User saved to backend:', data);
+            if (data.balance !== undefined) {
+              document.getElementById('balance').textContent = data.balance.toFixed(2);
+            }
+          })
+          .catch(err => console.error('❌ Error saving user:', err));
+      } else {
+        console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
+        console.log('initData пустой?', !tg.initData || tg.initData.length === 0);
+        console.log('initDataUnsafe пустой?', !tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0);
+        console.log('Что в initDataUnsafe:', tg.initDataUnsafe);
+
+        console.log('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:');
+        console.log('1. Mini App не открыт через Telegram бота');
+        console.log('2. WEB_APP_URL не настроен в BotFather (/newapp или /myapps)');
+        console.log('3. URL должен быть HTTPS (не HTTP)');
+        console.log('4. Домен должен быть подтверждён в BotFather');
+
+        // Show placeholder data for testing
+        document.getElementById('username').textContent = 'Test User';
+        document.getElementById('handle').textContent = '@testuser';
       }
-
-      // Save user data to backend
-      fetch('/api/user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          telegram_id: user.id,
-          username: user.username || '',
-          first_name: user.first_name,
-          last_name: user.last_name || '',
-          language_code: user.language_code || '',
-          is_premium: user.is_premium || false
-        })
-      }).then(response => response.json())
-        .then(data => {
-          console.log('User saved:', data);
-          if (data.balance !== undefined) {
-            document.getElementById('balance').textContent = data.balance.toFixed(2);
-          }
-        })
-        .catch(err => console.error('Error saving user:', err));
-    } else {
-      console.warn('❌ No user data available from Telegram');
-      console.log('Possible reasons:');
-      console.log('1. App not opened via Telegram bot');
-      console.log('2. initDataUnsafe is empty:', tg.initDataUnsafe);
-      console.log('3. Not running in Telegram environment');
-
-      // Show placeholder data for testing
-      document.getElementById('username').textContent = 'Test User';
-      document.getElementById('handle').textContent = '@testuser';
     }
-    }, 100);
+
+    // Load user data immediately
+    loadUserData();
+
+    // Also try again after 200ms
+    setTimeout(() => {
+      console.log('=== Повторная попытка через 200ms ===');
+      console.log('initDataUnsafe:', tg.initDataUnsafe);
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user && document.getElementById('username').textContent === 'Test User') {
+        loadUserData();
+      }
+    }, 200);
 
     function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
