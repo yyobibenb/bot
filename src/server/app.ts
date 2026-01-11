@@ -1,5 +1,9 @@
 import express from "express";
 import { TelegramBotService } from "../bot/telegramBot";
+import { UserModel } from "../models/User";
+import { BalanceModel } from "../models/Balance";
+import { GameModel } from "../models/Game";
+import { DiceGameService } from "../services/DiceGameService";
 
 const app = express();
 
@@ -600,21 +604,239 @@ app.post("/api/user", async (req, res) => {
 
     console.log('Received user data:', { telegram_id, username, first_name, last_name });
 
+    // Создаем или обновляем пользователя
+    const user = await UserModel.createOrUpdate({
+      telegram_id,
+      username,
+      first_name,
+      last_name,
+      language_code,
+      is_premium
+    });
+
+    // Создаем баланс, если его нет
+    let balance = await BalanceModel.getByUserId(user.id);
+    if (!balance) {
+      balance = await BalanceModel.createForUser(user.id);
+    }
+
     res.json({
       success: true,
-      balance: 0.00,
+      balance: parseFloat(balance.balance.toString()),
       user: {
-        telegram_id,
-        username,
-        first_name,
-        last_name,
-        language_code,
-        is_premium
+        id: user.id,
+        telegram_id: user.telegram_id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        language_code: user.language_code,
+        is_premium: user.is_premium
       }
     });
   } catch (error) {
     console.error("Error saving user:", error);
     res.status(500).json({ success: false, error: "Failed to save user" });
+  }
+});
+
+// API для получения списка игр
+app.get("/api/games", async (req, res) => {
+  try {
+    const games = await GameModel.getAllGames();
+    res.json({ success: true, games });
+  } catch (error) {
+    console.error("Error fetching games:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch games" });
+  }
+});
+
+// API для получения режимов игры
+app.get("/api/games/:gameId/modes", async (req, res) => {
+  try {
+    const gameId = parseInt(req.params.gameId);
+    const modes = await GameModel.getGameModes(gameId);
+    res.json({ success: true, modes });
+  } catch (error) {
+    console.error("Error fetching game modes:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch game modes" });
+  }
+});
+
+// API для игры в кубик - Больше/Меньше
+app.post("/api/games/dice/higher-lower", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (choice !== "higher" && choice !== "lower") {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await DiceGameService.playHigherLower(user_id, bet_amount, choice);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Четное/Нечетное
+app.post("/api/games/dice/even-odd", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (choice !== "even" && choice !== "odd") {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await DiceGameService.playEvenOdd(user_id, bet_amount, choice);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Грань (точное число)
+app.post("/api/games/dice/exact-number", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || choice === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playExactNumber(user_id, bet_amount, parseInt(choice));
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Сектор
+app.post("/api/games/dice/sector", async (req, res) => {
+  try {
+    const { user_id, bet_amount, sector } = req.body;
+
+    if (!user_id || !bet_amount || !sector) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playSector(user_id, bet_amount, parseInt(sector));
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Дуэль
+app.post("/api/games/dice/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playDuel(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - 2X2
+app.post("/api/games/dice/double", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playDouble(user_id, bet_amount, choice);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - 3X3
+app.post("/api/games/dice/triple", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playTriple(user_id, bet_amount, choice);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Подряд (3 числа)
+app.post("/api/games/dice/sequence", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choices } = req.body;
+
+    if (!user_id || !bet_amount || !choices || choices.length !== 3) {
+      return res.status(400).json({ success: false, error: "Missing required fields or invalid choices" });
+    }
+
+    const result = await DiceGameService.playSequence(user_id, bet_amount, choices);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для получения истории игр пользователя
+app.get("/api/user/:userId/history", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const history = await GameModel.getUserGameHistory(userId);
+    res.json({ success: true, history });
+  } catch (error) {
+    console.error("Error fetching game history:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch game history" });
+  }
+});
+
+// API для получения баланса пользователя
+app.get("/api/user/:userId/balance", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const balance = await BalanceModel.getByUserId(userId);
+
+    if (!balance) {
+      return res.status(404).json({ success: false, error: "Balance not found" });
+    }
+
+    res.json({
+      success: true,
+      balance: parseFloat(balance.balance.toString()),
+      total_deposited: parseFloat(balance.total_deposited.toString()),
+      total_withdrawn: parseFloat(balance.total_withdrawn.toString())
+    });
+  } catch (error) {
+    console.error("Error fetching balance:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch balance" });
   }
 });
 
