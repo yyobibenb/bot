@@ -301,7 +301,7 @@ app.get("/", (req, res) => {
       gap: 8px;
       padding: 12px 16px;
 
-      height: 82px;
+      height: 72px;
 
       background: var(--glass-bg);
       backdrop-filter: var(--blur);
@@ -434,9 +434,12 @@ app.get("/", (req, res) => {
     </button>
     <button class="tab" onclick="handleNav(event, 'play')">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-        <circle cx="12" cy="14" r="4"/>
-        <line x1="12" y1="6" x2="12" y2="6"/>
+        <rect x="3" y="3" width="18" height="18" rx="2.5" ry="2.5"/>
+        <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+        <circle cx="16" cy="8" r="1.5" fill="currentColor"/>
+        <circle cx="8" cy="16" r="1.5" fill="currentColor"/>
+        <circle cx="16" cy="16" r="1.5" fill="currentColor"/>
+        <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
       </svg>
       <span class="tab-label">Играть</span>
     </button>
@@ -458,15 +461,24 @@ app.get("/", (req, res) => {
     tg.setBackgroundColor('#e8f7f9');
     tg.setHeaderColor('#e8f7f9');
 
-    console.log('Telegram WebApp initialized');
-    console.log('Init data:', tg.initData);
-    console.log('Init data unsafe:', tg.initDataUnsafe);
+    console.log('=== Telegram WebApp Debug ===');
+    console.log('WebApp available:', typeof window.Telegram !== 'undefined');
+    console.log('tg object:', tg);
+    console.log('tg.initData:', tg.initData);
+    console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
+    console.log('Platform:', tg.platform);
+    console.log('Version:', tg.version);
 
-    // Load user data from Telegram
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    // Wait a bit for Telegram to initialize
+    setTimeout(() => {
+      console.log('=== After timeout ===');
+      console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
+
+      // Load user data from Telegram
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
 
-      console.log('User data:', user);
+      console.log('✅ User data found:', user);
 
       // Set username
       const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
@@ -511,11 +523,17 @@ app.get("/", (req, res) => {
         })
         .catch(err => console.error('Error saving user:', err));
     } else {
-      console.warn('No user data available from Telegram');
+      console.warn('❌ No user data available from Telegram');
+      console.log('Possible reasons:');
+      console.log('1. App not opened via Telegram bot');
+      console.log('2. initDataUnsafe is empty:', tg.initDataUnsafe);
+      console.log('3. Not running in Telegram environment');
+
       // Show placeholder data for testing
       document.getElementById('username').textContent = 'Test User';
       document.getElementById('handle').textContent = '@testuser';
     }
+    }, 100);
 
     function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
