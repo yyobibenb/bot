@@ -4,6 +4,7 @@ import { UserModel } from "../models/User";
 import { BalanceModel } from "../models/Balance";
 import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
+import { OtherGamesService } from "../services/OtherGamesService";
 
 const app = express();
 
@@ -1111,6 +1112,168 @@ app.get("/api/user/:userId/balance", async (req, res) => {
   } catch (error) {
     console.error("Error fetching balance:", error);
     res.status(500).json({ success: false, error: "Failed to fetch balance" });
+  }
+});
+
+// ========== БОУЛИНГ API ==========
+
+app.post("/api/games/bowling/strike", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBowlingStrike(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing bowling:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/bowling/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBowlingDuel(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing bowling:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== ФУТБОЛ API ==========
+
+app.post("/api/games/football/goal", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballGoal(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing football:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/football/miss", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballMiss(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing football:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/football/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballDuel(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing football:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== БАСКЕТБОЛ API ==========
+
+app.post("/api/games/basketball/goal", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballGoal(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing basketball:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/basketball/miss", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballMiss(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing basketball:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== ДАРТС API ==========
+
+app.post("/api/games/darts/red", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsRed(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/darts/white", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsWhite(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/darts/center", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsCenter(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/darts/miss", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsMiss(user_id, bet_amount);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
   }
 });
 
