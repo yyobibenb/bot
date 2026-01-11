@@ -52,7 +52,7 @@ app.get("/", (req, res) => {
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-bg: rgba(255, 255, 255, 0.75);
       --glass-active: rgba(255, 255, 255, 0.95);
       --glass-card: rgba(255, 255, 255, 0.75);
 
@@ -62,7 +62,7 @@ app.get("/", (req, res) => {
       --accent-green: #22c55e;
       --accent-green-dark: #16a34a;
 
-      --blur: blur(20px);
+      --blur: blur(22px);
       --radius-full: 999px;
     }
 
@@ -79,7 +79,7 @@ app.get("/", (req, res) => {
       min-height: 100vh;
       color: var(--text-primary);
       padding: 24px;
-      padding-bottom: 100px;
+      padding-bottom: 120px;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -110,10 +110,16 @@ app.get("/", (req, res) => {
       background-size: cover;
       background-position: center;
       transition: transform 0.3s ease;
+      animation: avatarPulse 3s ease-in-out infinite;
     }
 
     .avatar-glass:active {
-      transform: scale(0.97);
+      transform: scale(0.96);
+    }
+
+    @keyframes avatarPulse {
+      0%, 100% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.15), 0 12px 32px rgba(0, 0, 0, 0.12); }
+      50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.25), 0 14px 36px rgba(0, 0, 0, 0.16); }
     }
 
     .username {
@@ -178,6 +184,27 @@ app.get("/", (req, res) => {
       word-break: break-all;
     }
 
+    /* Stats - Second Layer */
+    .stats {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      flex: 1;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
     /* Action Buttons - No borders! */
     .actions {
       display: flex;
@@ -201,7 +228,7 @@ app.get("/", (req, res) => {
     }
 
     .btn:active {
-      transform: scale(0.97);
+      transform: scale(0.96);
     }
 
     .btn.primary {
@@ -221,51 +248,77 @@ app.get("/", (req, res) => {
       height: 20px;
     }
 
-    /* Bottom TabBar - Telegram Style Segmented Control */
-    .tabbar-glass {
+    /* Bottom TabBar - iOS 17 Style with Icons */
+    .tabbar {
       position: fixed;
       bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
 
       display: flex;
-      gap: 6px;
-      padding: 6px;
+      gap: 8px;
+      padding: 10px 14px;
+
+      height: 72px;
 
       background: var(--glass-bg);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
 
-      border-radius: var(--radius-full);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      border-radius: 28px;
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
       z-index: 1000;
       animation: slideUp 0.6s ease;
     }
 
-    .tab-item {
-      padding: 10px 20px;
+    .tab {
+      flex: 1;
       border: none;
       background: transparent;
 
-      border-radius: var(--radius-full);
-      font-size: 15px;
-      font-weight: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
 
+      padding: 8px 12px;
+      border-radius: 20px;
       color: var(--text-secondary);
+
       cursor: pointer;
       transition: all 0.25s ease;
-
-      white-space: nowrap;
     }
 
-    .tab-item.active {
-      background: var(--glass-active);
-      color: var(--text-primary);
+    .tab:active {
+      transform: scale(0.96);
+    }
+
+    .tab-icon {
+      font-size: 24px;
+      transition: transform 0.25s ease;
+    }
+
+    .tab-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    .tab.active {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--accent-green-dark);
 
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.6),
-        0 4px 12px rgba(0, 0, 0, 0.08);
+        0 6px 18px rgba(34, 197, 94, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .tab.active .tab-icon {
+      transform: translateY(-1px);
     }
 
     @keyframes fadeIn {
@@ -295,6 +348,12 @@ app.get("/", (req, res) => {
       <span class="balance-currency">USDT</span>
     </div>
     <div class="wallet-address" id="wallet-address">Loading wallet...</div>
+
+    <!-- Stats - Second Layer -->
+    <div class="stats">
+      <div class="stat">🎯 Игр: 12</div>
+      <div class="stat">🏆 Побед: 5</div>
+    </div>
   </div>
 
   <!-- Action Buttons -->
@@ -315,16 +374,19 @@ app.get("/", (req, res) => {
     </button>
   </div>
 
-  <!-- Bottom TabBar - Telegram Segmented Style -->
-  <div class="tabbar-glass">
-    <button class="tab-item active" onclick="handleNav(event, 'profile')">
-      Профиль
+  <!-- Bottom TabBar - iOS 17 Style -->
+  <div class="tabbar">
+    <button class="tab active" onclick="handleNav(event, 'profile')">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">Профиль</span>
     </button>
-    <button class="tab-item" onclick="handleNav(event, 'play')">
-      Играть
+    <button class="tab" onclick="handleNav(event, 'play')">
+      <span class="tab-icon">🎲</span>
+      <span class="tab-label">Играть</span>
     </button>
-    <button class="tab-item" onclick="handleNav(event, 'invite')">
-      Пригласить
+    <button class="tab" onclick="handleNav(event, 'invite')">
+      <span class="tab-icon">➕</span>
+      <span class="tab-label">Пригласить</span>
     </button>
   </div>
 
@@ -393,7 +455,7 @@ app.get("/", (req, res) => {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
       // Update active state
-      document.querySelectorAll('.tab-item').forEach(item => {
+      document.querySelectorAll('.tab').forEach(item => {
         item.classList.remove('active');
       });
       event.currentTarget.classList.add('active');
