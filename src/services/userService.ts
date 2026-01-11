@@ -27,6 +27,14 @@ export class UserService {
       encrypted_private_key: CryptoHelper.encrypt(wallet.privateKey),
       encrypted_seed_phrase: CryptoHelper.encrypt(wallet.seedPhrase),
       pin_hash: CryptoHelper.hashPin(pin),
+      average_rating: 0,
+      ratings_count: 0,
+      is_admin: false,
+      is_arbitrator: false,
+      frozen_amount: 0,
+      is_blocked: false,
+      blocked_at: null,
+      blocked_seed_phrase: null,
     });
 
     return {

@@ -1,7 +1,6 @@
 import express from "express";
 import { userService } from "../services/userService";
 import { dealService } from "../services/dealService";
-import { p2pService } from "../services/p2pService";
 import { QRHelper } from "../utils/qr";
 import { CryptoHelper } from "../utils/crypto";
 import { db } from "../db/database";

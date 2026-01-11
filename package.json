@@ -314,5 +314,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6"
+  }
 }
