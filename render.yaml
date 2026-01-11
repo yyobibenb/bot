@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: garant-bot
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: WEB_APP_URL
+        sync: false
+      - key: PORT
+        value: 5000
