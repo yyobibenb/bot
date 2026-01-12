@@ -18,13 +18,13 @@ export class CryptoService {
    * Ленивая загрузка TronWeb (создается только при первом использовании)
    */
   private getTronWeb(): any {
-    if (!this.getTronWeb()) {
+    if (!this.tronWeb) {
       try {
         const TronWeb = require("tronweb");
         const fullHost = "https://api.trongrid.io";
         const privateKey = process.env.TRON_PRIVATE_KEY || "";
 
-        this.getTronWeb() = new TronWeb({
+        this.tronWeb = new TronWeb({
           fullHost,
           privateKey,
         });
@@ -33,7 +33,7 @@ export class CryptoService {
         throw new Error("TronWeb unavailable. Check TRON_PRIVATE_KEY in .env");
       }
     }
-    return this.getTronWeb();
+    return this.tronWeb;
   }
 
   /**
