@@ -5,6 +5,7 @@ import { BalanceModel } from "../models/Balance";
 import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
 import { OtherGamesService } from "../services/OtherGamesService";
+import cryptoService from "../services/CryptoService";
 
 const app = express();
 
@@ -1695,6 +1696,118 @@ app.post("/api/games/darts/miss", async (req, res) => {
   } catch (error: any) {
     console.error("Error playing darts:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ============================================
+// CRYPTO API ENDPOINTS
+// ============================================
+
+// Получить адрес для пополнения
+app.post("/api/crypto/deposit-address", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const address = await cryptoService.getDepositAddress(user_id);
+    res.json({ success: true, address });
+  } catch (error: any) {
+    console.error("Error getting deposit address:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get deposit address" });
+  }
+});
+
+// Проверить депозит
+app.post("/api/crypto/check-deposit", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const result = await cryptoService.checkDeposit(user_id);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error checking deposit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to check deposit" });
+  }
+});
+
+// Обработать депозит (зачислить на баланс)
+app.post("/api/crypto/process-deposit", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const result = await cryptoService.processDeposit(user_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error processing deposit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to process deposit" });
+  }
+});
+
+// Создать заявку на вывод
+app.post("/api/crypto/withdraw", async (req, res) => {
+  try {
+    const { user_id, address, amount } = req.body;
+    if (!user_id || !address || !amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await cryptoService.withdrawUSDT(user_id, address, parseFloat(amount));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating withdrawal:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create withdrawal" });
+  }
+});
+
+// Получить список ожидающих выводов (для админов)
+app.get("/api/crypto/pending-withdrawals", async (req, res) => {
+  try {
+    const withdrawals = await cryptoService.getPendingWithdrawals();
+    res.json({ success: true, withdrawals });
+  } catch (error: any) {
+    console.error("Error getting pending withdrawals:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get withdrawals" });
+  }
+});
+
+// Одобрить вывод (для админов)
+app.post("/api/crypto/approve-withdrawal/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { moderator_id } = req.body;
+
+    if (!moderator_id) {
+      return res.status(400).json({ success: false, error: "Missing moderator_id" });
+    }
+
+    const result = await cryptoService.approveWithdrawal(parseInt(id), moderator_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error approving withdrawal:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to approve withdrawal" });
+  }
+});
+
+// Отклонить вывод (для админов)
+app.post("/api/crypto/reject-withdrawal/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { moderator_id } = req.body;
+
+    if (!moderator_id) {
+      return res.status(400).json({ success: false, error: "Missing moderator_id" });
+    }
+
+    const result = await cryptoService.rejectWithdrawal(parseInt(id), moderator_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error rejecting withdrawal:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to reject withdrawal" });
   }
 });
 

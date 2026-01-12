@@ -71,4 +71,17 @@ export class BalanceModel {
     const balance = await this.getByUserId(userId);
     return balance ? balance.balance >= amount : false;
   }
+
+  // Aliases for CryptoService
+  static async getBalance(userId: number): Promise<Balance | null> {
+    return this.getByUserId(userId);
+  }
+
+  static async addBalance(userId: number, amount: number): Promise<Balance> {
+    return this.updateBalance(userId, amount, true, false);
+  }
+
+  static async subtractBalance(userId: number, amount: number): Promise<Balance> {
+    return this.updateBalance(userId, -amount, false, true);
+  }
 }
