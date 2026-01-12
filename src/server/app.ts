@@ -498,22 +498,42 @@ app.get("/", (req, res) => {
       </div>
     </div>
 
-    <div class="glass-card" style="opacity: 0.6; margin-bottom: 12px;">
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBowlingGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 48px;">🎳</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Боулинг</div>
-          <div style="font-size: 14px; color: var(--text-secondary);">Скоро...</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">2 режима • до 1.84x</div>
         </div>
       </div>
     </div>
 
-    <div class="glass-card" style="opacity: 0.6; margin-bottom: 12px;">
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openFootballGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 48px;">⚽</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Футбол</div>
-          <div style="font-size: 14px; color: var(--text-secondary);">Скоро...</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">3 режима • до 1.84x</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBasketballGame()">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 48px;">🏀</div>
+        <div style="flex: 1;">
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Баскетбол</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">2 режима • до 1.84x</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDartsGame()">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 48px;">🎯</div>
+        <div style="flex: 1;">
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Дартс</div>
+          <div style="font-size: 14px; color: var(--text-secondary);">4 режима • до 3.68x</div>
         </div>
       </div>
     </div>
@@ -546,6 +566,113 @@ app.get("/", (req, res) => {
       <button class="btn primary" style="width: 100%;" onclick="playDice()" id="play-btn">Бросить кубик 🎲</button>
 
       <div id="result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
+    </div>
+  </div>
+
+  <!-- Bowling Game Screen -->
+  <div id="bowling-game-screen" class="screen">
+    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎳 Боулинг</h2>
+
+    <div class="glass-card" style="text-align: center;">
+      <div style="font-size: 80px; margin: 20px 0;" id="bowling-display">🎳</div>
+      <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <button class="game-btn" onclick="selectBowlingMode('strike')">Страйк<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="selectBowlingMode('duel')">Дуэль<br><small>1.84x</small></button>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Ставка (USDT)</label>
+        <input type="number" id="bowling-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
+      </div>
+
+      <button class="btn primary" style="width: 100%;" onclick="playBowling()" id="bowling-play-btn">Играть 🎳</button>
+
+      <div id="bowling-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
+    </div>
+  </div>
+
+  <!-- Football Game Screen -->
+  <div id="football-game-screen" class="screen">
+    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">⚽ Футбол</h2>
+
+    <div class="glass-card" style="text-align: center;">
+      <div style="font-size: 80px; margin: 20px 0;" id="football-display">⚽</div>
+      <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <button class="game-btn" onclick="selectFootballMode('goal')">Гол<br><small>1.33x</small></button>
+        <button class="game-btn" onclick="selectFootballMode('miss')">Мимо<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="selectFootballMode('duel')">Дуэль<br><small>1.84x</small></button>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Ставка (USDT)</label>
+        <input type="number" id="football-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
+      </div>
+
+      <button class="btn primary" style="width: 100%;" onclick="playFootball()" id="football-play-btn">Играть ⚽</button>
+
+      <div id="football-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
+    </div>
+  </div>
+
+  <!-- Basketball Game Screen -->
+  <div id="basketball-game-screen" class="screen">
+    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🏀 Баскетбол</h2>
+
+    <div class="glass-card" style="text-align: center;">
+      <div style="font-size: 80px; margin: 20px 0;" id="basketball-display">🏀</div>
+      <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <button class="game-btn" onclick="selectBasketballMode('goal')">Попал<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="selectBasketballMode('miss')">Мимо<br><small>1.33x</small></button>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Ставка (USDT)</label>
+        <input type="number" id="basketball-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
+      </div>
+
+      <button class="btn primary" style="width: 100%;" onclick="playBasketball()" id="basketball-play-btn">Играть 🏀</button>
+
+      <div id="basketball-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
+    </div>
+  </div>
+
+  <!-- Darts Game Screen -->
+  <div id="darts-game-screen" class="screen">
+    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎯 Дартс</h2>
+
+    <div class="glass-card" style="text-align: center;">
+      <div style="font-size: 80px; margin: 20px 0;" id="darts-display">🎯</div>
+      <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <button class="game-btn" onclick="selectDartsMode('red')">Красное<br><small>3.68x</small></button>
+        <button class="game-btn" onclick="selectDartsMode('white')">Белое<br><small>3.68x</small></button>
+        <button class="game-btn" onclick="selectDartsMode('center')">Центр<br><small>3.68x</small></button>
+        <button class="game-btn" onclick="selectDartsMode('miss')">Мимо<br><small>3.68x</small></button>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Ставка (USDT)</label>
+        <input type="number" id="darts-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
+      </div>
+
+      <button class="btn primary" style="width: 100%;" onclick="playDarts()" id="darts-play-btn">Играть 🎯</button>
+
+      <div id="darts-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
     </div>
   </div>
 
@@ -854,6 +981,295 @@ app.get("/", (req, res) => {
         tg.showAlert('Ошибка: ' + error.message);
         playBtn.disabled = false;
         playBtn.textContent = 'Бросить кубик 🎲';
+      }
+    }
+
+    // === BOWLING GAME ===
+    let selectedBowlingMode = null;
+
+    function openBowlingGame() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('bowling-game-screen').classList.add('active');
+    }
+
+    function selectBowlingMode(mode) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      selectedBowlingMode = mode;
+      document.querySelectorAll('#bowling-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
+      event.target.classList.add('selected');
+    }
+
+    async function playBowling() {
+      if (!currentUser) {
+        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+        return;
+      }
+      if (!selectedBowlingMode) {
+        tg.showAlert('Выберите режим игры!');
+        return;
+      }
+
+      const betAmount = parseFloat(document.getElementById('bowling-bet-input').value);
+      if (betAmount <= 0) {
+        tg.showAlert('Введите корректную ставку!');
+        return;
+      }
+
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+
+      const playBtn = document.getElementById('bowling-play-btn');
+      const display = document.getElementById('bowling-display');
+      const resultDisplay = document.getElementById('bowling-result-display');
+
+      playBtn.disabled = true;
+      playBtn.textContent = 'Играем...';
+      resultDisplay.textContent = '';
+
+      try {
+        const endpoint = selectedBowlingMode === 'strike' ? '/api/games/bowling/strike' : '/api/games/bowling/duel';
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.isWin) {
+          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        } else {
+          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        }
+
+        document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть 🎳';
+      } catch (error) {
+        tg.showAlert('Ошибка: ' + error.message);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть 🎳';
+      }
+    }
+
+    // === FOOTBALL GAME ===
+    let selectedFootballMode = null;
+
+    function openFootballGame() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('football-game-screen').classList.add('active');
+    }
+
+    function selectFootballMode(mode) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      selectedFootballMode = mode;
+      document.querySelectorAll('#football-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
+      event.target.classList.add('selected');
+    }
+
+    async function playFootball() {
+      if (!currentUser) {
+        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+        return;
+      }
+      if (!selectedFootballMode) {
+        tg.showAlert('Выберите режим игры!');
+        return;
+      }
+
+      const betAmount = parseFloat(document.getElementById('football-bet-input').value);
+      if (betAmount <= 0) {
+        tg.showAlert('Введите корректную ставку!');
+        return;
+      }
+
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+
+      const playBtn = document.getElementById('football-play-btn');
+      const display = document.getElementById('football-display');
+      const resultDisplay = document.getElementById('football-result-display');
+
+      playBtn.disabled = true;
+      playBtn.textContent = 'Играем...';
+      resultDisplay.textContent = '';
+
+      try {
+        let endpoint = '';
+        if (selectedFootballMode === 'goal') endpoint = '/api/games/football/goal';
+        else if (selectedFootballMode === 'miss') endpoint = '/api/games/football/miss';
+        else endpoint = '/api/games/football/duel';
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.isWin) {
+          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        } else {
+          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        }
+
+        document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть ⚽';
+      } catch (error) {
+        tg.showAlert('Ошибка: ' + error.message);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть ⚽';
+      }
+    }
+
+    // === BASKETBALL GAME ===
+    let selectedBasketballMode = null;
+
+    function openBasketballGame() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('basketball-game-screen').classList.add('active');
+    }
+
+    function selectBasketballMode(mode) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      selectedBasketballMode = mode;
+      document.querySelectorAll('#basketball-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
+      event.target.classList.add('selected');
+    }
+
+    async function playBasketball() {
+      if (!currentUser) {
+        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+        return;
+      }
+      if (!selectedBasketballMode) {
+        tg.showAlert('Выберите режим игры!');
+        return;
+      }
+
+      const betAmount = parseFloat(document.getElementById('basketball-bet-input').value);
+      if (betAmount <= 0) {
+        tg.showAlert('Введите корректную ставку!');
+        return;
+      }
+
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+
+      const playBtn = document.getElementById('basketball-play-btn');
+      const display = document.getElementById('basketball-display');
+      const resultDisplay = document.getElementById('basketball-result-display');
+
+      playBtn.disabled = true;
+      playBtn.textContent = 'Играем...';
+      resultDisplay.textContent = '';
+
+      try {
+        const endpoint = selectedBasketballMode === 'goal' ? '/api/games/basketball/goal' : '/api/games/basketball/miss';
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.isWin) {
+          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        } else {
+          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        }
+
+        document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть 🏀';
+      } catch (error) {
+        tg.showAlert('Ошибка: ' + error.message);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть 🏀';
+      }
+    }
+
+    // === DARTS GAME ===
+    let selectedDartsMode = null;
+
+    function openDartsGame() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('darts-game-screen').classList.add('active');
+    }
+
+    function selectDartsMode(mode) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      selectedDartsMode = mode;
+      document.querySelectorAll('#darts-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
+      event.target.classList.add('selected');
+    }
+
+    async function playDarts() {
+      if (!currentUser) {
+        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+        return;
+      }
+      if (!selectedDartsMode) {
+        tg.showAlert('Выберите режим игры!');
+        return;
+      }
+
+      const betAmount = parseFloat(document.getElementById('darts-bet-input').value);
+      if (betAmount <= 0) {
+        tg.showAlert('Введите корректную ставку!');
+        return;
+      }
+
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+
+      const playBtn = document.getElementById('darts-play-btn');
+      const display = document.getElementById('darts-display');
+      const resultDisplay = document.getElementById('darts-result-display');
+
+      playBtn.disabled = true;
+      playBtn.textContent = 'Играем...';
+      resultDisplay.textContent = '';
+
+      try {
+        let endpoint = '';
+        if (selectedDartsMode === 'red') endpoint = '/api/games/darts/red';
+        else if (selectedDartsMode === 'white') endpoint = '/api/games/darts/white';
+        else if (selectedDartsMode === 'center') endpoint = '/api/games/darts/center';
+        else endpoint = '/api/games/darts/miss';
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.isWin) {
+          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        } else {
+          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        }
+
+        document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть 🎯';
+      } catch (error) {
+        tg.showAlert('Ошибка: ' + error.message);
+        playBtn.disabled = false;
+        playBtn.textContent = 'Играть 🎯';
       }
     }
 
