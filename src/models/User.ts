@@ -7,6 +7,7 @@ export interface User {
   first_name: string;
   last_name?: string;
   language_code?: string;
+  photo_url?: string;
   is_premium: boolean;
   is_blocked: boolean;
   referrer_id?: number;
@@ -22,6 +23,7 @@ export interface CreateUserData {
   first_name: string;
   last_name?: string;
   language_code?: string;
+  photo_url?: string;
   is_premium?: boolean;
   referrer_id?: number;
 }
@@ -60,14 +62,15 @@ export class UserModel {
 
   static async createOrUpdate(data: CreateUserData): Promise<User> {
     const result = await pool.query(
-      `INSERT INTO users (telegram_id, username, first_name, last_name, language_code, is_premium, referrer_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (telegram_id, username, first_name, last_name, language_code, photo_url, is_premium, referrer_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (telegram_id)
        DO UPDATE SET
          username = EXCLUDED.username,
          first_name = EXCLUDED.first_name,
          last_name = EXCLUDED.last_name,
          language_code = EXCLUDED.language_code,
+         photo_url = EXCLUDED.photo_url,
          is_premium = EXCLUDED.is_premium,
          last_activity = CURRENT_TIMESTAMP
        RETURNING *`,
@@ -77,6 +80,7 @@ export class UserModel {
         data.first_name,
         data.last_name || null,
         data.language_code || null,
+        data.photo_url || null,
         data.is_premium || false,
         data.referrer_id || null,
       ]

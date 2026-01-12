@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255),
   language_code VARCHAR(10),
+  photo_url TEXT,
   is_premium BOOLEAN DEFAULT false,
   is_blocked BOOLEAN DEFAULT false,
   referrer_id INTEGER REFERENCES users(id),

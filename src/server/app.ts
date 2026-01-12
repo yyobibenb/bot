@@ -761,12 +761,18 @@ app.get("/", (req, res) => {
         // Set avatar from Telegram
         const avatar = document.getElementById('avatar');
 
-        // Use first letter as avatar
-        console.log('Устанавливаю аватар с первой буквой:', fullName.charAt(0));
-        avatar.textContent = fullName.charAt(0).toUpperCase();
+        // Get photo URL from Telegram
+        const photoUrl = user.photo_url || null;
+        console.log('Photo URL from Telegram:', photoUrl);
 
-        // Try to get photo from bot API (need to implement)
-        // For now, just use first letter
+        // If photo URL exists, display it; otherwise use first letter
+        if (photoUrl) {
+          console.log('Устанавливаю аватар с фото:', photoUrl);
+          avatar.innerHTML = \`<img src="\${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
+        } else {
+          console.log('Устанавливаю аватар с первой буквой:', fullName.charAt(0));
+          avatar.textContent = fullName.charAt(0).toUpperCase();
+        }
 
         // Save user data to backend
         fetch('/api/user', {
@@ -780,6 +786,7 @@ app.get("/", (req, res) => {
             first_name: user.first_name,
             last_name: user.last_name || '',
             language_code: user.language_code || '',
+            photo_url: photoUrl,
             is_premium: user.is_premium || false
           })
         }).then(response => response.json())
@@ -788,6 +795,11 @@ app.get("/", (req, res) => {
             if (data.success && data.user) {
               currentUser = data.user;
               console.log('✅ Current user set:', currentUser);
+
+              // Update avatar from saved data if available
+              if (data.user.photo_url && !photoUrl) {
+                avatar.innerHTML = \`<img src="\${data.user.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
+              }
             }
             if (data.balance !== undefined) {
               document.getElementById('balance').textContent = data.balance.toFixed(2);
@@ -1293,9 +1305,9 @@ app.get("/", (req, res) => {
 // API для сохранения данных пользователя
 app.post("/api/user", async (req, res) => {
   try {
-    const { telegram_id, username, first_name, last_name, language_code, is_premium } = req.body;
+    const { telegram_id, username, first_name, last_name, language_code, photo_url, is_premium } = req.body;
 
-    console.log('Received user data:', { telegram_id, username, first_name, last_name });
+    console.log('Received user data:', { telegram_id, username, first_name, last_name, photo_url });
 
     // Создаем или обновляем пользователя
     const user = await UserModel.createOrUpdate({
@@ -1304,6 +1316,7 @@ app.post("/api/user", async (req, res) => {
       first_name,
       last_name,
       language_code,
+      photo_url,
       is_premium
     });
 
@@ -1323,6 +1336,7 @@ app.post("/api/user", async (req, res) => {
         first_name: user.first_name,
         last_name: user.last_name,
         language_code: user.language_code,
+        photo_url: user.photo_url,
         is_premium: user.is_premium
       }
     });
