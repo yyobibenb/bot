@@ -6,21 +6,34 @@ import { TransactionModel } from "../models/Transaction";
 const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
 export class CryptoService {
-  private tronWeb: any;
+  private tronWeb: any = null;
   private masterWallet: string;
 
   constructor() {
-    const TronWeb = require("tronweb");
-    const fullHost = "https://api.trongrid.io";
-    const privateKey = process.env.TRON_PRIVATE_KEY || "";
-
-    this.tronWeb = new TronWeb({
-      fullHost,
-      privateKey,
-    });
-
     // Мастер-кошелек для сбора средств
     this.masterWallet = process.env.TRON_MASTER_WALLET || "";
+  }
+
+  /**
+   * Ленивая загрузка TronWeb (создается только при первом использовании)
+   */
+  private getTronWeb(): any {
+    if (!this.getTronWeb()) {
+      try {
+        const TronWeb = require("tronweb");
+        const fullHost = "https://api.trongrid.io";
+        const privateKey = process.env.TRON_PRIVATE_KEY || "";
+
+        this.getTronWeb() = new TronWeb({
+          fullHost,
+          privateKey,
+        });
+      } catch (error) {
+        console.error("❌ TronWeb не загружен:", error);
+        throw new Error("TronWeb unavailable. Check TRON_PRIVATE_KEY in .env");
+      }
+    }
+    return this.getTronWeb();
   }
 
   /**
@@ -29,7 +42,7 @@ export class CryptoService {
   async generateDepositAddress(userId: number): Promise<string> {
     try {
       // Генерируем новый кошелек
-      const account = await this.tronWeb.createAccount();
+      const account = await this.getTronWeb().createAccount();
 
       // Сохраняем в базу
       await UserModel.updateDepositAddress(userId, account.address.base58, account.privateKey);
@@ -65,7 +78,7 @@ export class CryptoService {
    */
   async checkUSDTBalance(address: string): Promise<number> {
     try {
-      const contract = await this.tronWeb.contract().at(USDT_CONTRACT);
+      const contract = await this.getTronWeb().contract().at(USDT_CONTRACT);
       const balance = await contract.balanceOf(address).call();
 
       // USDT has 6 decimals
@@ -81,7 +94,7 @@ export class CryptoService {
    */
   async checkTRXBalance(address: string): Promise<number> {
     try {
-      const balance = await this.tronWeb.trx.getBalance(address);
+      const balance = await this.getTronWeb().trx.getBalance(address);
       return balance / 1e6; // Convert from SUN to TRX
     } catch (error) {
       console.error("Error checking TRX balance:", error);
@@ -100,11 +113,17 @@ export class CryptoService {
       }
 
       // Создаем временный TronWeb с ключом пользователя
-      const TronWeb = require("tronweb");
-      const userTronWeb = new TronWeb({
-        fullHost: "https://api.trongrid.io",
-        privateKey: user.deposit_private_key,
-      });
+      let userTronWeb;
+      try {
+        const TronWeb = require("tronweb");
+        userTronWeb = new TronWeb({
+          fullHost: "https://api.trongrid.io",
+          privateKey: user.deposit_private_key,
+        });
+      } catch (err) {
+        console.error("❌ TronWeb недоступен:", err);
+        throw new Error("TronWeb unavailable");
+      }
 
       const contract = await userTronWeb.contract().at(USDT_CONTRACT);
 
@@ -199,7 +218,7 @@ export class CryptoService {
    */
   async sendTRXForFee(toAddress: string, amount: number): Promise<string> {
     try {
-      const tx = await this.tronWeb.trx.sendTransaction(
+      const tx = await this.getTronWeb().trx.sendTransaction(
         toAddress,
         Math.floor(amount * 1e6) // Convert TRX to SUN
       );
@@ -249,7 +268,7 @@ export class CryptoService {
       }
 
       // Иначе выводим автоматически
-      const contract = await this.tronWeb.contract().at(USDT_CONTRACT);
+      const contract = await this.getTronWeb().contract().at(USDT_CONTRACT);
       const tx = await contract.transfer(
         toAddress,
         Math.floor(amount * 1e6)
@@ -287,7 +306,7 @@ export class CryptoService {
       }
 
       // Выполняем вывод
-      const contract = await this.tronWeb.contract().at(USDT_CONTRACT);
+      const contract = await this.getTronWeb().contract().at(USDT_CONTRACT);
       const tx = await contract.transfer(
         transaction.crypto_address,
         Math.floor(transaction.amount * 1e6)
