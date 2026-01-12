@@ -1,4 +1,4 @@
-const TronWeb = require("tronweb");
+const TronWeb = require("tronweb").default || require("tronweb");
 import { UserModel } from "../models/User";
 import { BalanceModel } from "../models/Balance";
 import { TransactionModel } from "../models/Transaction";
