@@ -73,7 +73,7 @@ export class TelegramBotService {
           username: msg.from?.username,
           last_name: msg.from?.last_name,
           language_code: msg.from?.language_code,
-          is_premium: msg.from?.is_premium || false,
+          is_premium: (msg.from as any)?.is_premium || false,
         });
 
         // Создаем баланс

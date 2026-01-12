@@ -1,4 +1,4 @@
-import TronWeb from "tronweb";
+const TronWeb = require("tronweb");
 import { UserModel } from "../models/User";
 import { BalanceModel } from "../models/Balance";
 import { TransactionModel } from "../models/Transaction";
@@ -7,7 +7,7 @@ import { TransactionModel } from "../models/Transaction";
 const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
 export class CryptoService {
-  private tronWeb: TronWeb;
+  private tronWeb: any;
   private masterWallet: string;
 
   constructor() {
