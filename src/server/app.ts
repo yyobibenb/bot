@@ -1444,6 +1444,118 @@ app.get("/", (req, res) => {
         tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
       }
     }
+
+    // === ADMIN PANEL FUNCTIONS ===
+
+    function showAdminPanel() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+      if (!currentUser || !currentUser.isAdmin) {
+        tg.showAlert('Доступ запрещен');
+        return;
+      }
+
+      // Скрываем все экраны
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+      });
+
+      // Показываем экран админки
+      document.getElementById('admin-screen').classList.add('active');
+
+      // Загружаем данные
+      loadAdminData();
+    }
+
+    function backToProfile() {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+      });
+      document.getElementById('profile-screen').classList.add('active');
+    }
+
+    async function loadAdminData() {
+      if (!currentUser || !currentUser.isAdmin) return;
+
+      try {
+        // Загружаем статистику
+        const statsResponse = await fetch(\`/api/admin/stats?admin_id=\${currentUser.id}\`);
+        const statsData = await statsResponse.json();
+
+        if (statsData.success) {
+          document.getElementById('admin-total-users').textContent = statsData.stats.totalUsers;
+          document.getElementById('admin-users-deposits').textContent = statsData.stats.usersWithDeposits;
+        }
+
+        // Загружаем заявки на вывод
+        const withdrawalsResponse = await fetch(\`/api/admin/pending-withdrawals?admin_id=\${currentUser.id}\`);
+        const withdrawalsData = await withdrawalsResponse.json();
+
+        if (withdrawalsData.success) {
+          const withdrawals = withdrawalsData.withdrawals;
+          const listDiv = document.getElementById('admin-withdrawals-list');
+
+          if (withdrawals.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Нет заявок на вывод</p>';
+          } else {
+            listDiv.innerHTML = withdrawals.map(w => \`
+              <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 0; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div>
+                    <div style="font-weight: 600;">\${w.first_name || 'User'} \${w.username ? '@' + w.username : ''}</div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">ID: \${w.user_id} | Telegram ID: \${w.telegram_id || 'N/A'}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 18px; font-weight: 700; color: var(--accent-green);">\${w.amount} USDT</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">\${new Date(w.created_at).toLocaleString('ru-RU')}</div>
+                  </div>
+                </div>
+                <button class="btn primary" style="width: 100%; padding: 8px;" onclick="completeWithdrawal(\${w.id}, \${w.user_id})">
+                  ✅ Отправил через CryptoBot
+                </button>
+              </div>
+            \`).join('');
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки данных админки:', error);
+        tg.showAlert('Ошибка загрузки данных');
+      }
+    }
+
+    async function completeWithdrawal(withdrawalId, userId) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+      if (!currentUser || !currentUser.isAdmin) {
+        tg.showAlert('Доступ запрещен');
+        return;
+      }
+
+      const confirmed = confirm('Вы уже отправили средства через CryptoBot?');
+      if (!confirmed) return;
+
+      try {
+        const response = await fetch(\`/api/admin/withdrawals/\${withdrawalId}/complete\`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admin_id: currentUser.id })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          tg.showAlert('✅ Вывод отмечен как выполненный!');
+          // Перезагружаем список
+          loadAdminData();
+        } else {
+          tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось обработать'));
+        }
+      } catch (error) {
+        tg.showAlert('❌ Ошибка при обработке');
+      }
+    }
   </script>
 </body>
 </html>
