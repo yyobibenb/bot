@@ -6,6 +6,7 @@ import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
 import { OtherGamesService } from "../services/OtherGamesService";
 import cryptoService from "../services/CryptoService";
+import { DuelService } from "../services/DuelService";
 
 const app = express();
 
@@ -195,7 +196,7 @@ app.get("/", (req, res) => {
     /* Glass Card - Balance Centered */
     .glass-card {
       margin-top: 20px;
-      padding: 28px 24px;
+      padding: 20px 18px;
       background: var(--glass-card);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
@@ -491,7 +492,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDiceGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 48px;">🎲</div>
+        <div style="font-size: 64px;">🎲</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Кубик</div>
           <div style="font-size: 14px; color: var(--text-secondary);">8 режимов • до 5.52x</div>
@@ -501,7 +502,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBowlingGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 48px;">🎳</div>
+        <div style="font-size: 64px;">🎳</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Боулинг</div>
           <div style="font-size: 14px; color: var(--text-secondary);">2 режима • до 1.84x</div>
@@ -511,7 +512,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openFootballGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 48px;">⚽</div>
+        <div style="font-size: 64px;">⚽</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Футбол</div>
           <div style="font-size: 14px; color: var(--text-secondary);">3 режима • до 1.84x</div>
@@ -521,7 +522,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBasketballGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 48px;">🏀</div>
+        <div style="font-size: 64px;">🏀</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Баскетбол</div>
           <div style="font-size: 14px; color: var(--text-secondary);">2 режима • до 1.84x</div>
@@ -531,7 +532,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDartsGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 48px;">🎯</div>
+        <div style="font-size: 64px;">🎯</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Дартс</div>
           <div style="font-size: 14px; color: var(--text-secondary);">4 режима • до 3.68x</div>
@@ -1808,6 +1809,204 @@ app.post("/api/crypto/reject-withdrawal/:id", async (req, res) => {
   } catch (error: any) {
     console.error("Error rejecting withdrawal:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to reject withdrawal" });
+  }
+});
+
+// ============================================
+// DUEL API ENDPOINTS
+// ============================================
+
+// Создать комнату для дуэли
+app.post("/api/duels/create", async (req, res) => {
+  try {
+    const { user_id, game_name, mode_name, bet_amount } = req.body;
+
+    if (!user_id || !game_name || !mode_name || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DuelService.createDuelRoom(user_id, game_name, mode_name, parseFloat(bet_amount));
+
+    // Отправляем уведомление создателю
+    if (result.success && telegramBot && result.room_code) {
+      const user = await UserModel.getUserById(user_id);
+      if (user) {
+        await telegramBot.sendMessage(
+          user.telegram_id,
+          `✅ Комната создана!\n\n🎮 Игра: ${game_name}\n🎯 Режим: ${mode_name}\n💰 Ставка: ${bet_amount} USDT\n\n🔑 Код комнаты: \`${result.room_code}\`\n\nОтправьте этот код оппоненту или ждите присоединения.`,
+          { parse_mode: "Markdown" }
+        );
+      }
+    }
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+// Присоединиться к комнате
+app.post("/api/duels/join", async (req, res) => {
+  try {
+    const { user_id, room_code } = req.body;
+
+    if (!user_id || !room_code) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DuelService.joinDuelRoom(user_id, room_code);
+
+    // Отправляем уведомления обоим игрокам
+    if (result.success && result.duel && telegramBot) {
+      const creator = await UserModel.getUserById(result.duel.creator_id);
+      const opponent = await UserModel.getUserById(user_id);
+
+      if (creator) {
+        await telegramBot.sendMessage(
+          creator.telegram_id,
+          `🎮 Противник присоединился!\n\n👤 Игрок: ${opponent?.first_name || "Игрок"}\n💰 Ставка: ${result.duel.bet_amount} USDT\n\n🎯 Сделайте свой ход в Mini App!`
+        );
+      }
+
+      if (opponent) {
+        await telegramBot.sendMessage(
+          opponent.telegram_id,
+          `✅ Вы присоединились к дуэли!\n\n🎮 Игра: ${result.duel.mode_name}\n💰 Ставка: ${result.duel.bet_amount} USDT\n👤 Противник: ${creator?.first_name || "Игрок"}\n\n🎯 Сделайте свой ход в Mini App!`
+        );
+      }
+    }
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+// Получить информацию о дуэли
+app.get("/api/duels/:duel_id", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const duel = await DuelService.getDuel(parseInt(duel_id));
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Duel not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Получить дуэль по коду комнаты
+app.get("/api/duels/room/:room_code", async (req, res) => {
+  try {
+    const { room_code } = req.params;
+    const duel = await DuelService.getDuelByRoomCode(room_code);
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Room not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel by room code:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Сыграть в дуэли
+app.post("/api/duels/:duel_id/play", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id, result } = req.body;
+
+    if (!user_id || !result) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const playResult = await DuelService.playDuel(user_id, parseInt(duel_id), result);
+
+    // Если дуэль завершена, отправляем уведомления
+    if (playResult.success && playResult.winner && telegramBot) {
+      const duel = await DuelService.getDuel(parseInt(duel_id));
+      if (duel) {
+        const creator = await UserModel.getUserById(duel.creator_id);
+        const opponent = await UserModel.getUserById(duel.opponent_id!);
+        const prize = duel.bet_amount * 2 * 0.95;
+
+        if (playResult.winner === "draw") {
+          // Ничья
+          if (creator) {
+            await telegramBot.sendMessage(
+              creator.telegram_id,
+              `🤝 Дуэль завершена!\n\n🎯 Результат: Ничья\n💰 Возврат: ${duel.bet_amount} USDT`
+            );
+          }
+          if (opponent) {
+            await telegramBot.sendMessage(
+              opponent.telegram_id,
+              `🤝 Дуэль завершена!\n\n🎯 Результат: Ничья\n💰 Возврат: ${duel.bet_amount} USDT`
+            );
+          }
+        } else {
+          const isCreatorWinner = playResult.winner === "creator";
+          const winner = isCreatorWinner ? creator : opponent;
+          const loser = isCreatorWinner ? opponent : creator;
+
+          if (winner) {
+            await telegramBot.sendMessage(
+              winner.telegram_id,
+              `🎉 Победа в дуэли!\n\n💰 Выигрыш: +${prize.toFixed(2)} USDT\n🎯 Комиссия: 5%`
+            );
+          }
+          if (loser) {
+            await telegramBot.sendMessage(
+              loser.telegram_id,
+              `😔 Поражение в дуэли\n\n💸 Проигрыш: -${duel.bet_amount} USDT\n\nПопробуйте еще раз!`
+            );
+          }
+        }
+      }
+    }
+
+    res.json(playResult);
+  } catch (error: any) {
+    console.error("Error playing duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play duel" });
+  }
+});
+
+// Отменить дуэль
+app.post("/api/duels/:duel_id/cancel", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const result = await DuelService.cancelDuel(user_id, parseInt(duel_id));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
+  }
+});
+
+// Получить активные дуэли пользователя
+app.get("/api/duels/user/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const duels = await DuelService.getUserDuels(parseInt(user_id));
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting user duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get user duels" });
   }
 });
 

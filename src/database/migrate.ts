@@ -117,6 +117,8 @@ CREATE TABLE IF NOT EXISTS referral_earnings (
 CREATE TABLE IF NOT EXISTS duels (
   id SERIAL PRIMARY KEY,
   game_id INTEGER REFERENCES games(id),
+  mode_name VARCHAR(50),
+  room_code VARCHAR(10) UNIQUE,
   creator_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   opponent_id INTEGER REFERENCES users(id),
   bet_amount DECIMAL(15, 2) NOT NULL,
@@ -274,8 +276,61 @@ export async function runMigrations() {
     console.log("🔄 Запуск миграций базы данных...");
     await pool.query(SCHEMA);
     console.log("✅ Миграции выполнены успешно");
+
+    // Добавляем админа если не существует
+    await addDefaultAdmin();
   } catch (error) {
     console.error("❌ Ошибка при выполнении миграций:", error);
     throw error;
+  }
+}
+
+async function addDefaultAdmin() {
+  try {
+    const telegramId = 5855297931;
+
+    // Проверяем существует ли пользователь
+    const userCheck = await pool.query("SELECT id FROM users WHERE telegram_id = $1", [telegramId]);
+
+    let userId: number;
+
+    if (userCheck.rows.length === 0) {
+      // Создаем пользователя
+      const userResult = await pool.query(
+        `INSERT INTO users (telegram_id, first_name, username)
+         VALUES ($1, $2, $3) RETURNING id`,
+        [telegramId, "Admin", "admin"]
+      );
+      userId = userResult.rows[0].id;
+
+      // Создаем баланс
+      await pool.query(
+        `INSERT INTO balances (user_id, balance, total_deposited, total_withdrawn)
+         VALUES ($1, 0.00, 0.00, 0.00)
+         ON CONFLICT (user_id) DO NOTHING`,
+        [userId]
+      );
+
+      console.log(`✅ Создан пользователь-админ (ID: ${userId})`);
+    } else {
+      userId = userCheck.rows[0].id;
+    }
+
+    // Добавляем в админы если еще не админ
+    const adminCheck = await pool.query("SELECT id FROM admins WHERE user_id = $1", [userId]);
+
+    if (adminCheck.rows.length === 0) {
+      await pool.query(
+        `INSERT INTO admins (user_id, role, permissions)
+         VALUES ($1, $2, $3)`,
+        [userId, "admin", JSON.stringify({ manage_users: true, manage_withdrawals: true, manage_settings: true, view_stats: true })]
+      );
+      console.log(`✅ Пользователь ${telegramId} назначен администратором`);
+    } else {
+      console.log(`ℹ️  Пользователь ${telegramId} уже является администратором`);
+    }
+  } catch (error) {
+    console.error("⚠️  Ошибка при добавлении админа:", error);
+    // Не пробрасываем ошибку, чтобы не сломать миграции
   }
 }
