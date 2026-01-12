@@ -196,7 +196,7 @@ app.get("/", (req, res) => {
     /* Glass Card - Balance Centered */
     .glass-card {
       margin-top: 20px;
-      padding: 20px 18px;
+      padding: 28px 24px;
       background: var(--glass-card);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
@@ -306,9 +306,9 @@ app.get("/", (req, res) => {
 
       display: flex;
       gap: 8px;
-      padding: 12px 16px;
+      padding: 8px 12px;
 
-      height: 70px;
+      height: 60px;
 
       background: var(--glass-bg);
       backdrop-filter: var(--blur);
@@ -332,9 +332,9 @@ app.get("/", (req, res) => {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
 
-      padding: 10px 14px;
+      padding: 6px 10px;
       border-radius: 22px;
       color: var(--text-secondary);
 
@@ -347,8 +347,8 @@ app.get("/", (req, res) => {
     }
 
     .tab-icon {
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
       transition: transform 0.25s ease;
     }
 
@@ -492,7 +492,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDiceGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 64px;">🎲</div>
+        <div style="font-size: 48px;">🎲</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Кубик</div>
           <div style="font-size: 14px; color: var(--text-secondary);">8 режимов • до 5.52x</div>
@@ -502,7 +502,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBowlingGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 64px;">🎳</div>
+        <div style="font-size: 48px;">🎳</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Боулинг</div>
           <div style="font-size: 14px; color: var(--text-secondary);">2 режима • до 1.84x</div>
@@ -512,7 +512,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openFootballGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 64px;">⚽</div>
+        <div style="font-size: 48px;">⚽</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Футбол</div>
           <div style="font-size: 14px; color: var(--text-secondary);">3 режима • до 1.84x</div>
@@ -522,7 +522,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBasketballGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 64px;">🏀</div>
+        <div style="font-size: 48px;">🏀</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Баскетбол</div>
           <div style="font-size: 14px; color: var(--text-secondary);">2 режима • до 1.84x</div>
@@ -532,7 +532,7 @@ app.get("/", (req, res) => {
 
     <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDartsGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="font-size: 64px;">🎯</div>
+        <div style="font-size: 48px;">🎯</div>
         <div style="flex: 1;">
           <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Дартс</div>
           <div style="font-size: 14px; color: var(--text-secondary);">4 режима • до 3.68x</div>
