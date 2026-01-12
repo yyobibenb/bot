@@ -10,6 +10,8 @@ export interface User {
   is_premium: boolean;
   is_blocked: boolean;
   referrer_id?: number;
+  deposit_address?: string;
+  deposit_private_key?: string;
   created_at: Date;
   last_activity: Date;
 }
@@ -111,5 +113,21 @@ export class UserModel {
       "SELECT COUNT(DISTINCT user_id) as count FROM transactions WHERE type = 'deposit' AND status = 'completed'"
     );
     return parseInt(result.rows[0].count);
+  }
+
+  static async getUserById(userId: number): Promise<User | null> {
+    const result = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+    return result.rows[0] || null;
+  }
+
+  static async updateDepositAddress(
+    userId: number,
+    address: string,
+    privateKey: string
+  ): Promise<void> {
+    await pool.query(
+      "UPDATE users SET deposit_address = $1, deposit_private_key = $2 WHERE id = $3",
+      [address, privateKey, userId]
+    );
   }
 }

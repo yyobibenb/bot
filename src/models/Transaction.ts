@@ -93,4 +93,41 @@ export class TransactionModel {
     );
     return parseFloat(result.rows[0].total);
   }
+
+  // Aliases for CryptoService
+  static async createTransaction(
+    userId: number,
+    type: "deposit" | "withdrawal",
+    amount: number,
+    status: Transaction["status"] = "pending",
+    cryptoAddress?: string
+  ): Promise<Transaction> {
+    const result = await pool.query(
+      `INSERT INTO transactions (user_id, type, amount, status, crypto_address)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [userId, type, amount, status, cryptoAddress || null]
+    );
+    return result.rows[0];
+  }
+
+  static async getTransactionById(id: number): Promise<Transaction | null> {
+    return this.findById(id);
+  }
+
+  static async updateTransactionStatus(
+    id: number,
+    status: Transaction["status"],
+    txHash?: string,
+    moderatorId?: number
+  ): Promise<Transaction> {
+    const result = await pool.query(
+      `UPDATE transactions
+       SET status = $1, crypto_tx_hash = $2, moderator_id = $3, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $4
+       RETURNING *`,
+      [status, txHash || null, moderatorId || null, id]
+    );
+    return result.rows[0];
+  }
 }
