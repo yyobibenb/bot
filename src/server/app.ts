@@ -690,6 +690,32 @@ app.get("/", (req, res) => {
     </div>
   </div>
 
+  <!-- Admin Screen -->
+  <div id="admin-screen" class="screen">
+    <button onclick="backToProfile()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">👑 Админ-панель</h2>
+
+    <div class="glass-card" style="margin-bottom: 16px;">
+      <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">📊 Статистика</h3>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span style="color: var(--text-secondary);">Всего пользователей:</span>
+        <span id="admin-total-users" style="font-weight: 600;">-</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="color: var(--text-secondary);">С депозитами:</span>
+        <span id="admin-users-deposits" style="font-weight: 600;">-</span>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">💸 Заявки на вывод</h3>
+      <div id="admin-withdrawals-list" style="max-height: 400px; overflow-y: auto;">
+        <p style="text-align: center; color: var(--text-secondary);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom TabBar - BIGGER -->
   <div class="tabbar">
     <button class="tab active" onclick="handleNav(event, 'profile')">
