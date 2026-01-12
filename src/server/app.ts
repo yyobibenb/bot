@@ -2,6 +2,7 @@ import express from "express";
 import { TelegramBotService } from "../bot/telegramBot";
 import { UserModel } from "../models/User";
 import { BalanceModel } from "../models/Balance";
+import { TransactionModel } from "../models/Transaction";
 import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
 import { OtherGamesService } from "../services/OtherGamesService";
@@ -838,12 +839,83 @@ app.get("/", (req, res) => {
 
     function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-      tg.showAlert('💰 Функция пополнения скоро будет доступна!');
+
+      if (!currentUser) {
+        tg.showAlert('Подождите, загружаем данные...');
+        return;
+      }
+
+      const telegramId = currentUser.telegram_id;
+
+      tg.showPopup({
+        title: '💰 Пополнение баланса',
+        message: \`Для пополнения используйте @send бот:\n\n1. Откройте @send в Telegram\n2. Выберите "Отправить"\n3. Выберите USDT\n4. ID получателя: \${telegramId}\n5. Укажите сумму\n\nМинимум: 10 USDT\`,
+        buttons: [
+          { id: 'open', type: 'default', text: 'Открыть @send' },
+          { id: 'close', type: 'cancel', text: 'Закрыть' }
+        ]
+      }, (buttonId) => {
+        if (buttonId === 'open') {
+          tg.openTelegramLink('https://t.me/send');
+        }
+      });
     }
 
-    function handleWithdraw() {
+    async function handleWithdraw() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-      tg.showAlert('💸 Функция вывода скоро будет доступна!');
+
+      if (!currentUser) {
+        tg.showAlert('Подождите, загружаем данные...');
+        return;
+      }
+
+      const balance = parseFloat(document.getElementById('balance').textContent || '0');
+
+      if (balance < 10) {
+        tg.showAlert('Недостаточно средств для вывода. Минимум: 10 USDT');
+        return;
+      }
+
+      const amount = prompt(\`Введите сумму вывода (USDT):\n\nДоступно: \${balance} USDT\nМинимум: 10 USDT\`);
+
+      if (!amount) return;
+
+      const withdrawAmount = parseFloat(amount);
+
+      if (isNaN(withdrawAmount) || withdrawAmount < 10) {
+        tg.showAlert('Некорректная сумма. Минимум: 10 USDT');
+        return;
+      }
+
+      if (withdrawAmount > balance) {
+        tg.showAlert(\`Недостаточно средств. Доступно: \${balance} USDT\`);
+        return;
+      }
+
+      try {
+        // Отправляем запрос на вывод
+        const response = await fetch('/api/withdraw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            telegram_id: currentUser.telegram_id,
+            amount: withdrawAmount
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Обновляем баланс
+          document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          tg.showAlert(\`✅ Заявка на вывод создана!\n\nСумма: \${withdrawAmount} USDT\n\nСредства будут отправлены через @send в течение 1-24 часов.\`);
+        } else {
+          tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать заявку'));
+        }
+      } catch (error) {
+        tg.showAlert('❌ Ошибка при создании заявки на вывод');
+      }
     }
 
     // Global state
@@ -1711,6 +1783,75 @@ app.post("/api/games/darts/miss", async (req, res) => {
   } catch (error: any) {
     console.error("Error playing darts:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ============================================
+// WITHDRAWAL API (via @send bot)
+// ============================================
+
+app.post("/api/withdraw", async (req, res) => {
+  try {
+    const { user_id, telegram_id, amount } = req.body;
+
+    if (!user_id || !telegram_id || !amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const withdrawAmount = parseFloat(amount);
+
+    if (isNaN(withdrawAmount) || withdrawAmount < 10) {
+      return res.status(400).json({ success: false, error: "Минимальная сумма вывода: 10 USDT" });
+    }
+
+    // Проверяем баланс
+    const balance = await BalanceModel.getBalance(user_id);
+    if (!balance || balance.balance < withdrawAmount) {
+      return res.status(400).json({ success: false, error: "Недостаточно средств" });
+    }
+
+    // Получаем пользователя
+    const user = await UserModel.getUserById(user_id);
+    if (!user) {
+      return res.status(400).json({ success: false, error: "Пользователь не найден" });
+    }
+
+    // Создаем транзакцию
+    await TransactionModel.createTransaction(
+      user_id,
+      "withdrawal",
+      withdrawAmount,
+      "pending"
+    );
+
+    // Вычитаем с баланса
+    await BalanceModel.subtractBalance(user_id, withdrawAmount);
+
+    // Получаем новый баланс
+    const newBalance = await BalanceModel.getBalance(user_id);
+
+    // Отправляем уведомление админу
+    if (telegramBot) {
+      const adminId = 5855297931;
+      try {
+        await telegramBot.sendMessage(
+          adminId,
+          `🔔 **Новая заявка на вывод**\n\nПользователь: ${user.first_name} (ID: ${telegram_id})\nСумма: ${withdrawAmount} USDT\n\n💸 Используйте @send для отправки средств пользователю по ID: \`${telegram_id}\``,
+          { parse_mode: "Markdown" }
+        );
+      } catch (err) {
+        console.error("Не удалось отправить уведомление админу:", err);
+      }
+    }
+
+    res.json({
+      success: true,
+      newBalance: newBalance?.balance || 0,
+      message: "Заявка на вывод создана"
+    });
+  } catch (error: any) {
+    console.error("Error processing withdrawal:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to process withdrawal" });
   }
 });
 
