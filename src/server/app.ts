@@ -3,6 +3,7 @@ import { TelegramBotService } from "../bot/telegramBot";
 import { UserModel } from "../models/User";
 import { BalanceModel } from "../models/Balance";
 import { TransactionModel } from "../models/Transaction";
+import { AdminModel } from "../models/Admin";
 import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
 import { OtherGamesService } from "../services/OtherGamesService";
@@ -1920,50 +1921,143 @@ app.post("/api/crypto/withdraw", async (req, res) => {
   }
 });
 
-// Получить список ожидающих выводов (для админов)
-app.get("/api/crypto/pending-withdrawals", async (req, res) => {
+// ============================================
+// ADMIN API ENDPOINTS
+// ============================================
+
+// Проверить является ли пользователь админом
+app.get("/api/admin/check", async (req, res) => {
   try {
-    const withdrawals = await cryptoService.getPendingWithdrawals();
-    res.json({ success: true, withdrawals });
+    const { user_id } = req.query;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const isAdmin = await AdminModel.isAdmin(parseInt(user_id as string));
+    const admin = await AdminModel.getAdminByUserId(parseInt(user_id as string));
+
+    res.json({
+      success: true,
+      isAdmin,
+      permissions: admin?.permissions || null
+    });
+  } catch (error: any) {
+    console.error("Error checking admin:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить список ожидающих выводов (для админов)
+app.get("/api/admin/pending-withdrawals", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_withdrawals");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Получаем pending withdrawals из базы
+    const result = await TransactionModel.getPendingWithdrawals();
+
+    res.json({ success: true, withdrawals: result });
   } catch (error: any) {
     console.error("Error getting pending withdrawals:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to get withdrawals" });
   }
 });
 
-// Одобрить вывод (для админов)
-app.post("/api/crypto/approve-withdrawal/:id", async (req, res) => {
+// Отметить вывод как выполненный (админ уже отправил через @send)
+app.post("/api/admin/withdrawals/:id/complete", async (req, res) => {
   try {
     const { id } = req.params;
-    const { moderator_id } = req.body;
+    const { admin_id } = req.body;
 
-    if (!moderator_id) {
-      return res.status(400).json({ success: false, error: "Missing moderator_id" });
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
     }
 
-    const result = await cryptoService.approveWithdrawal(parseInt(id), moderator_id);
-    res.json(result);
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(admin_id, "manage_withdrawals");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Получаем транзакцию
+    const transaction = await TransactionModel.getTransactionById(parseInt(id));
+
+    if (!transaction || transaction.type !== "withdrawal") {
+      return res.status(404).json({ success: false, error: "Transaction not found" });
+    }
+
+    if (transaction.status !== "pending") {
+      return res.status(400).json({ success: false, error: "Transaction already processed" });
+    }
+
+    // Обновляем статус на completed
+    await TransactionModel.updateTransactionStatus(
+      parseInt(id),
+      "completed",
+      null,
+      admin_id
+    );
+
+    // Уведомляем пользователя
+    if (telegramBot) {
+      const user = await UserModel.getUserById(transaction.user_id);
+      if (user) {
+        try {
+          await telegramBot.sendMessage(
+            user.telegram_id,
+            `✅ **Вывод выполнен!**\n\nСумма: ${transaction.amount} USDT\n\nСредства отправлены на ваш Telegram ID через @send бота.`,
+            { parse_mode: "Markdown" }
+          );
+        } catch (err) {
+          console.error("Не удалось отправить уведомление пользователю:", err);
+        }
+      }
+    }
+
+    res.json({ success: true, message: "Withdrawal marked as completed" });
   } catch (error: any) {
-    console.error("Error approving withdrawal:", error);
-    res.status(500).json({ success: false, error: error.message || "Failed to approve withdrawal" });
+    console.error("Error completing withdrawal:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to complete withdrawal" });
   }
 });
 
-// Отклонить вывод (для админов)
-app.post("/api/crypto/reject-withdrawal/:id", async (req, res) => {
+// Получить статистику (для админов)
+app.get("/api/admin/stats", async (req, res) => {
   try {
-    const { id } = req.params;
-    const { moderator_id } = req.body;
+    const { admin_id } = req.query;
 
-    if (!moderator_id) {
-      return res.status(400).json({ success: false, error: "Missing moderator_id" });
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
     }
 
-    const result = await cryptoService.rejectWithdrawal(parseInt(id), moderator_id);
-    res.json(result);
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "view_stats");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const totalUsers = await UserModel.getTotalUsers();
+    const usersWithDeposits = await UserModel.getUsersWithDeposits();
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        usersWithDeposits
+      }
+    });
   } catch (error: any) {
-    console.error("Error rejecting withdrawal:", error);
-    res.status(500).json({ success: false, error: error.message || "Failed to reject withdrawal" });
+    console.error("Error getting stats:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
