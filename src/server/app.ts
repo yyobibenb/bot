@@ -8,6 +8,7 @@ import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
 import { OtherGamesService } from "../services/OtherGamesService";
 import cryptoService from "../services/CryptoService";
+import cryptoBotService from "../services/CryptoBotService";
 import { DuelService } from "../services/DuelService";
 
 const app = express();
@@ -802,6 +803,35 @@ app.get("/", (req, res) => {
               if (data.user.photo_url && !photoUrl) {
                 avatar.innerHTML = \`<img src="\${data.user.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
               }
+
+              // Проверяем является ли пользователь админом
+              fetch(\`/api/admin/check?user_id=\${currentUser.id}\`)
+                .then(res => res.json())
+                .then(adminData => {
+                  if (adminData.success && adminData.isAdmin) {
+                    console.log('✅ Пользователь - админ!', adminData.permissions);
+                    currentUser.isAdmin = true;
+                    currentUser.adminPermissions = adminData.permissions;
+
+                    // Показываем кнопку админки в профиле
+                    const actionsDiv = document.querySelector('.actions');
+                    if (actionsDiv && !document.getElementById('admin-btn')) {
+                      const adminBtn = document.createElement('button');
+                      adminBtn.id = 'admin-btn';
+                      adminBtn.className = 'btn secondary';
+                      adminBtn.style.marginTop = '12px';
+                      adminBtn.onclick = () => showAdminPanel();
+                      adminBtn.innerHTML = \`
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                        <span>Админка</span>
+                      \`;
+                      actionsDiv.parentNode.insertBefore(adminBtn, actionsDiv.nextSibling);
+                    }
+                  }
+                })
+                .catch(err => console.error('Ошибка проверки админа:', err));
             }
             if (data.balance !== undefined) {
               document.getElementById('balance').textContent = data.balance.toFixed(2);
@@ -838,7 +868,7 @@ app.get("/", (req, res) => {
       }
     }, 200);
 
-    function handleDeposit() {
+    async function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
       if (!currentUser) {
@@ -846,20 +876,39 @@ app.get("/", (req, res) => {
         return;
       }
 
-      const telegramId = currentUser.telegram_id;
+      const amount = prompt('Введите сумму пополнения (USDT):\n\nМинимум: 10 USDT');
 
-      tg.showPopup({
-        title: '💰 Пополнение баланса',
-        message: \`Для пополнения используйте @send бот:\n\n1. Откройте @send в Telegram\n2. Выберите "Отправить"\n3. Выберите USDT\n4. ID получателя: \${telegramId}\n5. Укажите сумму\n\nМинимум: 10 USDT\`,
-        buttons: [
-          { id: 'open', type: 'default', text: 'Открыть @send' },
-          { id: 'close', type: 'cancel', text: 'Закрыть' }
-        ]
-      }, (buttonId) => {
-        if (buttonId === 'open') {
-          tg.openTelegramLink('https://t.me/send');
+      if (!amount) return;
+
+      const depositAmount = parseFloat(amount);
+
+      if (isNaN(depositAmount) || depositAmount < 10) {
+        tg.showAlert('Некорректная сумма. Минимум: 10 USDT');
+        return;
+      }
+
+      try {
+        // Создаем инвойс через CryptoBot API
+        const response = await fetch('/api/crypto/create-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            amount: depositAmount
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.invoice_url) {
+          tg.openLink(data.invoice_url);
+          tg.showAlert('Счет создан! Оплатите в открывшемся окне CryptoBot.');
+        } else {
+          tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать счет'));
         }
-      });
+      } catch (error) {
+        tg.showAlert('❌ Ошибка при создании счета');
+      }
     }
 
     async function handleWithdraw() {
@@ -1857,7 +1906,46 @@ app.post("/api/withdraw", async (req, res) => {
 });
 
 // ============================================
-// CRYPTO API ENDPOINTS
+// CRYPTOBOT API ENDPOINTS
+// ============================================
+
+// Создать инвойс для пополнения (CryptoBot)
+app.post("/api/crypto/create-invoice", async (req, res) => {
+  try {
+    const { user_id, amount } = req.body;
+    if (!user_id || !amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await cryptoBotService.createInvoice(user_id, amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating invoice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create invoice" });
+  }
+});
+
+// Вебхук для получения уведомлений от CryptoBot
+app.post("/api/crypto/webhook", async (req, res) => {
+  try {
+    const invoiceData = req.body;
+    console.log("CryptoBot webhook received:", invoiceData);
+
+    const result = await cryptoBotService.processPayment(invoiceData);
+
+    if (result.success) {
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ success: false, error: "Payment processing failed" });
+    }
+  } catch (error: any) {
+    console.error("Error processing webhook:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// OLD CRYPTO API ENDPOINTS (TronWeb - deprecated)
 // ============================================
 
 // Получить адрес для пополнения

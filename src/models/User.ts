@@ -95,6 +95,38 @@ export class UserModel {
     );
   }
 
+  static async updateUser(
+    userId: number,
+    data: {
+      first_name?: string;
+      username?: string;
+      last_name?: string;
+      photo_url?: string;
+      is_premium?: boolean;
+    }
+  ): Promise<User> {
+    const result = await pool.query(
+      `UPDATE users
+       SET first_name = COALESCE($1, first_name),
+           username = COALESCE($2, username),
+           last_name = COALESCE($3, last_name),
+           photo_url = COALESCE($4, photo_url),
+           is_premium = COALESCE($5, is_premium),
+           last_activity = CURRENT_TIMESTAMP
+       WHERE id = $6
+       RETURNING *`,
+      [
+        data.first_name,
+        data.username,
+        data.last_name,
+        data.photo_url,
+        data.is_premium,
+        userId,
+      ]
+    );
+    return result.rows[0];
+  }
+
   static async blockUser(userId: number): Promise<void> {
     await pool.query("UPDATE users SET is_blocked = true WHERE id = $1", [
       userId,
