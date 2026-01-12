@@ -1,4 +1,3 @@
-import TronWeb from "tronweb";
 import { UserModel } from "../models/User";
 import { BalanceModel } from "../models/Balance";
 import { TransactionModel } from "../models/Transaction";
@@ -11,10 +10,10 @@ export class CryptoService {
   private masterWallet: string;
 
   constructor() {
+    const TronWeb = require("tronweb");
     const fullHost = "https://api.trongrid.io";
     const privateKey = process.env.TRON_PRIVATE_KEY || "";
 
-    // @ts-ignore
     this.tronWeb = new TronWeb({
       fullHost,
       privateKey,
@@ -101,7 +100,7 @@ export class CryptoService {
       }
 
       // Создаем временный TronWeb с ключом пользователя
-      // @ts-ignore
+      const TronWeb = require("tronweb");
       const userTronWeb = new TronWeb({
         fullHost: "https://api.trongrid.io",
         privateKey: user.deposit_private_key,
