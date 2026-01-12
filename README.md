@@ -20,7 +20,9 @@
 - 🎨 **Стеклянный UI iOS 17** - современный дизайн
 - 💰 **5 рабочих игр** - полный Frontend + Backend
 - 🗄️ **PostgreSQL** - 15 таблиц, автомиграции
-- 🎯 **30+ API endpoints** - полностью функциональный REST API
+- 🎯 **37 API endpoints** - полностью функциональный REST API
+- 💎 **USDT TRC20** - автоматические пополнения и выводы
+- 🔐 **Модерация выводов** - от $10 с одобрением админа
 - 📱 **Telegram Mini App** - нативная интеграция
 - 🔔 **HapticFeedback** - тактильная обратная связь
 - 👥 **Реферальная система** - 5% комиссия
@@ -59,6 +61,10 @@ DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=your_password
 DB_NAME=casino_bot
+
+# Crypto (USDT TRC20)
+TRON_PRIVATE_KEY=your_master_wallet_private_key
+TRON_MASTER_WALLET=your_master_wallet_address
 
 # Server
 PORT=5000
@@ -157,6 +163,15 @@ src/
 - Баскетбол: `/goal`, `/miss`
 - Дартс: `/red`, `/white`, `/center`, `/miss`
 
+### Крипто (7 endpoints) 💎
+- `POST /api/crypto/deposit-address` - Получить адрес для пополнения
+- `POST /api/crypto/check-deposit` - Проверить новые депозиты
+- `POST /api/crypto/process-deposit` - Обработать депозит
+- `POST /api/crypto/withdraw` - Создать заявку на вывод
+- `GET /api/crypto/pending-withdrawals` - Список ожидающих выводов (admin)
+- `POST /api/crypto/approve-withdrawal/:id` - Одобрить вывод (admin)
+- `POST /api/crypto/reject-withdrawal/:id` - Отклонить вывод (admin)
+
 ## 🗄️ База данных
 
 ### 15 таблиц:
@@ -185,16 +200,18 @@ src/
 - **Database:** PostgreSQL 12+
 - **Framework:** Express 5.1
 - **Bot:** node-telegram-bot-api
+- **Crypto:** TronWeb (USDT TRC20)
 - **Frontend:** Vanilla JS, Telegram Mini App SDK
 - **Design:** iOS 17 Glass Design
 
 ## 📊 Статистика проекта
 
-- **Строк кода:** ~4500+
-- **Файлов:** 18
-- **API endpoints:** 30+
+- **Строк кода:** ~6150+
+- **Файлов:** 19
+- **API endpoints:** 37
 - **Игр реализовано:** 5/7
 - **Таблиц БД:** 15
+- **Telegram команд:** 5 (/start, /deposit, /withdraw, /balance, /help)
 
 ## 🎮 Как играть
 
