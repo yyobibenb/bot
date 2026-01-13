@@ -766,6 +766,10 @@ app.get("/", (req, res) => {
     tg.setBackgroundColor('#e8f7f9');
     tg.setHeaderColor('#e8f7f9');
 
+    // Global state
+    let currentUser = null;
+    let selectedGameMode = null;
+
     // Function to load user data
     async function loadUserData() {
       console.log('=== Попытка загрузки данных пользователя ===');
@@ -1004,10 +1008,6 @@ app.get("/", (req, res) => {
         tg.showAlert('❌ Ошибка при создании заявки на вывод');
       }
     }
-
-    // Global state
-    let currentUser = null;
-    let selectedGameMode = null;
 
     function handleNav(event, section) {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
