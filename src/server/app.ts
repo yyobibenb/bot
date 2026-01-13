@@ -522,6 +522,11 @@ app.get("/", (req, res) => {
   </style>
 </head>
 <body>
+  <!-- Debug Status Indicator -->
+  <div id="debug-status" style="position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); color: #00ff00; padding: 10px; font-family: monospace; font-size: 12px; z-index: 99999; text-align: center; cursor: pointer;" onclick="this.style.display='none';">
+    ⏳ Загрузка...
+  </div>
+
   <!-- Gradient Blobs -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
@@ -831,38 +836,59 @@ app.get("/", (req, res) => {
   </div> <!-- End Content Wrapper -->
 
   <script>
-    // Показываем что скрипт начал загружаться
-    document.getElementById('username').textContent = '🔄 Скрипт загружается...';
-
-    console.log('=== SCRIPT START ===');
-
-    // Проверяем доступность Telegram WebApp
-    if (typeof window.Telegram === 'undefined') {
-      console.error('❌ window.Telegram не найден!');
-      document.getElementById('username').textContent = '❌ Telegram SDK не загружен';
-      throw new Error('Telegram SDK not loaded');
+    // Функция для обновления статуса отладки
+    function updateDebugStatus(message, isError = false) {
+      const debugEl = document.getElementById('debug-status');
+      if (debugEl) {
+        debugEl.textContent = message;
+        debugEl.style.color = isError ? '#ff0000' : '#00ff00';
+        debugEl.style.background = isError ? 'rgba(139,0,0,0.9)' : 'rgba(0,0,0,0.9)';
+      }
+      console.log(message);
     }
 
-    const tg = window.Telegram.WebApp;
-    console.log('✅ Telegram SDK загружен');
-    document.getElementById('username').textContent = '🔄 SDK загружен...';
+    // Глобальный try-catch
+    try {
+      updateDebugStatus('🔄 [1/10] Скрипт начал загружаться...');
 
-    console.log('=== Telegram WebApp Debug START ===');
-    console.log('1. WebApp доступен?', typeof window.Telegram !== 'undefined');
-    console.log('2. tg.isVersionAtLeast:', tg.isVersionAtLeast ? tg.isVersionAtLeast('6.0') : 'N/A');
-    console.log('3. Platform:', tg.platform);
-    console.log('4. Version:', tg.version);
-    console.log('5. initData length:', tg.initData ? tg.initData.length : 0);
-    console.log('6. initData (raw):', tg.initData);
-    console.log('7. initDataUnsafe (parsed):', JSON.stringify(tg.initDataUnsafe, null, 2));
+      // Показываем что скрипт начал загружаться
+      document.getElementById('username').textContent = '🔄 Скрипт загружается...';
 
-    // Ready and expand
-    tg.ready();
-    tg.expand();
-    tg.setBackgroundColor('#071C15');
-    tg.setHeaderColor('#071C15');
+      console.log('=== SCRIPT START ===');
+      updateDebugStatus('🔄 [2/10] Проверка Telegram SDK...');
 
-    document.getElementById('username').textContent = '🔄 Telegram готов...';
+      // Проверяем доступность Telegram WebApp
+      if (typeof window.Telegram === 'undefined') {
+        updateDebugStatus('❌ ERROR: window.Telegram не найден!', true);
+        console.error('❌ window.Telegram не найден!');
+        document.getElementById('username').textContent = '❌ Telegram SDK не загружен';
+        throw new Error('Telegram SDK not loaded');
+      }
+
+      const tg = window.Telegram.WebApp;
+      updateDebugStatus('✅ [3/10] Telegram SDK загружен');
+      console.log('✅ Telegram SDK загружен');
+      document.getElementById('username').textContent = '🔄 SDK загружен...';
+
+      updateDebugStatus('🔄 [4/10] Инициализация Telegram...');
+      console.log('=== Telegram WebApp Debug START ===');
+      console.log('1. WebApp доступен?', typeof window.Telegram !== 'undefined');
+      console.log('2. tg.isVersionAtLeast:', tg.isVersionAtLeast ? tg.isVersionAtLeast('6.0') : 'N/A');
+      console.log('3. Platform:', tg.platform);
+      console.log('4. Version:', tg.version);
+      console.log('5. initData length:', tg.initData ? tg.initData.length : 0);
+      console.log('6. initData (raw):', tg.initData);
+      console.log('7. initDataUnsafe (parsed):', JSON.stringify(tg.initDataUnsafe, null, 2));
+
+      // Ready and expand
+      updateDebugStatus('🔄 [5/10] Вызов tg.ready()...');
+      tg.ready();
+      tg.expand();
+      tg.setBackgroundColor('#071C15');
+      tg.setHeaderColor('#071C15');
+
+      updateDebugStatus('✅ [6/10] Telegram готов');
+      document.getElementById('username').textContent = '🔄 Telegram готов...';
 
     // Global state
     let currentUser = null;
@@ -889,20 +915,20 @@ app.get("/", (req, res) => {
     async function loadUserData() {
       const usernameEl = document.getElementById('username');
 
+      updateDebugStatus('🔄 [7/10] Загрузка данных пользователя...');
       console.log('=== Попытка загрузки данных пользователя ===');
       console.log('Шаг 1: Начало функции loadUserData');
-      if (usernameEl) usernameEl.textContent = '🔄 Шаг 1: Начало загрузки...';
+      if (usernameEl) usernameEl.textContent = '🔄 Загрузка данных...';
 
       isLoadingUser = true;
       setButtonsDisabled(true);
       console.log('Шаг 2: Кнопки заблокированы');
-      if (usernameEl) usernameEl.textContent = '🔄 Шаг 2: Кнопки заблокированы...';
 
       try {
+        updateDebugStatus('🔄 [8/10] Проверка initDataUnsafe...');
         console.log('Шаг 3: Проверка tg.initDataUnsafe...');
         console.log('tg.initDataUnsafe существует?', !!tg.initDataUnsafe);
         console.log('tg.initDataUnsafe.user существует?', !!(tg.initDataUnsafe && tg.initDataUnsafe.user));
-        if (usernameEl) usernameEl.textContent = '🔄 Шаг 3: Проверка Telegram данных...';
 
         // Check if user data exists
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
@@ -988,6 +1014,7 @@ app.get("/", (req, res) => {
               }
 
               success = true;
+              updateDebugStatus('✅ [9/10] Данные загружены из базы!');
               console.log('✅ Загрузка данных успешно завершена!');
             } else if (response.status === 404) {
               // Пользователь не найден, создаем нового
@@ -1128,7 +1155,16 @@ app.get("/", (req, res) => {
     // Load user data immediately
     console.log('🚀 Вызываю loadUserData()...');
     document.getElementById('username').textContent = '🚀 Запускаю загрузку...';
-    loadUserData();
+    loadUserData().then(() => {
+      updateDebugStatus('✅ [10/10] Готово! Нажми для скрытия', false);
+      // Скрываем индикатор через 3 секунды
+      setTimeout(() => {
+        const debugEl = document.getElementById('debug-status');
+        if (debugEl) debugEl.style.display = 'none';
+      }, 3000);
+    }).catch(err => {
+      updateDebugStatus('❌ ERROR: ' + err.message, true);
+    });
 
     async function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -1786,6 +1822,16 @@ app.get("/", (req, res) => {
         }
       } catch (error) {
         tg.showAlert('❌ Ошибка при обработке');
+      }
+    }
+
+    // Глобальный catch для всего скрипта
+    } catch (globalError) {
+      updateDebugStatus('❌ КРИТИЧЕСКАЯ ОШИБКА: ' + globalError.message, true);
+      console.error('❌ Глобальная ошибка:', globalError);
+      const usernameEl = document.getElementById('username');
+      if (usernameEl) {
+        usernameEl.textContent = '❌ Ошибка загрузки';
       }
     }
   </script>
