@@ -831,7 +831,21 @@ app.get("/", (req, res) => {
   </div> <!-- End Content Wrapper -->
 
   <script>
+    // Показываем что скрипт начал загружаться
+    document.getElementById('username').textContent = '🔄 Скрипт загружается...';
+
+    console.log('=== SCRIPT START ===');
+
+    // Проверяем доступность Telegram WebApp
+    if (typeof window.Telegram === 'undefined') {
+      console.error('❌ window.Telegram не найден!');
+      document.getElementById('username').textContent = '❌ Telegram SDK не загружен';
+      throw new Error('Telegram SDK not loaded');
+    }
+
     const tg = window.Telegram.WebApp;
+    console.log('✅ Telegram SDK загружен');
+    document.getElementById('username').textContent = '🔄 SDK загружен...';
 
     console.log('=== Telegram WebApp Debug START ===');
     console.log('1. WebApp доступен?', typeof window.Telegram !== 'undefined');
@@ -847,6 +861,8 @@ app.get("/", (req, res) => {
     tg.expand();
     tg.setBackgroundColor('#071C15');
     tg.setHeaderColor('#071C15');
+
+    document.getElementById('username').textContent = '🔄 Telegram готов...';
 
     // Global state
     let currentUser = null;
@@ -871,16 +887,22 @@ app.get("/", (req, res) => {
 
     // Function to load user data
     async function loadUserData() {
+      const usernameEl = document.getElementById('username');
+
       console.log('=== Попытка загрузки данных пользователя ===');
       console.log('Шаг 1: Начало функции loadUserData');
+      if (usernameEl) usernameEl.textContent = '🔄 Шаг 1: Начало загрузки...';
+
       isLoadingUser = true;
       setButtonsDisabled(true);
       console.log('Шаг 2: Кнопки заблокированы');
+      if (usernameEl) usernameEl.textContent = '🔄 Шаг 2: Кнопки заблокированы...';
 
       try {
         console.log('Шаг 3: Проверка tg.initDataUnsafe...');
         console.log('tg.initDataUnsafe существует?', !!tg.initDataUnsafe);
         console.log('tg.initDataUnsafe.user существует?', !!(tg.initDataUnsafe && tg.initDataUnsafe.user));
+        if (usernameEl) usernameEl.textContent = '🔄 Шаг 3: Проверка Telegram данных...';
 
         // Check if user data exists
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
@@ -1075,14 +1097,26 @@ app.get("/", (req, res) => {
           console.log('3. URL должен быть HTTPS (не HTTP)');
           console.log('4. Домен должен быть подтверждён в BotFather');
 
-          // Show placeholder data for testing
-          const usernameEl = document.getElementById('username');
-          const handleEl = document.getElementById('handle');
-          if (usernameEl) usernameEl.textContent = 'Test User';
-          if (handleEl) handleEl.textContent = '@testuser';
+          // Show error in UI
+          const usernameElTemp = document.getElementById('username');
+          const handleElTemp = document.getElementById('handle');
+          if (usernameElTemp) usernameElTemp.textContent = '❌ Нет данных от Telegram';
+          if (handleElTemp) handleElTemp.textContent = 'Откройте через бота!';
+
+          // Show alert
+          if (tg.showAlert) {
+            tg.showAlert('❌ Ошибка: Mini App должен быть открыт через Telegram бота. Нажмите /start в боте.');
+          }
         }
       } catch (err) {
         console.error('❌ Критическая ошибка в loadUserData:', err);
+        const usernameElErr = document.getElementById('username');
+        if (usernameElErr) usernameElErr.textContent = '❌ Критическая ошибка!';
+
+        // Show alert
+        if (tg.showAlert) {
+          tg.showAlert('❌ Критическая ошибка: ' + (err.message || err));
+        }
       } finally {
         // Разблокируем кнопки после завершения загрузки
         isLoadingUser = false;
@@ -1092,6 +1126,8 @@ app.get("/", (req, res) => {
     }
 
     // Load user data immediately
+    console.log('🚀 Вызываю loadUserData()...');
+    document.getElementById('username').textContent = '🚀 Запускаю загрузку...';
     loadUserData();
 
     async function handleDeposit() {
