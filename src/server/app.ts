@@ -527,6 +527,40 @@ app.get("/", (req, res) => {
     ⏳ Загрузка...
   </div>
 
+  <!-- КРИТИЧЕСКИ ВАЖНЫЙ INLINE СКРИПТ - ВЫПОЛНЯЕТСЯ ПЕРВЫМ -->
+  <script>
+    // Отлавливаем ВСЕ ошибки JavaScript
+    window.onerror = function(msg, url, line, col, error) {
+      var d = document.getElementById('debug-status');
+      if (d) {
+        d.textContent = '❌ JS ERROR: ' + msg + ' (строка ' + line + ')';
+        d.style.background = 'rgba(139,0,0,0.9)';
+        d.style.color = '#ff0000';
+      }
+      alert('JavaScript Error: ' + msg + '\nLine: ' + line);
+      return false;
+    };
+
+    (function() {
+      try {
+        var d = document.getElementById('debug-status');
+        if (d) {
+          d.textContent = '✅ INLINE JS РАБОТАЕТ!';
+          d.style.background = 'rgba(0,139,0,0.9)';
+        }
+        var u = document.getElementById('username');
+        if (u) u.textContent = '✅ Inline скрипт выполнился';
+      } catch(e) {
+        var d = document.getElementById('debug-status');
+        if (d) {
+          d.textContent = '❌ ERROR: ' + e.message;
+          d.style.background = 'rgba(139,0,0,0.9)';
+        }
+        alert('ERROR in inline script: ' + e.message);
+      }
+    })();
+  </script>
+
   <!-- Gradient Blobs -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
@@ -836,9 +870,14 @@ app.get("/", (req, res) => {
   </div> <!-- End Content Wrapper -->
 
   <script>
-    // САМЫЙ ПЕРВЫЙ код - проверяем что JS вообще выполняется
-    document.getElementById('debug-status').textContent = '✅ JS РАБОТАЕТ!';
-    document.getElementById('debug-status').style.color = '#00ff00';
+    // САМЫЙ ПЕРВЫЙ код - проверяем что ОСНОВНОЙ СКРИПТ выполняется
+    try {
+      document.getElementById('debug-status').textContent = '✅ ОСНОВНОЙ СКРИПТ НАЧАЛСЯ!';
+      document.getElementById('debug-status').style.background = 'rgba(0,0,139,0.9)';
+      document.getElementById('username').textContent = '✅ Основной скрипт начался';
+    } catch(e) {
+      alert('ERROR at start of main script: ' + e.message);
+    }
 
     // Функция для обновления статуса отладки
     function updateDebugStatus(message, isError = false) {
