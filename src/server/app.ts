@@ -836,6 +836,10 @@ app.get("/", (req, res) => {
   </div> <!-- End Content Wrapper -->
 
   <script>
+    // САМЫЙ ПЕРВЫЙ код - проверяем что JS вообще выполняется
+    document.getElementById('debug-status').textContent = '✅ JS РАБОТАЕТ!';
+    document.getElementById('debug-status').style.color = '#00ff00';
+
     // Функция для обновления статуса отладки
     function updateDebugStatus(message, isError = false) {
       const debugEl = document.getElementById('debug-status');
@@ -847,25 +851,36 @@ app.get("/", (req, res) => {
       console.log(message);
     }
 
-    // Глобальный try-catch
-    try {
-      updateDebugStatus('🔄 [1/10] Скрипт начал загружаться...');
+    // Глобальный async блок
+    (async function() {
+      try {
+        updateDebugStatus('🔄 [1/10] Скрипт начал загружаться...');
 
-      // Показываем что скрипт начал загружаться
-      document.getElementById('username').textContent = '🔄 Скрипт загружается...';
+        // Показываем что скрипт начал загружаться
+        document.getElementById('username').textContent = '🔄 Скрипт загружается...';
 
-      console.log('=== SCRIPT START ===');
-      updateDebugStatus('🔄 [2/10] Проверка Telegram SDK...');
+        console.log('=== SCRIPT START ===');
+        updateDebugStatus('🔄 [2/10] Проверка Telegram SDK...');
 
-      // Проверяем доступность Telegram WebApp
-      if (typeof window.Telegram === 'undefined') {
-        updateDebugStatus('❌ ERROR: window.Telegram не найден!', true);
-        console.error('❌ window.Telegram не найден!');
-        document.getElementById('username').textContent = '❌ Telegram SDK не загружен';
-        throw new Error('Telegram SDK not loaded');
-      }
+        // Ждем загрузки Telegram SDK (максимум 5 секунд)
+        let attempts = 0;
+        const maxAttempts = 50; // 50 * 100ms = 5 секунд
 
-      const tg = window.Telegram.WebApp;
+        while (typeof window.Telegram === 'undefined' && attempts < maxAttempts) {
+          updateDebugStatus(\`🔄 [2/10] Ожидание SDK... (\${attempts}/\${maxAttempts})\`);
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        // Проверяем доступность Telegram WebApp
+        if (typeof window.Telegram === 'undefined') {
+          updateDebugStatus('❌ ERROR: Telegram SDK не загрузился!', true);
+          console.error('❌ window.Telegram не найден!');
+          document.getElementById('username').textContent = '❌ Telegram SDK не загружен';
+          throw new Error('Telegram SDK not loaded after 5 seconds');
+        }
+
+        const tg = window.Telegram.WebApp;
       updateDebugStatus('✅ [3/10] Telegram SDK загружен');
       console.log('✅ Telegram SDK загружен');
       document.getElementById('username').textContent = '🔄 SDK загружен...';
@@ -1825,15 +1840,16 @@ app.get("/", (req, res) => {
       }
     }
 
-    // Глобальный catch для всего скрипта
-    } catch (globalError) {
-      updateDebugStatus('❌ КРИТИЧЕСКАЯ ОШИБКА: ' + globalError.message, true);
-      console.error('❌ Глобальная ошибка:', globalError);
-      const usernameEl = document.getElementById('username');
-      if (usernameEl) {
-        usernameEl.textContent = '❌ Ошибка загрузки';
+      // Глобальный catch для всего скрипта
+      } catch (globalError) {
+        updateDebugStatus('❌ КРИТИЧЕСКАЯ ОШИБКА: ' + globalError.message, true);
+        console.error('❌ Глобальная ошибка:', globalError);
+        const usernameEl = document.getElementById('username');
+        if (usernameEl) {
+          usernameEl.textContent = '❌ Ошибка загрузки';
+        }
       }
-    }
+    })(); // Закрываем async function
   </script>
 </body>
 </html>
