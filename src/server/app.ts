@@ -872,10 +872,16 @@ app.get("/", (req, res) => {
     // Function to load user data
     async function loadUserData() {
       console.log('=== Попытка загрузки данных пользователя ===');
+      console.log('Шаг 1: Начало функции loadUserData');
       isLoadingUser = true;
       setButtonsDisabled(true);
+      console.log('Шаг 2: Кнопки заблокированы');
 
       try {
+        console.log('Шаг 3: Проверка tg.initDataUnsafe...');
+        console.log('tg.initDataUnsafe существует?', !!tg.initDataUnsafe);
+        console.log('tg.initDataUnsafe.user существует?', !!(tg.initDataUnsafe && tg.initDataUnsafe.user));
+
         // Check if user data exists
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           const tgUser = tg.initDataUnsafe.user;
@@ -888,18 +894,34 @@ app.get("/", (req, res) => {
           console.log('Language:', tgUser.language_code);
 
           const fullName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+          console.log('Шаг 4: Полное имя:', fullName);
+
           const avatar = document.getElementById('avatar');
           const usernameEl = document.getElementById('username');
           const handleEl = document.getElementById('handle');
           const balanceEl = document.getElementById('balance');
 
+          console.log('Шаг 5: Проверка DOM элементов...');
+          console.log('avatar найден?', !!avatar);
+          console.log('usernameEl найден?', !!usernameEl);
+          console.log('handleEl найден?', !!handleEl);
+          console.log('balanceEl найден?', !!balanceEl);
+
           // Проверяем что элементы существуют
           if (!avatar || !usernameEl || !handleEl || !balanceEl) {
             console.error('❌ Не найдены элементы DOM!');
+            console.error('Отсутствуют:', {
+              avatar: !avatar,
+              username: !usernameEl,
+              handle: !handleEl,
+              balance: !balanceEl
+            });
             isLoadingUser = false;
             setButtonsDisabled(false);
             return;
           }
+
+          console.log('Шаг 6: Все DOM элементы найдены, начинаем загрузку из API...');
 
         // Сначала пытаемся загрузить пользователя из базы (с повторными попытками)
         let retries = 3;
@@ -907,19 +929,27 @@ app.get("/", (req, res) => {
 
         while (retries > 0 && !success) {
           try {
-            console.log(\`🔍 Загружаю данные из базы... (попытка \${4 - retries}/3)\`);
+            const attemptNum = 4 - retries;
+            console.log(\`🔍 Загружаю данные из базы... (попытка \${attemptNum}/3)\`);
+            console.log(\`📡 Отправляю запрос: GET /api/user/telegram/\${tgUser.id}\`);
+
             const response = await fetch(\`/api/user/telegram/\${tgUser.id}\`);
+            console.log(\`📨 Ответ получен. Статус: \${response.status}\`);
 
             if (response.ok) {
               // Пользователь найден в базе
+              console.log('Шаг 7: Парсинг JSON ответа...');
               const data = await response.json();
               console.log('✅ Пользователь загружен из базы:', data);
 
               currentUser = data.user;
+              console.log('Шаг 8: currentUser установлен:', currentUser);
 
               // Обновляем UI
+              console.log('Шаг 9: Обновление UI элементов...');
               usernameEl.textContent = fullName;
               handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+              console.log('✅ Имя и username обновлены');
 
               // Устанавливаем аватар из базы (если есть)
               if (currentUser.photo_url) {
@@ -932,12 +962,16 @@ app.get("/", (req, res) => {
 
               if (data.balance !== undefined) {
                 balanceEl.textContent = data.balance.toFixed(2);
+                console.log(\`✅ Баланс обновлен: \${data.balance}\`);
               }
 
               success = true;
+              console.log('✅ Загрузка данных успешно завершена!');
             } else if (response.status === 404) {
               // Пользователь не найден, создаем нового
-              console.log('⚠️ Пользователь не найден в базе, создаю...');
+              console.log('⚠️ Пользователь не найден в базе (404), создаю нового...');
+              console.log('📡 Отправляю запрос: POST /api/user');
+
               const createResponse = await fetch('/api/user', {
                 method: 'POST',
                 headers: {
@@ -954,11 +988,13 @@ app.get("/", (req, res) => {
                 })
               });
 
+              console.log(\`📨 Ответ на создание. Статус: \${createResponse.status}\`);
               const createData = await createResponse.json();
               console.log('✅ Пользователь создан:', createData);
 
               if (createData.success && createData.user) {
                 currentUser = createData.user;
+                console.log('Шаг 8: currentUser установлен (новый):', currentUser);
 
                 usernameEl.textContent = fullName;
                 handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
@@ -966,15 +1002,20 @@ app.get("/", (req, res) => {
 
                 if (createData.balance !== undefined) {
                   balanceEl.textContent = createData.balance.toFixed(2);
+                  console.log(\`✅ Баланс установлен: \${createData.balance}\`);
                 }
 
                 success = true;
+                console.log('✅ Создание пользователя успешно завершено!');
+              } else {
+                console.error('❌ Ошибка: createData.success =', createData.success);
               }
             } else {
               throw new Error(\`HTTP \${response.status}\`);
             }
           } catch (error) {
-            console.error(\`❌ Ошибка загрузки (попытка \${4 - retries}/3):, error\`);
+            console.error(\`❌ Ошибка загрузки (попытка \${4 - retries}/3):\`, error);
+            console.error('Детали ошибки:', error.message, error.stack);
             retries--;
             if (retries > 0) {
               console.log(\`⏳ Ожидаю 2 секунды перед повторной попыткой...\`);
