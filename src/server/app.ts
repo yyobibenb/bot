@@ -767,103 +767,123 @@ app.get("/", (req, res) => {
     tg.setHeaderColor('#e8f7f9');
 
     // Function to load user data
-    function loadUserData() {
+    async function loadUserData() {
       console.log('=== Попытка загрузки данных пользователя ===');
 
       // Check if user data exists
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        const user = tg.initDataUnsafe.user;
+        const tgUser = tg.initDataUnsafe.user;
 
-        console.log('✅ ДАННЫЕ НАЙДЕНЫ!');
-        console.log('User ID:', user.id);
-        console.log('First name:', user.first_name);
-        console.log('Last name:', user.last_name);
-        console.log('Username:', user.username);
-        console.log('Language:', user.language_code);
-        console.log('Photo URL:', user.photo_url);
+        console.log('✅ ДАННЫЕ ИЗ TELEGRAM НАЙДЕНЫ!');
+        console.log('User ID:', tgUser.id);
+        console.log('First name:', tgUser.first_name);
+        console.log('Last name:', tgUser.last_name);
+        console.log('Username:', tgUser.username);
+        console.log('Language:', tgUser.language_code);
 
-        // Set username
-        const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-        document.getElementById('username').textContent = fullName;
-        document.getElementById('handle').textContent = '@' + (user.username || 'user' + user.id);
-
-        // Set avatar from Telegram
+        const fullName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
         const avatar = document.getElementById('avatar');
 
-        // Get photo URL from Telegram
-        const photoUrl = user.photo_url || null;
-        console.log('Photo URL from Telegram:', photoUrl);
+        // Сначала пытаемся загрузить пользователя из базы
+        try {
+          console.log('🔍 Загружаю данные из базы...');
+          const response = await fetch(\`/api/user/telegram/\${tgUser.id}\`);
 
-        // If photo URL exists, display it; otherwise use first letter
-        if (photoUrl) {
-          console.log('Устанавливаю аватар с фото:', photoUrl);
-          avatar.innerHTML = \`<img src="\${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
-        } else {
-          console.log('Устанавливаю аватар с первой буквой:', fullName.charAt(0));
-          avatar.textContent = fullName.charAt(0).toUpperCase();
-        }
+          if (response.ok) {
+            // Пользователь найден в базе
+            const data = await response.json();
+            console.log('✅ Пользователь загружен из базы:', data);
 
-        // Save user data to backend
-        fetch('/api/user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            telegram_id: user.id,
-            username: user.username || '',
-            first_name: user.first_name,
-            last_name: user.last_name || '',
-            language_code: user.language_code || '',
-            photo_url: photoUrl,
-            is_premium: user.is_premium || false
-          })
-        }).then(response => response.json())
-          .then(data => {
-            console.log('✅ User saved to backend:', data);
-            if (data.success && data.user) {
-              currentUser = data.user;
-              console.log('✅ Current user set:', currentUser);
+            currentUser = data.user;
 
-              // Update avatar from saved data if available
-              if (data.user.photo_url && !photoUrl) {
-                avatar.innerHTML = \`<img src="\${data.user.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
-              }
+            // Обновляем UI
+            document.getElementById('username').textContent = fullName;
+            document.getElementById('handle').textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
 
-              // Проверяем является ли пользователь админом
-              fetch(\`/api/admin/check?user_id=\${currentUser.id}\`)
-                .then(res => res.json())
-                .then(adminData => {
-                  if (adminData.success && adminData.isAdmin) {
-                    console.log('✅ Пользователь - админ!', adminData.permissions);
-                    currentUser.isAdmin = true;
-                    currentUser.adminPermissions = adminData.permissions;
-
-                    // Показываем кнопку админки в профиле
-                    const actionsDiv = document.querySelector('.actions');
-                    if (actionsDiv && !document.getElementById('admin-btn')) {
-                      const adminBtn = document.createElement('button');
-                      adminBtn.id = 'admin-btn';
-                      adminBtn.className = 'btn secondary';
-                      adminBtn.style.marginTop = '12px';
-                      adminBtn.onclick = () => showAdminPanel();
-                      adminBtn.innerHTML = \`
-                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
-                        <span>Админка</span>
-                      \`;
-                      actionsDiv.parentNode.insertBefore(adminBtn, actionsDiv.nextSibling);
-                    }
-                  }
-                })
-                .catch(err => console.error('Ошибка проверки админа:', err));
+            // Устанавливаем аватар из базы (если есть)
+            if (currentUser.photo_url) {
+              console.log('✅ Устанавливаю аватар из базы:', currentUser.photo_url);
+              avatar.innerHTML = \`<img src="\${currentUser.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
+            } else {
+              console.log('📝 Аватар не найден, использую первую букву');
+              avatar.textContent = fullName.charAt(0).toUpperCase();
             }
+
             if (data.balance !== undefined) {
               document.getElementById('balance').textContent = data.balance.toFixed(2);
             }
-          })
-          .catch(err => console.error('❌ Error saving user:', err));
+          } else {
+            // Пользователь не найден, создаем нового
+            console.log('⚠️ Пользователь не найден в базе, создаю...');
+            const createResponse = await fetch('/api/user', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                telegram_id: tgUser.id,
+                username: tgUser.username || '',
+                first_name: tgUser.first_name,
+                last_name: tgUser.last_name || '',
+                language_code: tgUser.language_code || '',
+                photo_url: null, // Фото будет получено ботом при /start
+                is_premium: tgUser.is_premium || false
+              })
+            });
+
+            const createData = await createResponse.json();
+            console.log('✅ Пользователь создан:', createData);
+
+            if (createData.success && createData.user) {
+              currentUser = createData.user;
+
+              document.getElementById('username').textContent = fullName;
+              document.getElementById('handle').textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+              avatar.textContent = fullName.charAt(0).toUpperCase();
+
+              if (createData.balance !== undefined) {
+                document.getElementById('balance').textContent = createData.balance.toFixed(2);
+              }
+            }
+          }
+
+          // Проверяем является ли пользователь админом
+          if (currentUser && currentUser.id) {
+            fetch(\`/api/admin/check?user_id=\${currentUser.id}\`)
+              .then(res => res.json())
+              .then(adminData => {
+                if (adminData.success && adminData.isAdmin) {
+                  console.log('✅ Пользователь - админ!', adminData.permissions);
+                  currentUser.isAdmin = true;
+                  currentUser.adminPermissions = adminData.permissions;
+
+                  // Показываем кнопку админки в профиле
+                  const actionsDiv = document.querySelector('.actions');
+                  if (actionsDiv && !document.getElementById('admin-btn')) {
+                    const adminBtn = document.createElement('button');
+                    adminBtn.id = 'admin-btn';
+                    adminBtn.className = 'btn secondary';
+                    adminBtn.style.marginTop = '12px';
+                    adminBtn.onclick = () => showAdminPanel();
+                    adminBtn.innerHTML = \`
+                      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                      </svg>
+                      <span>Админка</span>
+                    \`;
+                    actionsDiv.parentNode.insertBefore(adminBtn, actionsDiv.nextSibling);
+                  }
+                }
+              })
+              .catch(err => console.error('Ошибка проверки админа:', err));
+          }
+        } catch (error) {
+          console.error('❌ Ошибка загрузки данных:', error);
+          // Показываем хотя бы базовые данные
+          document.getElementById('username').textContent = fullName;
+          document.getElementById('handle').textContent = '@' + (tgUser.username || 'user' + tgUser.id);
+          avatar.textContent = fullName.charAt(0).toUpperCase();
+        }
       } else {
         console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
         console.log('initData пустой?', !tg.initData || tg.initData.length === 0);
@@ -884,15 +904,6 @@ app.get("/", (req, res) => {
 
     // Load user data immediately
     loadUserData();
-
-    // Also try again after 200ms
-    setTimeout(() => {
-      console.log('=== Повторная попытка через 200ms ===');
-      console.log('initDataUnsafe:', tg.initDataUnsafe);
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user && document.getElementById('username').textContent === 'Test User') {
-        loadUserData();
-      }
-    }, 200);
 
     async function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -1603,6 +1614,38 @@ app.post("/api/user", async (req, res) => {
   } catch (error) {
     console.error("Error saving user:", error);
     res.status(500).json({ success: false, error: "Failed to save user" });
+  }
+});
+
+// API для получения пользователя по telegram_id
+app.get("/api/user/telegram/:telegram_id", async (req, res) => {
+  try {
+    const telegram_id = parseInt(req.params.telegram_id);
+    const user = await UserModel.findByTelegramId(telegram_id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    const balance = await BalanceModel.getByUserId(user.id);
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        telegram_id: user.telegram_id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        language_code: user.language_code,
+        photo_url: user.photo_url,
+        is_premium: user.is_premium
+      },
+      balance: balance ? parseFloat(balance.balance.toString()) : 0
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch user" });
   }
 });
 
