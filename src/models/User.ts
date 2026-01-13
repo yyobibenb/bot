@@ -44,8 +44,8 @@ export class UserModel {
 
   static async create(data: CreateUserData): Promise<User> {
     const result = await pool.query(
-      `INSERT INTO users (telegram_id, username, first_name, last_name, language_code, is_premium, referrer_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (telegram_id, username, first_name, last_name, language_code, photo_url, is_premium, referrer_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [
         data.telegram_id,
@@ -53,6 +53,7 @@ export class UserModel {
         data.first_name,
         data.last_name || null,
         data.language_code || null,
+        data.photo_url || null,
         data.is_premium || false,
         data.referrer_id || null,
       ]

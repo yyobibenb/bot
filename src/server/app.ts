@@ -851,10 +851,29 @@ app.get("/", (req, res) => {
     // Global state
     let currentUser = null;
     let selectedGameMode = null;
+    let isLoadingUser = true;
+
+    // Функция для блокировки/разблокировки кнопок
+    function setButtonsDisabled(disabled) {
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(btn => {
+        if (disabled) {
+          btn.classList.add('disabled');
+          btn.style.opacity = '0.5';
+          btn.style.pointerEvents = 'none';
+        } else {
+          btn.classList.remove('disabled');
+          btn.style.opacity = '1';
+          btn.style.pointerEvents = 'auto';
+        }
+      });
+    }
 
     // Function to load user data
     async function loadUserData() {
       console.log('=== Попытка загрузки данных пользователя ===');
+      isLoadingUser = true;
+      setButtonsDisabled(true);
 
       try {
         // Check if user data exists
@@ -877,71 +896,101 @@ app.get("/", (req, res) => {
           // Проверяем что элементы существуют
           if (!avatar || !usernameEl || !handleEl || !balanceEl) {
             console.error('❌ Не найдены элементы DOM!');
+            isLoadingUser = false;
+            setButtonsDisabled(false);
             return;
           }
 
-        // Сначала пытаемся загрузить пользователя из базы
-        try {
-          console.log('🔍 Загружаю данные из базы...');
-          const response = await fetch(\`/api/user/telegram/\${tgUser.id}\`);
+        // Сначала пытаемся загрузить пользователя из базы (с повторными попытками)
+        let retries = 3;
+        let success = false;
 
-          if (response.ok) {
-            // Пользователь найден в базе
-            const data = await response.json();
-            console.log('✅ Пользователь загружен из базы:', data);
+        while (retries > 0 && !success) {
+          try {
+            console.log(\`🔍 Загружаю данные из базы... (попытка \${4 - retries}/3)\`);
+            const response = await fetch(\`/api/user/telegram/\${tgUser.id}\`);
 
-            currentUser = data.user;
+            if (response.ok) {
+              // Пользователь найден в базе
+              const data = await response.json();
+              console.log('✅ Пользователь загружен из базы:', data);
 
-            // Обновляем UI
-            usernameEl.textContent = fullName;
-            handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+              currentUser = data.user;
 
-            // Устанавливаем аватар из базы (если есть)
-            if (currentUser.photo_url) {
-              console.log('✅ Устанавливаю аватар из базы:', currentUser.photo_url);
-              avatar.innerHTML = \`<img src="\${currentUser.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
-            } else {
-              console.log('📝 Аватар не найден, использую первую букву');
-              avatar.textContent = fullName.charAt(0).toUpperCase();
-            }
-
-            if (data.balance !== undefined) {
-              balanceEl.textContent = data.balance.toFixed(2);
-            }
-          } else {
-            // Пользователь не найден, создаем нового
-            console.log('⚠️ Пользователь не найден в базе, создаю...');
-            const createResponse = await fetch('/api/user', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                telegram_id: tgUser.id,
-                username: tgUser.username || '',
-                first_name: tgUser.first_name,
-                last_name: tgUser.last_name || '',
-                language_code: tgUser.language_code || '',
-                photo_url: null, // Фото будет получено ботом при /start
-                is_premium: tgUser.is_premium || false
-              })
-            });
-
-            const createData = await createResponse.json();
-            console.log('✅ Пользователь создан:', createData);
-
-            if (createData.success && createData.user) {
-              currentUser = createData.user;
-
+              // Обновляем UI
               usernameEl.textContent = fullName;
               handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
-              avatar.textContent = fullName.charAt(0).toUpperCase();
 
-              if (createData.balance !== undefined) {
-                balanceEl.textContent = createData.balance.toFixed(2);
+              // Устанавливаем аватар из базы (если есть)
+              if (currentUser.photo_url) {
+                console.log('✅ Устанавливаю аватар из базы:', currentUser.photo_url);
+                avatar.innerHTML = \`<img src="\${currentUser.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
+              } else {
+                console.log('📝 Аватар не найден, использую первую букву');
+                avatar.textContent = fullName.charAt(0).toUpperCase();
               }
+
+              if (data.balance !== undefined) {
+                balanceEl.textContent = data.balance.toFixed(2);
+              }
+
+              success = true;
+            } else if (response.status === 404) {
+              // Пользователь не найден, создаем нового
+              console.log('⚠️ Пользователь не найден в базе, создаю...');
+              const createResponse = await fetch('/api/user', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  telegram_id: tgUser.id,
+                  username: tgUser.username || '',
+                  first_name: tgUser.first_name,
+                  last_name: tgUser.last_name || '',
+                  language_code: tgUser.language_code || '',
+                  photo_url: null, // Фото будет получено ботом при /start
+                  is_premium: tgUser.is_premium || false
+                })
+              });
+
+              const createData = await createResponse.json();
+              console.log('✅ Пользователь создан:', createData);
+
+              if (createData.success && createData.user) {
+                currentUser = createData.user;
+
+                usernameEl.textContent = fullName;
+                handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+                avatar.textContent = fullName.charAt(0).toUpperCase();
+
+                if (createData.balance !== undefined) {
+                  balanceEl.textContent = createData.balance.toFixed(2);
+                }
+
+                success = true;
+              }
+            } else {
+              throw new Error(\`HTTP \${response.status}\`);
+            }
+          } catch (error) {
+            console.error(\`❌ Ошибка загрузки (попытка \${4 - retries}/3):, error\`);
+            retries--;
+            if (retries > 0) {
+              console.log(\`⏳ Ожидаю 2 секунды перед повторной попыткой...\`);
+              await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }
+        }
+
+        if (!success) {
+          console.error('❌ Не удалось загрузить данные после 3 попыток');
+          // Показываем хотя бы базовые данные
+          usernameEl.textContent = fullName;
+          handleEl.textContent = '@' + (tgUser.username || 'user' + tgUser.id);
+          avatar.textContent = fullName.charAt(0).toUpperCase();
+          balanceEl.textContent = '0.00';
+        }
 
           // Проверяем является ли пользователь админом
           if (currentUser && currentUser.id) {
@@ -973,13 +1022,6 @@ app.get("/", (req, res) => {
               })
               .catch(err => console.error('Ошибка проверки админа:', err));
           }
-          } catch (error) {
-            console.error('❌ Ошибка загрузки данных:', error);
-            // Показываем хотя бы базовые данные
-            usernameEl.textContent = fullName;
-            handleEl.textContent = '@' + (tgUser.username || 'user' + tgUser.id);
-            avatar.textContent = fullName.charAt(0).toUpperCase();
-          }
         } else {
           console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
           console.log('initData пустой?', !tg.initData || tg.initData.length === 0);
@@ -1000,6 +1042,11 @@ app.get("/", (req, res) => {
         }
       } catch (err) {
         console.error('❌ Критическая ошибка в loadUserData:', err);
+      } finally {
+        // Разблокируем кнопки после завершения загрузки
+        isLoadingUser = false;
+        setButtonsDisabled(false);
+        console.log('✅ Загрузка завершена, кнопки разблокированы');
       }
     }
 
@@ -1009,7 +1056,7 @@ app.get("/", (req, res) => {
     async function handleDeposit() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-      if (!currentUser) {
+      if (isLoadingUser || !currentUser) {
         tg.showAlert('Подождите, загружаем данные...');
         return;
       }
@@ -1052,7 +1099,7 @@ app.get("/", (req, res) => {
     async function handleWithdraw() {
       if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-      if (!currentUser) {
+      if (isLoadingUser || !currentUser) {
         tg.showAlert('Подождите, загружаем данные...');
         return;
       }
