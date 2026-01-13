@@ -62,17 +62,32 @@ app.get("/", (req, res) => {
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --glass-bg: rgba(255, 255, 255, 0.75);
-      --glass-active: rgba(255, 255, 255, 0.95);
-      --glass-card: rgba(255, 255, 255, 0.75);
+      /* Luxury Casino Glass */
+      --glass-bg: rgba(255, 255, 255, 0.55);
+      --glass-card: rgba(255, 255, 255, 0.55);
+      --glass-border: rgba(255, 255, 255, 0.35);
 
-      --text-primary: #0f172a;
-      --text-secondary: #6b7280;
+      /* Dark Casino Colors */
+      --bg-dark: #071C15;
+      --bg-dark-end: #0E3A2B;
 
-      --accent-green: #22c55e;
-      --accent-green-dark: #16a34a;
+      /* Text Colors (light for dark bg) */
+      --text-primary: #F5F9F7;
+      --text-secondary: #9CA3AF;
+      --text-muted: #6B7280;
 
-      --blur: blur(22px);
+      /* Emerald Green */
+      --emerald: #18E29A;
+      --emerald-dark: #0FD88A;
+      --emerald-darker: #0B3B2E;
+
+      /* Gold Accents (for wins & VIP) */
+      --gold: #F5C76A;
+      --gold-dark: #FFD36A;
+
+      /* Effects */
+      --blur: blur(18px);
+      --radius-card: 22px;
       --radius-full: 999px;
     }
 
@@ -85,7 +100,7 @@ app.get("/", (req, res) => {
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
-      background: linear-gradient(160deg, #f0fdf4, #e0f2fe);
+      background: linear-gradient(160deg, var(--bg-dark), var(--bg-dark-end));
       min-height: 100vh;
       color: var(--text-primary);
       padding: 24px;
@@ -96,7 +111,7 @@ app.get("/", (req, res) => {
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Gradient Blobs for Depth */
+    /* Dark Emerald Blobs for Depth */
     .blob {
       position: fixed;
       border-radius: 50%;
@@ -108,7 +123,7 @@ app.get("/", (req, res) => {
     .blob-1 {
       width: 300px;
       height: 300px;
-      background: radial-gradient(circle, rgba(34, 197, 94, 0.25), transparent 70%);
+      background: radial-gradient(circle, rgba(24, 226, 154, 0.15), transparent 70%);
       top: -100px;
       left: -80px;
       filter: blur(70px);
@@ -117,7 +132,7 @@ app.get("/", (req, res) => {
     .blob-2 {
       width: 250px;
       height: 250px;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);
+      background: radial-gradient(circle, rgba(15, 216, 138, 0.12), transparent 70%);
       bottom: -80px;
       right: -60px;
       filter: blur(60px);
@@ -127,7 +142,7 @@ app.get("/", (req, res) => {
     .blob-3 {
       width: 200px;
       height: 200px;
-      background: radial-gradient(circle, rgba(34, 197, 94, 0.15), transparent 70%);
+      background: radial-gradient(circle, rgba(245, 199, 106, 0.08), transparent 70%);
       top: 40%;
       right: -50px;
       filter: blur(50px);
@@ -157,7 +172,7 @@ app.get("/", (req, res) => {
       height: 96px;
       margin: 20px auto 16px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
+      background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -165,8 +180,9 @@ app.get("/", (req, res) => {
       font-weight: 600;
       color: white;
       box-shadow:
-        0 0 0 6px rgba(34, 197, 94, 0.15),
-        0 12px 32px rgba(0, 0, 0, 0.12);
+        0 0 0 4px var(--glass-border),
+        0 0 20px rgba(24, 226, 154, 0.4),
+        0 12px 32px rgba(0, 0, 0, 0.5);
       background-size: cover;
       background-position: center;
       transition: transform 0.3s ease;
@@ -178,8 +194,12 @@ app.get("/", (req, res) => {
     }
 
     @keyframes avatarPulse {
-      0%, 100% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.15), 0 12px 32px rgba(0, 0, 0, 0.12); }
-      50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.25), 0 14px 36px rgba(0, 0, 0, 0.16); }
+      0%, 100% {
+        box-shadow: 0 0 0 4px var(--glass-border), 0 0 20px rgba(24, 226, 154, 0.4), 0 12px 32px rgba(0, 0, 0, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 0 6px var(--glass-border), 0 0 30px rgba(24, 226, 154, 0.6), 0 14px 36px rgba(0, 0, 0, 0.6);
+      }
     }
 
     .username {
@@ -196,17 +216,33 @@ app.get("/", (req, res) => {
       color: var(--text-secondary);
     }
 
-    /* Glass Card - Balance Centered */
+    /* Glass Card - Luxury Balance */
     .glass-card {
       margin-top: 20px;
-      padding: 28px 24px;
+      padding: 32px 24px;
       background: var(--glass-card);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
-      border-radius: 22px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-card);
+      box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
       animation: slideUp 0.5s ease;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.6;
     }
 
     .balance-label {
@@ -214,23 +250,25 @@ app.get("/", (req, res) => {
       font-weight: 600;
       color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
+      letter-spacing: 1.5px;
+      margin-bottom: 14px;
     }
 
     .balance-amount {
-      font-size: 52px;
+      font-size: 56px;
       font-weight: 700;
-      color: var(--accent-green);
+      color: var(--emerald);
       letter-spacing: -0.03em;
       line-height: 1;
+      text-shadow: 0 0 30px rgba(24, 226, 154, 0.5);
     }
 
     .balance-currency {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-primary);
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-secondary);
       margin-left: 8px;
+      vertical-align: middle;
     }
 
     /* Stats - Above Buttons */
@@ -245,17 +283,24 @@ app.get("/", (req, res) => {
       flex: 1;
       padding: 14px 12px;
       border-radius: 16px;
-      background: rgba(255, 255, 255, 0.65);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-primary);
       text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
-    /* Action Buttons */
+    .stat:last-child {
+      background: rgba(245, 199, 106, 0.08);
+      border-color: rgba(245, 199, 106, 0.2);
+      color: var(--gold-dark);
+    }
+
+    /* Action Buttons - VIP Style */
     .actions {
       display: flex;
       gap: 12px;
@@ -264,7 +309,7 @@ app.get("/", (req, res) => {
 
     .btn {
       flex: 1;
-      padding: 16px;
+      padding: 18px;
       border-radius: 18px;
       font-size: 15px;
       font-weight: 600;
@@ -274,23 +319,51 @@ app.get("/", (req, res) => {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     .btn:active {
       transform: scale(0.96);
     }
 
+    /* Вывести - King Button */
     .btn.primary {
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
+      background: linear-gradient(135deg, #1AFFA3, var(--emerald-dark));
       color: white;
-      box-shadow: 0 6px 18px rgba(34, 197, 94, 0.25);
+      box-shadow: 0 10px 30px rgba(15, 216, 138, 0.45);
+      position: relative;
+      overflow: hidden;
     }
 
+    .btn.primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn.primary:active::before {
+      opacity: 1;
+    }
+
+    /* Пополнить - Glass Button */
     .btn.secondary {
-      background: white;
-      color: var(--accent-green);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-primary);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn.secondary .btn-icon {
+      color: var(--emerald);
     }
 
     .btn-icon {
@@ -298,7 +371,7 @@ app.get("/", (req, res) => {
       height: 20px;
     }
 
-    /* Bottom TabBar - Bigger! */
+    /* Bottom TabBar - Luxury Glass */
     .tabbar {
       position: fixed;
       bottom: 16px;
@@ -309,18 +382,19 @@ app.get("/", (req, res) => {
 
       display: flex;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 10px 12px;
 
-      height: 60px;
+      height: 64px;
 
-      background: var(--glass-bg);
+      background: rgba(255, 255, 255, 0.08);
       backdrop-filter: var(--blur);
       -webkit-backdrop-filter: var(--blur);
+      border: 1px solid rgba(255, 255, 255, 0.15);
 
       border-radius: 30px;
       box-shadow:
-        0 12px 36px rgba(0, 0, 0, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
       z-index: 1000;
       animation: slideUp 0.6s ease;
@@ -335,11 +409,11 @@ app.get("/", (req, res) => {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 2px;
 
       padding: 6px 10px;
       border-radius: 22px;
-      color: var(--text-secondary);
+      color: var(--text-muted);
 
       cursor: pointer;
       transition: all 0.25s ease;
@@ -353,25 +427,27 @@ app.get("/", (req, res) => {
       width: 56px;
       height: 56px;
       transition: transform 0.25s ease;
+      filter: grayscale(0.3);
     }
 
     .tab-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
-      letter-spacing: 0.2px;
+      letter-spacing: 0.3px;
     }
 
     .tab.active {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--accent-green-dark);
+      background: rgba(24, 226, 154, 0.12);
+      color: var(--emerald);
 
       box-shadow:
-        0 6px 18px rgba(34, 197, 94, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        0 0 20px rgba(24, 226, 154, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
     .tab.active .tab-icon {
       transform: translateY(-2px);
+      filter: grayscale(0);
     }
 
     @keyframes fadeIn {
@@ -397,8 +473,10 @@ app.get("/", (req, res) => {
     /* Game buttons */
     .game-btn {
       padding: 14px 12px;
-      background: rgba(255, 255, 255, 0.9);
-      border: 2px solid transparent;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
       font-size: 14px;
       font-weight: 600;
@@ -408,23 +486,27 @@ app.get("/", (req, res) => {
     }
 
     .game-btn:hover {
-      background: var(--accent-green);
+      background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
       color: white;
-      border-color: var(--accent-green-dark);
+      border-color: var(--emerald);
+      box-shadow: 0 8px 20px rgba(24, 226, 154, 0.3);
     }
 
     .game-btn.selected {
-      background: var(--accent-green);
+      background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
       color: white;
-      border-color: var(--accent-green-dark);
-      transform: scale(1.05);
+      border-color: var(--emerald);
+      box-shadow: 0 8px 20px rgba(24, 226, 154, 0.4);
+      transform: scale(1.03);
     }
 
     .game-btn small {
       display: block;
       font-size: 11px;
-      opacity: 0.8;
+      opacity: 0.9;
       margin-top: 2px;
+      color: var(--gold);
+      font-weight: 700;
     }
 
     /* Dice animation */
