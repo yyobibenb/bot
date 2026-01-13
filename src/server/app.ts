@@ -58,8 +58,13 @@ app.get("/", (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
   <title>Casino App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    // Проверка что JavaScript вообще работает ДО загрузки Telegram SDK
+    document.write('<div style="position:fixed;top:50px;left:0;right:0;text-align:center;background:green;color:white;padding:10px;z-index:100000;">✅ JS ТОЧНО РАБОТАЕТ! Загрузка SDK...</div>');
+  </script>
+  <script src="https://telegram.org/js/telegram-web-app.js" async></script>
   <style>
     :root {
       /* Luxury Casino Glass */
@@ -523,8 +528,8 @@ app.get("/", (req, res) => {
 </head>
 <body>
   <!-- Debug Status Indicator -->
-  <div id="debug-status" style="position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); color: #00ff00; padding: 10px; font-family: monospace; font-size: 12px; z-index: 99999; text-align: center; cursor: pointer;" onclick="this.style.display='none';">
-    ⏳ Загрузка...
+  <div id="debug-status" style="position: fixed; top: 0; left: 0; right: 0; background: rgba(255,0,0,0.9); color: #ffffff; padding: 10px; font-family: monospace; font-size: 14px; z-index: 99999; text-align: center; cursor: pointer; font-weight: bold;" onclick="this.style.display='none';">
+    🚨 ВЕРСИЯ 7bb43a1 - ОЖИДАНИЕ JS...
   </div>
 
   <!-- КРИТИЧЕСКИ ВАЖНЫЙ INLINE СКРИПТ - ВЫПОЛНЯЕТСЯ ПЕРВЫМ -->
