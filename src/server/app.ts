@@ -845,8 +845,8 @@ app.get("/", (req, res) => {
     // Ready and expand
     tg.ready();
     tg.expand();
-    tg.setBackgroundColor('#e8f7f9');
-    tg.setHeaderColor('#e8f7f9');
+    tg.setBackgroundColor('#071C15');
+    tg.setHeaderColor('#071C15');
 
     // Global state
     let currentUser = null;
@@ -856,19 +856,29 @@ app.get("/", (req, res) => {
     async function loadUserData() {
       console.log('=== Попытка загрузки данных пользователя ===');
 
-      // Check if user data exists
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        const tgUser = tg.initDataUnsafe.user;
+      try {
+        // Check if user data exists
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+          const tgUser = tg.initDataUnsafe.user;
 
-        console.log('✅ ДАННЫЕ ИЗ TELEGRAM НАЙДЕНЫ!');
-        console.log('User ID:', tgUser.id);
-        console.log('First name:', tgUser.first_name);
-        console.log('Last name:', tgUser.last_name);
-        console.log('Username:', tgUser.username);
-        console.log('Language:', tgUser.language_code);
+          console.log('✅ ДАННЫЕ ИЗ TELEGRAM НАЙДЕНЫ!');
+          console.log('User ID:', tgUser.id);
+          console.log('First name:', tgUser.first_name);
+          console.log('Last name:', tgUser.last_name);
+          console.log('Username:', tgUser.username);
+          console.log('Language:', tgUser.language_code);
 
-        const fullName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
-        const avatar = document.getElementById('avatar');
+          const fullName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+          const avatar = document.getElementById('avatar');
+          const usernameEl = document.getElementById('username');
+          const handleEl = document.getElementById('handle');
+          const balanceEl = document.getElementById('balance');
+
+          // Проверяем что элементы существуют
+          if (!avatar || !usernameEl || !handleEl || !balanceEl) {
+            console.error('❌ Не найдены элементы DOM!');
+            return;
+          }
 
         // Сначала пытаемся загрузить пользователя из базы
         try {
@@ -883,8 +893,8 @@ app.get("/", (req, res) => {
             currentUser = data.user;
 
             // Обновляем UI
-            document.getElementById('username').textContent = fullName;
-            document.getElementById('handle').textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+            usernameEl.textContent = fullName;
+            handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
 
             // Устанавливаем аватар из базы (если есть)
             if (currentUser.photo_url) {
@@ -896,7 +906,7 @@ app.get("/", (req, res) => {
             }
 
             if (data.balance !== undefined) {
-              document.getElementById('balance').textContent = data.balance.toFixed(2);
+              balanceEl.textContent = data.balance.toFixed(2);
             }
           } else {
             // Пользователь не найден, создаем нового
@@ -923,12 +933,12 @@ app.get("/", (req, res) => {
             if (createData.success && createData.user) {
               currentUser = createData.user;
 
-              document.getElementById('username').textContent = fullName;
-              document.getElementById('handle').textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+              usernameEl.textContent = fullName;
+              handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
               avatar.textContent = fullName.charAt(0).toUpperCase();
 
               if (createData.balance !== undefined) {
-                document.getElementById('balance').textContent = createData.balance.toFixed(2);
+                balanceEl.textContent = createData.balance.toFixed(2);
               }
             }
           }
@@ -963,28 +973,33 @@ app.get("/", (req, res) => {
               })
               .catch(err => console.error('Ошибка проверки админа:', err));
           }
-        } catch (error) {
-          console.error('❌ Ошибка загрузки данных:', error);
-          // Показываем хотя бы базовые данные
-          document.getElementById('username').textContent = fullName;
-          document.getElementById('handle').textContent = '@' + (tgUser.username || 'user' + tgUser.id);
-          avatar.textContent = fullName.charAt(0).toUpperCase();
+          } catch (error) {
+            console.error('❌ Ошибка загрузки данных:', error);
+            // Показываем хотя бы базовые данные
+            usernameEl.textContent = fullName;
+            handleEl.textContent = '@' + (tgUser.username || 'user' + tgUser.id);
+            avatar.textContent = fullName.charAt(0).toUpperCase();
+          }
+        } else {
+          console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
+          console.log('initData пустой?', !tg.initData || tg.initData.length === 0);
+          console.log('initDataUnsafe пустой?', !tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0);
+          console.log('Что в initDataUnsafe:', tg.initDataUnsafe);
+
+          console.log('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:');
+          console.log('1. Mini App не открыт через Telegram бота');
+          console.log('2. WEB_APP_URL не настроен в BotFather (/newapp или /myapps)');
+          console.log('3. URL должен быть HTTPS (не HTTP)');
+          console.log('4. Домен должен быть подтверждён в BotFather');
+
+          // Show placeholder data for testing
+          const usernameEl = document.getElementById('username');
+          const handleEl = document.getElementById('handle');
+          if (usernameEl) usernameEl.textContent = 'Test User';
+          if (handleEl) handleEl.textContent = '@testuser';
         }
-      } else {
-        console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
-        console.log('initData пустой?', !tg.initData || tg.initData.length === 0);
-        console.log('initDataUnsafe пустой?', !tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0);
-        console.log('Что в initDataUnsafe:', tg.initDataUnsafe);
-
-        console.log('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:');
-        console.log('1. Mini App не открыт через Telegram бота');
-        console.log('2. WEB_APP_URL не настроен в BotFather (/newapp или /myapps)');
-        console.log('3. URL должен быть HTTPS (не HTTP)');
-        console.log('4. Домен должен быть подтверждён в BotFather');
-
-        // Show placeholder data for testing
-        document.getElementById('username').textContent = 'Test User';
-        document.getElementById('handle').textContent = '@testuser';
+      } catch (err) {
+        console.error('❌ Критическая ошибка в loadUserData:', err);
       }
     }
 
