@@ -937,7 +937,7 @@ app.get("/", (req, res) => {
     }
 
     // Функция для обновления статуса отладки
-    function updateDebugStatus(message, isError = false) {
+    window.updateDebugStatus = function(message, isError = false) {
       const debugEl = document.getElementById('debug-status');
       if (debugEl) {
         debugEl.textContent = message;
@@ -984,39 +984,42 @@ app.get("/", (req, res) => {
         }
 
         const tg = window.Telegram.WebApp;
+      // Сохраняем tg глобально для функций обработчиков
+      window.tg = tg;
+      addLog('✅ window.tg установлен', 'success');
       updateDebugStatus('✅ [3/10] Telegram SDK загружен');
       console.log('✅ Telegram SDK загружен');
       document.getElementById('username').textContent = '🔄 SDK загружен...';
 
       updateDebugStatus('🔄 [4/10] Инициализация Telegram...');
       addLog('=== Telegram WebApp Debug START ===', 'info');
-      addLog('Platform: ' + tg.platform, 'info');
-      addLog('Version: ' + tg.version, 'info');
-      addLog('initData length: ' + (tg.initData ? tg.initData.length : 0), 'info');
+      addLog('Platform: ' + window.tg.platform, 'info');
+      addLog('Version: ' + window.tg.version, 'info');
+      addLog('initData length: ' + (window.tg.initData ? window.tg.initData.length : 0), 'info');
 
       console.log('1. WebApp доступен?', typeof window.Telegram !== 'undefined');
-      console.log('2. tg.isVersionAtLeast:', tg.isVersionAtLeast ? tg.isVersionAtLeast('6.0') : 'N/A');
-      console.log('3. Platform:', tg.platform);
-      console.log('4. Version:', tg.version);
-      console.log('5. initData length:', tg.initData ? tg.initData.length : 0);
-      console.log('6. initData (raw):', tg.initData);
-      console.log('7. initDataUnsafe (parsed):', JSON.stringify(tg.initDataUnsafe, null, 2));
+      console.log('2. window.tg.isVersionAtLeast:', window.tg.isVersionAtLeast ? window.tg.isVersionAtLeast('6.0') : 'N/A');
+      console.log('3. Platform:', window.tg.platform);
+      console.log('4. Version:', window.tg.version);
+      console.log('5. initData length:', window.tg.initData ? window.tg.initData.length : 0);
+      console.log('6. initData (raw):', window.tg.initData);
+      console.log('7. initDataUnsafe (parsed):', JSON.stringify(window.tg.initDataUnsafe, null, 2));
 
       // КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ
       addLog('🔍 КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ:', 'info');
       addLog('URL: ' + window.location.href, 'info');
-      addLog('Как открыт: ' + (tg.platform || 'unknown'), 'info');
-      addLog('initData пустой? ' + (!tg.initData || tg.initData.length === 0), 'info');
-      addLog('initDataUnsafe существует? ' + !!tg.initDataUnsafe, 'info');
-      addLog('initDataUnsafe.user существует? ' + !!(tg.initDataUnsafe && tg.initDataUnsafe.user), 'info');
+      addLog('Как открыт: ' + (window.tg.platform || 'unknown'), 'info');
+      addLog('initData пустой? ' + (!window.tg.initData || window.tg.initData.length === 0), 'info');
+      addLog('initDataUnsafe существует? ' + !!window.tg.initDataUnsafe, 'info');
+      addLog('initDataUnsafe.user существует? ' + !!(window.tg.initDataUnsafe && window.tg.initDataUnsafe.user), 'info');
 
       console.log('  - URL:', window.location.href);
-      console.log('  - Как открыт:', tg.platform || 'unknown');
-      console.log('  - initData пустой?', !tg.initData || tg.initData.length === 0);
-      console.log('  - initDataUnsafe существует?', !!tg.initDataUnsafe);
-      console.log('  - initDataUnsafe.user существует?', !!(tg.initDataUnsafe && tg.initDataUnsafe.user));
+      console.log('  - Как открыт:', window.tg.platform || 'unknown');
+      console.log('  - initData пустой?', !window.tg.initData || window.tg.initData.length === 0);
+      console.log('  - initDataUnsafe существует?', !!window.tg.initDataUnsafe);
+      console.log('  - initDataUnsafe.user существует?', !!(window.tg.initDataUnsafe && window.tg.initDataUnsafe.user));
 
-      if (!tg.initData || tg.initData.length === 0) {
+      if (!window.tg.initData || window.tg.initData.length === 0) {
         addLog('⚠️ ВНИМАНИЕ: initData пустой!', 'warning');
         addLog('Миниапп открыт НЕ через Telegram бота!', 'warning');
         addLog('Причина 1: Открыто через браузер', 'warning');
@@ -1030,39 +1033,39 @@ app.get("/", (req, res) => {
         updateDebugStatus('⚠️ Открыто не через бота! initData пустой', true);
       }
 
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        addLog('✅ User ID: ' + tg.initDataUnsafe.user.id, 'success');
-        addLog('✅ User Name: ' + tg.initDataUnsafe.user.first_name, 'success');
-        addLog('✅ Username: ' + (tg.initDataUnsafe.user.username || 'нет'), 'success');
-        console.log('  ✅ User ID:', tg.initDataUnsafe.user.id);
-        console.log('  ✅ User Name:', tg.initDataUnsafe.user.first_name);
-        updateDebugStatus('✅ Данные от Telegram ЕСТЬ! User: ' + tg.initDataUnsafe.user.first_name);
+      if (window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+        addLog('✅ User ID: ' + window.tg.initDataUnsafe.user.id, 'success');
+        addLog('✅ User Name: ' + window.tg.initDataUnsafe.user.first_name, 'success');
+        addLog('✅ Username: ' + (window.tg.initDataUnsafe.user.username || 'нет'), 'success');
+        console.log('  ✅ User ID:', window.tg.initDataUnsafe.user.id);
+        console.log('  ✅ User Name:', window.tg.initDataUnsafe.user.first_name);
+        updateDebugStatus('✅ Данные от Telegram ЕСТЬ! User: ' + window.tg.initDataUnsafe.user.first_name);
       } else {
         addLog('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', 'error');
-        addLog('❌ initDataUnsafe: ' + JSON.stringify(tg.initDataUnsafe), 'error');
+        addLog('❌ initDataUnsafe: ' + JSON.stringify(window.tg.initDataUnsafe), 'error');
         console.log('  ❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!');
-        console.log('  ❌ tg.initDataUnsafe:', tg.initDataUnsafe);
-        console.log('  ❌ Полная структура:', JSON.stringify(tg.initDataUnsafe));
+        console.log('  ❌ window.tg.initDataUnsafe:', window.tg.initDataUnsafe);
+        console.log('  ❌ Полная структура:', JSON.stringify(window.tg.initDataUnsafe));
         updateDebugStatus('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', true);
       }
 
       // Ready and expand
-      updateDebugStatus('🔄 [5/10] Вызов tg.ready()...');
-      tg.ready();
-      tg.expand();
-      tg.setBackgroundColor('#071C15');
-      tg.setHeaderColor('#071C15');
+      updateDebugStatus('🔄 [5/10] Вызов window.tg.ready()...');
+      window.tg.ready();
+      window.tg.expand();
+      window.tg.setBackgroundColor('#071C15');
+      window.tg.setHeaderColor('#071C15');
 
       updateDebugStatus('✅ [6/10] Telegram готов');
       document.getElementById('username').textContent = '🔄 Telegram готов...';
 
-    // Global state
-    let currentUser = null;
-    let selectedGameMode = null;
-    let isLoadingUser = true;
+    // Global state - делаем доступными для обработчиков
+    window.currentUser = null;
+    window.selectedGameMode = null;
+    window.isLoadingUser = true;
 
     // Функция для блокировки/разблокировки кнопок
-    function setButtonsDisabled(disabled) {
+    window.setButtonsDisabled = function(disabled) {
       const buttons = document.querySelectorAll('.btn');
       console.log('🔧 setButtonsDisabled(' + disabled + ') - найдено кнопок: ' + buttons.length);
       buttons.forEach((btn, index) => {
@@ -1090,20 +1093,20 @@ app.get("/", (req, res) => {
       console.log('Шаг 1: Начало функции loadUserData');
       if (usernameEl) usernameEl.textContent = '🔄 Загрузка данных...';
 
-      isLoadingUser = true;
+      window.isLoadingUser = true;
       setButtonsDisabled(true);
-      addLog('Кнопки заблокированы (isLoadingUser = true)', 'info');
+      addLog('Кнопки заблокированы (window.isLoadingUser = true)', 'info');
       console.log('Шаг 2: Кнопки заблокированы');
 
       try {
         updateDebugStatus('🔄 [8/10] Проверка initDataUnsafe...');
-        console.log('Шаг 3: Проверка tg.initDataUnsafe...');
-        console.log('tg.initDataUnsafe существует?', !!tg.initDataUnsafe);
-        console.log('tg.initDataUnsafe.user существует?', !!(tg.initDataUnsafe && tg.initDataUnsafe.user));
+        console.log('Шаг 3: Проверка window.tg.initDataUnsafe...');
+        console.log('window.tg.initDataUnsafe существует?', !!window.tg.initDataUnsafe);
+        console.log('window.tg.initDataUnsafe.user существует?', !!(window.tg.initDataUnsafe && window.tg.initDataUnsafe.user));
 
         // Check if user data exists
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-          const tgUser = tg.initDataUnsafe.user;
+        if (window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+          const tgUser = window.tg.initDataUnsafe.user;
 
           console.log('✅ ДАННЫЕ ИЗ TELEGRAM НАЙДЕНЫ!');
           console.log('User ID:', tgUser.id);
@@ -1135,7 +1138,7 @@ app.get("/", (req, res) => {
               handle: !handleEl,
               balance: !balanceEl
             });
-            isLoadingUser = false;
+            window.isLoadingUser = false;
             setButtonsDisabled(false);
             return;
           }
@@ -1161,19 +1164,19 @@ app.get("/", (req, res) => {
               const data = await response.json();
               console.log('✅ Пользователь загружен из базы:', data);
 
-              currentUser = data.user;
-              console.log('Шаг 8: currentUser установлен:', currentUser);
+              window.currentUser = data.user;
+              console.log('Шаг 8: window.currentUser установлен:', window.currentUser);
 
               // Обновляем UI
               console.log('Шаг 9: Обновление UI элементов...');
               usernameEl.textContent = fullName;
-              handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+              handleEl.textContent = '@' + (window.currentUser.username || 'user' + window.currentUser.telegram_id);
               console.log('✅ Имя и username обновлены');
 
               // Устанавливаем аватар из базы (если есть)
-              if (currentUser.photo_url) {
-                console.log('✅ Устанавливаю аватар из базы:', currentUser.photo_url);
-                avatar.innerHTML = '<img src="' + currentUser.photo_url + '" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+              if (window.currentUser.photo_url) {
+                console.log('✅ Устанавливаю аватар из базы:', window.currentUser.photo_url);
+                avatar.innerHTML = '<img src="' + window.currentUser.photo_url + '" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
               } else {
                 console.log('📝 Аватар не найден, использую первую букву');
                 avatar.textContent = fullName.charAt(0).toUpperCase();
@@ -1216,11 +1219,11 @@ app.get("/", (req, res) => {
               console.log('✅ Пользователь создан:', createData);
 
               if (createData.success && createData.user) {
-                currentUser = createData.user;
-                console.log('Шаг 8: currentUser установлен (новый):', currentUser);
+                window.currentUser = createData.user;
+                console.log('Шаг 8: window.currentUser установлен (новый):', window.currentUser);
 
                 usernameEl.textContent = fullName;
-                handleEl.textContent = '@' + (currentUser.username || 'user' + currentUser.telegram_id);
+                handleEl.textContent = '@' + (window.currentUser.username || 'user' + window.currentUser.telegram_id);
                 avatar.textContent = fullName.charAt(0).toUpperCase();
 
                 if (createData.balance !== undefined) {
@@ -1257,14 +1260,14 @@ app.get("/", (req, res) => {
         }
 
           // Проверяем является ли пользователь админом
-          if (currentUser && currentUser.id) {
-            fetch(\`/api/admin/check?user_id=\${currentUser.id}\`)
+          if (window.currentUser && window.currentUser.id) {
+            fetch(\`/api/admin/check?user_id=\${window.currentUser.id}\`)
               .then(res => res.json())
               .then(adminData => {
                 if (adminData.success && adminData.isAdmin) {
                   console.log('✅ Пользователь - админ!', adminData.permissions);
-                  currentUser.isAdmin = true;
-                  currentUser.adminPermissions = adminData.permissions;
+                  window.currentUser.isAdmin = true;
+                  window.currentUser.adminPermissions = adminData.permissions;
 
                   // Показываем кнопку админки в профиле
                   const actionsDiv = document.querySelector('.actions');
@@ -1288,9 +1291,9 @@ app.get("/", (req, res) => {
           }
         } else {
           addLog('❌ ДАННЫЕ НЕ НАЙДЕНЫ!', 'error');
-          addLog('initData пустой? ' + (!tg.initData || tg.initData.length === 0), 'error');
-          addLog('initDataUnsafe пустой? ' + (!tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0), 'error');
-          addLog('initDataUnsafe: ' + JSON.stringify(tg.initDataUnsafe), 'error');
+          addLog('initData пустой? ' + (!window.tg.initData || window.tg.initData.length === 0), 'error');
+          addLog('initDataUnsafe пустой? ' + (!window.tg.initDataUnsafe || Object.keys(window.tg.initDataUnsafe).length === 0), 'error');
+          addLog('initDataUnsafe: ' + JSON.stringify(window.tg.initDataUnsafe), 'error');
           addLog('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:', 'warning');
           addLog('1. Mini App не открыт через Telegram бота', 'warning');
           addLog('2. WEB_APP_URL не настроен в BotFather', 'warning');
@@ -1298,9 +1301,9 @@ app.get("/", (req, res) => {
           addLog('4. Домен не подтверждён в BotFather', 'warning');
 
           console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
-          console.log('initData пустой?', !tg.initData || tg.initData.length === 0);
-          console.log('initDataUnsafe пустой?', !tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0);
-          console.log('Что в initDataUnsafe:', tg.initDataUnsafe);
+          console.log('initData пустой?', !window.tg.initData || window.tg.initData.length === 0);
+          console.log('initDataUnsafe пустой?', !window.tg.initDataUnsafe || Object.keys(window.tg.initDataUnsafe).length === 0);
+          console.log('Что в initDataUnsafe:', window.tg.initDataUnsafe);
 
           console.log('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:');
           console.log('1. Mini App не открыт через Telegram бота');
@@ -1315,8 +1318,8 @@ app.get("/", (req, res) => {
           if (handleElTemp) handleElTemp.textContent = 'Откройте через бота!';
 
           // Show alert
-          if (tg.showAlert) {
-            tg.showAlert('❌ Ошибка: Mini App должен быть открыт через Telegram бота. Нажмите /start в боте.');
+          if (window.tg.showAlert) {
+            window.tg.showAlert('❌ Ошибка: Mini App должен быть открыт через Telegram бота. Нажмите /start в боте.');
           }
         }
       } catch (err) {
@@ -1325,17 +1328,17 @@ app.get("/", (req, res) => {
         if (usernameElErr) usernameElErr.textContent = '❌ Критическая ошибка!';
 
         // Show alert
-        if (tg.showAlert) {
-          tg.showAlert('❌ Критическая ошибка: ' + (err.message || err));
+        if (window.tg.showAlert) {
+          window.tg.showAlert('❌ Критическая ошибка: ' + (err.message || err));
         }
       } finally {
         // Разблокируем кнопки после завершения загрузки
         addLog('🎯 FINALLY: Завершение загрузки', 'info');
         console.log('🎯 FINALLY БЛОК ВЫПОЛНЯЕТСЯ!');
-        console.log('  isLoadingUser перед:', isLoadingUser);
-        isLoadingUser = false;
-        console.log('  isLoadingUser после:', isLoadingUser);
-        addLog('Устанавливаю isLoadingUser = false', 'info');
+        console.log('  window.isLoadingUser перед:', window.isLoadingUser);
+        window.isLoadingUser = false;
+        console.log('  window.isLoadingUser после:', window.isLoadingUser);
+        addLog('Устанавливаю window.isLoadingUser = false', 'info');
         console.log('  Вызываю setButtonsDisabled(false)...');
         setButtonsDisabled(false);
         addLog('✅ Кнопки разблокированы!', 'success');
@@ -1362,11 +1365,19 @@ app.get("/", (req, res) => {
       updateDebugStatus('❌ ERROR: ' + err.message, true);
     });
 
-    async function handleDeposit() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    // Делаем функции доступными глобально для onclick
+    window.handleDeposit = async function handleDeposit() {
+      addLog('🔘 Нажата кнопка Пополнить', 'info');
+      if (!window.tg) {
+        addLog('❌ tg не определен!', 'error');
+        alert('Ошибка: Telegram WebApp не загружен');
+        return;
+      }
+      const tg = window.tg;
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
 
-      if (isLoadingUser || !currentUser) {
-        tg.showAlert('Подождите, загружаем данные...');
+      if (window.isLoadingUser || !window.currentUser) {
+        window.tg.showAlert('Подождите, загружаем данные...');
         return;
       }
 
@@ -1377,7 +1388,7 @@ app.get("/", (req, res) => {
       const depositAmount = parseFloat(amount);
 
       if (isNaN(depositAmount) || depositAmount < 10) {
-        tg.showAlert('Некорректная сумма. Минимум: 10 USDT');
+        window.tg.showAlert('Некорректная сумма. Минимум: 10 USDT');
         return;
       }
 
@@ -1387,7 +1398,7 @@ app.get("/", (req, res) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: currentUser.id,
+            user_id: window.currentUser.id,
             amount: depositAmount
           })
         });
@@ -1395,28 +1406,35 @@ app.get("/", (req, res) => {
         const data = await response.json();
 
         if (data.success && data.invoice_url) {
-          tg.openLink(data.invoice_url);
-          tg.showAlert('Счет создан! Оплатите в открывшемся окне CryptoBot.');
+          window.tg.openLink(data.invoice_url);
+          window.tg.showAlert('Счет создан! Оплатите в открывшемся окне CryptoBot.');
         } else {
-          tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать счет'));
+          window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать счет'));
         }
       } catch (error) {
-        tg.showAlert('❌ Ошибка при создании счета');
+        window.tg.showAlert('❌ Ошибка при создании счета');
       }
-    }
+    };
 
-    async function handleWithdraw() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    window.handleWithdraw = async function handleWithdraw() {
+      addLog('🔘 Нажата кнопка Вывести', 'info');
+      if (!window.tg) {
+        addLog('❌ tg не определен!', 'error');
+        alert('Ошибка: Telegram WebApp не загружен');
+        return;
+      }
+      const tg = window.tg;
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
 
-      if (isLoadingUser || !currentUser) {
-        tg.showAlert('Подождите, загружаем данные...');
+      if (window.isLoadingUser || !window.currentUser) {
+        window.tg.showAlert('Подождите, загружаем данные...');
         return;
       }
 
       const balance = parseFloat(document.getElementById('balance').textContent || '0');
 
       if (balance < 10) {
-        tg.showAlert('Недостаточно средств для вывода. Минимум: 10 USDT');
+        window.tg.showAlert('Недостаточно средств для вывода. Минимум: 10 USDT');
         return;
       }
 
@@ -1427,12 +1445,12 @@ app.get("/", (req, res) => {
       const withdrawAmount = parseFloat(amount);
 
       if (isNaN(withdrawAmount) || withdrawAmount < 10) {
-        tg.showAlert('Некорректная сумма. Минимум: 10 USDT');
+        window.tg.showAlert('Некорректная сумма. Минимум: 10 USDT');
         return;
       }
 
       if (withdrawAmount > balance) {
-        tg.showAlert('Недостаточно средств. Доступно: ' + balance + ' USDT');
+        window.tg.showAlert('Недостаточно средств. Доступно: ' + balance + ' USDT');
         return;
       }
 
@@ -1442,8 +1460,8 @@ app.get("/", (req, res) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: currentUser.id,
-            telegram_id: currentUser.telegram_id,
+            user_id: window.currentUser.id,
+            telegram_id: window.currentUser.telegram_id,
             amount: withdrawAmount
           })
         });
@@ -1453,17 +1471,17 @@ app.get("/", (req, res) => {
         if (data.success) {
           // Обновляем баланс
           document.getElementById('balance').textContent = data.newBalance.toFixed(2);
-          tg.showAlert('✅ Заявка на вывод создана!\\n\\nСумма: ' + withdrawAmount + ' USDT\\n\\nСредства будут отправлены через @send в течение 1-24 часов.');
+          window.tg.showAlert('✅ Заявка на вывод создана!\\n\\nСумма: ' + withdrawAmount + ' USDT\\n\\nСредства будут отправлены через @send в течение 1-24 часов.');
         } else {
-          tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать заявку'));
+          window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать заявку'));
         }
       } catch (error) {
-        tg.showAlert('❌ Ошибка при создании заявки на вывод');
+        window.tg.showAlert('❌ Ошибка при создании заявки на вывод');
       }
-    }
+    };
 
-    function handleNav(event, section) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    window.handleNav = function(event, section) {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
 
       // Update active state on tabs
       document.querySelectorAll('.tab').forEach(item => {
@@ -1485,21 +1503,21 @@ app.get("/", (req, res) => {
       }
     }
 
-    function openDiceGame() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    window.openDiceGame = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('dice-game-screen').classList.add('active');
     }
 
-    function backToGames() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    window.backToGames = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('games-screen').classList.add('active');
     }
 
-    function selectMode(mode) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-      selectedGameMode = mode;
+    window.selectMode = function(mode) {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
+      window.selectedGameMode = mode;
 
       // Update button states
       document.querySelectorAll('.game-btn').forEach(btn => {
@@ -1509,23 +1527,23 @@ app.get("/", (req, res) => {
     }
 
     async function playDice() {
-      if (!currentUser) {
-        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+      if (!window.currentUser) {
+        window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
       }
 
-      if (!selectedGameMode) {
-        tg.showAlert('Выберите режим игры!');
+      if (!window.selectedGameMode) {
+        window.tg.showAlert('Выберите режим игры!');
         return;
       }
 
       const betAmount = parseFloat(document.getElementById('bet-input').value);
       if (betAmount <= 0) {
-        tg.showAlert('Введите корректную ставку!');
+        window.tg.showAlert('Введите корректную ставку!');
         return;
       }
 
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('heavy');
 
       const playBtn = document.getElementById('play-btn');
       const diceDisplay = document.getElementById('dice-display');
@@ -1543,19 +1561,19 @@ app.get("/", (req, res) => {
         // Determine API endpoint based on mode
         let endpoint = '';
         let body = {
-          user_id: currentUser.id,
+          user_id: window.currentUser.id,
           bet_amount: betAmount
         };
 
-        if (selectedGameMode === 'higher' || selectedGameMode === 'lower') {
+        if (window.selectedGameMode === 'higher' || window.selectedGameMode === 'lower') {
           endpoint = '/api/games/dice/higher-lower';
-          body.choice = selectedGameMode;
-        } else if (selectedGameMode === 'even' || selectedGameMode === 'odd') {
+          body.choice = window.selectedGameMode;
+        } else if (window.selectedGameMode === 'even' || window.selectedGameMode === 'odd') {
           endpoint = '/api/games/dice/even-odd';
-          body.choice = selectedGameMode;
-        } else if (selectedGameMode === 'duel') {
+          body.choice = window.selectedGameMode;
+        } else if (window.selectedGameMode === 'duel') {
           endpoint = '/api/games/dice/duel';
-        } else if (selectedGameMode === 'exact') {
+        } else if (window.selectedGameMode === 'exact') {
           const number = prompt('Введите число от 1 до 6:');
           if (!number || number < 1 || number > 6) {
             throw new Error('Неверное число!');
@@ -1585,11 +1603,11 @@ app.get("/", (req, res) => {
             if (data.isWin) {
               resultDisplay.style.color = 'var(--accent-green)';
               resultDisplay.textContent = \`🎉 Выигрыш: \${data.winAmount.toFixed(2)} USDT! (x\${data.multiplier})\`;
-              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+              if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
             } else {
               resultDisplay.style.color = '#ef4444';
               resultDisplay.textContent = \`❌ Проигрыш. Результат: \${data.result}\`;
-              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+              if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
             }
 
             // Update balance
@@ -1604,7 +1622,7 @@ app.get("/", (req, res) => {
 
       } catch (error) {
         diceDisplay.classList.remove('spinning');
-        tg.showAlert('Ошибка: ' + error.message);
+        window.tg.showAlert('Ошибка: ' + error.message);
         playBtn.disabled = false;
         playBtn.textContent = 'Бросить кубик 🎲';
       }
@@ -1613,36 +1631,36 @@ app.get("/", (req, res) => {
     // === BOWLING GAME ===
     let selectedBowlingMode = null;
 
-    function openBowlingGame() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    window.openBowlingGame = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('bowling-game-screen').classList.add('active');
     }
 
-    function selectBowlingMode(mode) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    window.selectBowlingMode = function(mode) {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedBowlingMode = mode;
       document.querySelectorAll('#bowling-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
     }
 
     async function playBowling() {
-      if (!currentUser) {
-        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+      if (!window.currentUser) {
+        window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
       }
       if (!selectedBowlingMode) {
-        tg.showAlert('Выберите режим игры!');
+        window.tg.showAlert('Выберите режим игры!');
         return;
       }
 
       const betAmount = parseFloat(document.getElementById('bowling-bet-input').value);
       if (betAmount <= 0) {
-        tg.showAlert('Введите корректную ставку!');
+        window.tg.showAlert('Введите корректную ставку!');
         return;
       }
 
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('heavy');
 
       const playBtn = document.getElementById('bowling-play-btn');
       const display = document.getElementById('bowling-display');
@@ -1657,24 +1675,24 @@ app.get("/", (req, res) => {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+          body: JSON.stringify({ user_id: window.currentUser.id, bet_amount: betAmount })
         });
 
         const data = await response.json();
 
         if (data.success && data.isWin) {
           resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
           resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
         document.getElementById('balance').textContent = data.newBalance.toFixed(2);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🎳';
       } catch (error) {
-        tg.showAlert('Ошибка: ' + error.message);
+        window.tg.showAlert('Ошибка: ' + error.message);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🎳';
       }
@@ -1683,36 +1701,36 @@ app.get("/", (req, res) => {
     // === FOOTBALL GAME ===
     let selectedFootballMode = null;
 
-    function openFootballGame() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    window.openFootballGame = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('football-game-screen').classList.add('active');
     }
 
-    function selectFootballMode(mode) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    window.selectFootballMode = function(mode) {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedFootballMode = mode;
       document.querySelectorAll('#football-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
     }
 
     async function playFootball() {
-      if (!currentUser) {
-        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+      if (!window.currentUser) {
+        window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
       }
       if (!selectedFootballMode) {
-        tg.showAlert('Выберите режим игры!');
+        window.tg.showAlert('Выберите режим игры!');
         return;
       }
 
       const betAmount = parseFloat(document.getElementById('football-bet-input').value);
       if (betAmount <= 0) {
-        tg.showAlert('Введите корректную ставку!');
+        window.tg.showAlert('Введите корректную ставку!');
         return;
       }
 
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('heavy');
 
       const playBtn = document.getElementById('football-play-btn');
       const display = document.getElementById('football-display');
@@ -1731,24 +1749,24 @@ app.get("/", (req, res) => {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+          body: JSON.stringify({ user_id: window.currentUser.id, bet_amount: betAmount })
         });
 
         const data = await response.json();
 
         if (data.success && data.isWin) {
           resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
           resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
         document.getElementById('balance').textContent = data.newBalance.toFixed(2);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть ⚽';
       } catch (error) {
-        tg.showAlert('Ошибка: ' + error.message);
+        window.tg.showAlert('Ошибка: ' + error.message);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть ⚽';
       }
@@ -1757,36 +1775,36 @@ app.get("/", (req, res) => {
     // === BASKETBALL GAME ===
     let selectedBasketballMode = null;
 
-    function openBasketballGame() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    window.openBasketballGame = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('basketball-game-screen').classList.add('active');
     }
 
-    function selectBasketballMode(mode) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    window.selectBasketballMode = function(mode) {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedBasketballMode = mode;
       document.querySelectorAll('#basketball-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
     }
 
     async function playBasketball() {
-      if (!currentUser) {
-        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+      if (!window.currentUser) {
+        window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
       }
       if (!selectedBasketballMode) {
-        tg.showAlert('Выберите режим игры!');
+        window.tg.showAlert('Выберите режим игры!');
         return;
       }
 
       const betAmount = parseFloat(document.getElementById('basketball-bet-input').value);
       if (betAmount <= 0) {
-        tg.showAlert('Введите корректную ставку!');
+        window.tg.showAlert('Введите корректную ставку!');
         return;
       }
 
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('heavy');
 
       const playBtn = document.getElementById('basketball-play-btn');
       const display = document.getElementById('basketball-display');
@@ -1801,24 +1819,24 @@ app.get("/", (req, res) => {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+          body: JSON.stringify({ user_id: window.currentUser.id, bet_amount: betAmount })
         });
 
         const data = await response.json();
 
         if (data.success && data.isWin) {
           resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
           resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
         document.getElementById('balance').textContent = data.newBalance.toFixed(2);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🏀';
       } catch (error) {
-        tg.showAlert('Ошибка: ' + error.message);
+        window.tg.showAlert('Ошибка: ' + error.message);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🏀';
       }
@@ -1827,36 +1845,36 @@ app.get("/", (req, res) => {
     // === DARTS GAME ===
     let selectedDartsMode = null;
 
-    function openDartsGame() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    window.openDartsGame = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('darts-game-screen').classList.add('active');
     }
 
-    function selectDartsMode(mode) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    window.selectDartsMode = function(mode) {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedDartsMode = mode;
       document.querySelectorAll('#darts-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
     }
 
     async function playDarts() {
-      if (!currentUser) {
-        tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+      if (!window.currentUser) {
+        window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
       }
       if (!selectedDartsMode) {
-        tg.showAlert('Выберите режим игры!');
+        window.tg.showAlert('Выберите режим игры!');
         return;
       }
 
       const betAmount = parseFloat(document.getElementById('darts-bet-input').value);
       if (betAmount <= 0) {
-        tg.showAlert('Введите корректную ставку!');
+        window.tg.showAlert('Введите корректную ставку!');
         return;
       }
 
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('heavy');
 
       const playBtn = document.getElementById('darts-play-btn');
       const display = document.getElementById('darts-display');
@@ -1876,46 +1894,46 @@ app.get("/", (req, res) => {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUser.id, bet_amount: betAmount })
+          body: JSON.stringify({ user_id: window.currentUser.id, bet_amount: betAmount })
         });
 
         const data = await response.json();
 
         if (data.success && data.isWin) {
           resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
           resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+          if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
         document.getElementById('balance').textContent = data.newBalance.toFixed(2);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🎯';
       } catch (error) {
-        tg.showAlert('Ошибка: ' + error.message);
+        window.tg.showAlert('Ошибка: ' + error.message);
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🎯';
       }
     }
 
-    function shareInvite() {
-      const user = tg.initDataUnsafe?.user;
+    window.shareInvite = function() {
+      const user = window.tg.initDataUnsafe?.user;
       if (user) {
         const botUsername = 'YOUR_BOT_USERNAME'; // Replace with actual bot username
         const inviteUrl = \`https://t.me/\${botUsername}?start=ref\${user.id}\`;
         const shareText = '🎰 Присоединяйся ко мне в Casino Bot! Играй и зарабатывай!';
-        tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
+        window.tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
       }
     }
 
     // === ADMIN PANEL FUNCTIONS ===
 
-    function showAdminPanel() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    window.showAdminPanel = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
 
-      if (!currentUser || !currentUser.isAdmin) {
-        tg.showAlert('Доступ запрещен');
+      if (!window.currentUser || !window.currentUser.isAdmin) {
+        window.tg.showAlert('Доступ запрещен');
         return;
       }
 
@@ -1931,8 +1949,8 @@ app.get("/", (req, res) => {
       loadAdminData();
     }
 
-    function backToProfile() {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    window.backToProfile = function() {
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
 
       document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -1941,11 +1959,11 @@ app.get("/", (req, res) => {
     }
 
     async function loadAdminData() {
-      if (!currentUser || !currentUser.isAdmin) return;
+      if (!window.currentUser || !window.currentUser.isAdmin) return;
 
       try {
         // Загружаем статистику
-        const statsResponse = await fetch(\`/api/admin/stats?admin_id=\${currentUser.id}\`);
+        const statsResponse = await fetch(\`/api/admin/stats?admin_id=\${window.currentUser.id}\`);
         const statsData = await statsResponse.json();
 
         if (statsData.success) {
@@ -1954,7 +1972,7 @@ app.get("/", (req, res) => {
         }
 
         // Загружаем заявки на вывод
-        const withdrawalsResponse = await fetch(\`/api/admin/pending-withdrawals?admin_id=\${currentUser.id}\`);
+        const withdrawalsResponse = await fetch(\`/api/admin/pending-withdrawals?admin_id=\${window.currentUser.id}\`);
         const withdrawalsData = await withdrawalsResponse.json();
 
         if (withdrawalsData.success) {
@@ -1985,15 +2003,15 @@ app.get("/", (req, res) => {
         }
       } catch (error) {
         console.error('Ошибка загрузки данных админки:', error);
-        tg.showAlert('Ошибка загрузки данных');
+        window.tg.showAlert('Ошибка загрузки данных');
       }
     }
 
     async function completeWithdrawal(withdrawalId, userId) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
 
-      if (!currentUser || !currentUser.isAdmin) {
-        tg.showAlert('Доступ запрещен');
+      if (!window.currentUser || !window.currentUser.isAdmin) {
+        window.tg.showAlert('Доступ запрещен');
         return;
       }
 
@@ -2004,20 +2022,20 @@ app.get("/", (req, res) => {
         const response = await fetch(\`/api/admin/withdrawals/\${withdrawalId}/complete\`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ admin_id: currentUser.id })
+          body: JSON.stringify({ admin_id: window.currentUser.id })
         });
 
         const data = await response.json();
 
         if (data.success) {
-          tg.showAlert('✅ Вывод отмечен как выполненный!');
+          window.tg.showAlert('✅ Вывод отмечен как выполненный!');
           // Перезагружаем список
           loadAdminData();
         } else {
-          tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось обработать'));
+          window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось обработать'));
         }
       } catch (error) {
-        tg.showAlert('❌ Ошибка при обработке');
+        window.tg.showAlert('❌ Ошибка при обработке');
       }
     }
 
