@@ -1084,7 +1084,7 @@ app.get("/", (req, res) => {
     }
 
     // Function to load user data
-    async function loadUserData() {
+    window.loadUserData = async function() {
       const usernameEl = document.getElementById('username');
 
       window.updateDebugStatus('🔄 [7/10] Загрузка данных пользователя...');
@@ -1344,17 +1344,17 @@ app.get("/", (req, res) => {
         window.addLog('✅ Кнопки разблокированы!', 'success');
         console.log('✅ Загрузка завершена, кнопки разблокированы');
       }
-    }
+    };
 
     // Load user data immediately
-    console.log('🚀 Вызываю loadUserData()...');
+    console.log('🚀 Вызываю window.loadUserData()...');
     const usernameElBeforeLoad = document.getElementById('username');
     console.log('🔍 username элемент перед loadUserData:', !!usernameElBeforeLoad);
     if (usernameElBeforeLoad) {
       usernameElBeforeLoad.textContent = '🚀 Запускаю загрузку...';
       console.log('✅ Установлен текст:', usernameElBeforeLoad.textContent);
     }
-    loadUserData().then(() => {
+    window.loadUserData().then(() => {
       window.updateDebugStatus('✅ [10/10] Готово! Нажми для скрытия', false);
       // Скрываем индикатор через 3 секунды
       setTimeout(() => {
@@ -1499,20 +1499,17 @@ app.get("/", (req, res) => {
       } else if (section === 'profile') {
         document.getElementById('profile-screen').classList.add('active');
       }
-    }
-
+    };
     window.openDiceGame = function() {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('dice-game-screen').classList.add('active');
-    }
-
+    };
     window.backToGames = function() {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('games-screen').classList.add('active');
-    }
-
+    };
     window.selectMode = function(mode) {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       window.selectedGameMode = mode;
@@ -1522,9 +1519,8 @@ app.get("/", (req, res) => {
         btn.classList.remove('selected');
       });
       event.target.classList.add('selected');
-    }
-
-    async function playDice() {
+    };
+    window.playDice = async function() {
       if (!window.currentUser) {
         window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
@@ -1633,16 +1629,14 @@ app.get("/", (req, res) => {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('bowling-game-screen').classList.add('active');
-    }
-
+    };
     window.selectBowlingMode = function(mode) {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedBowlingMode = mode;
       document.querySelectorAll('#bowling-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
-    }
-
-    async function playBowling() {
+    };
+    window.playBowling = async function() {
       if (!window.currentUser) {
         window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
@@ -1703,16 +1697,14 @@ app.get("/", (req, res) => {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('football-game-screen').classList.add('active');
-    }
-
+    };
     window.selectFootballMode = function(mode) {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedFootballMode = mode;
       document.querySelectorAll('#football-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
-    }
-
-    async function playFootball() {
+    };
+    window.playFootball = async function() {
       if (!window.currentUser) {
         window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
@@ -1777,16 +1769,14 @@ app.get("/", (req, res) => {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('basketball-game-screen').classList.add('active');
-    }
-
+    };
     window.selectBasketballMode = function(mode) {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedBasketballMode = mode;
       document.querySelectorAll('#basketball-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
-    }
-
-    async function playBasketball() {
+    };
+    window.playBasketball = async function() {
       if (!window.currentUser) {
         window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
@@ -1847,16 +1837,14 @@ app.get("/", (req, res) => {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('darts-game-screen').classList.add('active');
-    }
-
+    };
     window.selectDartsMode = function(mode) {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
       selectedDartsMode = mode;
       document.querySelectorAll('#darts-game-screen .game-btn').forEach(btn => btn.classList.remove('selected'));
       event.target.classList.add('selected');
-    }
-
-    async function playDarts() {
+    };
+    window.playDarts = async function() {
       if (!window.currentUser) {
         window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
         return;
@@ -1913,8 +1901,7 @@ app.get("/", (req, res) => {
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🎯';
       }
-    }
-
+    };
     window.shareInvite = function() {
       const user = window.tg.initDataUnsafe?.user;
       if (user) {
@@ -1945,8 +1932,7 @@ app.get("/", (req, res) => {
 
       // Загружаем данные
       loadAdminData();
-    }
-
+    };
     window.backToProfile = function() {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
 
@@ -1954,9 +1940,8 @@ app.get("/", (req, res) => {
         screen.classList.remove('active');
       });
       document.getElementById('profile-screen').classList.add('active');
-    }
-
-    async function loadAdminData() {
+    };
+    window.loadAdminData = async function() {
       if (!window.currentUser || !window.currentUser.isAdmin) return;
 
       try {
@@ -2003,9 +1988,8 @@ app.get("/", (req, res) => {
         console.error('Ошибка загрузки данных админки:', error);
         window.tg.showAlert('Ошибка загрузки данных');
       }
-    }
-
-    async function completeWithdrawal(withdrawalId, userId) {
+    };
+    window.completeWithdrawal = async function(withdrawalId, userId) {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
 
       if (!window.currentUser || !window.currentUser.isAdmin) {
