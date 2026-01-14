@@ -946,6 +946,34 @@ app.get("/", (req, res) => {
       console.log('6. initData (raw):', tg.initData);
       console.log('7. initDataUnsafe (parsed):', JSON.stringify(tg.initDataUnsafe, null, 2));
 
+      // КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ
+      console.log('🔍 КРИТИЧЕСКАЯ ПРОВЕРКА:');
+      console.log('  - URL:', window.location.href);
+      console.log('  - Как открыт:', tg.platform || 'unknown');
+      console.log('  - initData пустой?', !tg.initData || tg.initData.length === 0);
+      console.log('  - initDataUnsafe существует?', !!tg.initDataUnsafe);
+      console.log('  - initDataUnsafe.user существует?', !!(tg.initDataUnsafe && tg.initDataUnsafe.user));
+
+      if (!tg.initData || tg.initData.length === 0) {
+        console.log('⚠️ ВНИМАНИЕ: initData пустой - миниапп открыт НЕ через Telegram бота!');
+        console.log('📌 Возможные причины:');
+        console.log('   1. Открыто напрямую через браузер (а не через кнопку в Telegram боте)');
+        console.log('   2. WEB_APP_URL не настроен правильно в BotFather');
+        console.log('   3. Используется HTTP вместо HTTPS');
+        updateDebugStatus('⚠️ Открыто не через бота! initData пустой', true);
+      }
+
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        console.log('  ✅ User ID:', tg.initDataUnsafe.user.id);
+        console.log('  ✅ User Name:', tg.initDataUnsafe.user.first_name);
+        updateDebugStatus('✅ Данные от Telegram ЕСТЬ! User: ' + tg.initDataUnsafe.user.first_name);
+      } else {
+        console.log('  ❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!');
+        console.log('  ❌ tg.initDataUnsafe:', tg.initDataUnsafe);
+        console.log('  ❌ Полная структура:', JSON.stringify(tg.initDataUnsafe));
+        updateDebugStatus('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', true);
+      }
+
       // Ready and expand
       updateDebugStatus('🔄 [5/10] Вызов tg.ready()...');
       tg.ready();
