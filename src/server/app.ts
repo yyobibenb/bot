@@ -532,36 +532,88 @@ app.get("/", (req, res) => {
     🚨 ВЕРСИЯ 7bb43a1 - ОЖИДАНИЕ JS...
   </div>
 
+  <!-- LOG PANEL - Показываем все логи на экране -->
+  <div id="log-panel" style="position: fixed; bottom: 0; left: 0; right: 0; max-height: 40vh; background: rgba(0,0,0,0.95); color: #00ff00; padding: 10px; font-family: monospace; font-size: 11px; z-index: 99998; overflow-y: auto; border-top: 2px solid #00ff00;">
+    <div style="text-align: center; margin-bottom: 5px; color: #ffff00; font-weight: bold;">📋 ЛОГИ ЗАГРУЗКИ (нажми чтобы скрыть)</div>
+    <div id="log-content" style="white-space: pre-wrap; word-break: break-all;"></div>
+  </div>
+
   <!-- КРИТИЧЕСКИ ВАЖНЫЙ INLINE СКРИПТ - ВЫПОЛНЯЕТСЯ ПЕРВЫМ -->
   <script>
+    // Функция для добавления логов в панель
+    window.addLog = function(message, type) {
+      var logContent = document.getElementById('log-content');
+      if (!logContent) return;
+
+      var timestamp = new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+      var color = '#00ff00'; // green
+      var icon = '📝';
+
+      if (type === 'error') {
+        color = '#ff0000';
+        icon = '❌';
+      } else if (type === 'warning') {
+        color = '#ffaa00';
+        icon = '⚠️';
+      } else if (type === 'success') {
+        color = '#00ff00';
+        icon = '✅';
+      } else if (type === 'info') {
+        color = '#00aaff';
+        icon = '🔍';
+      }
+
+      var logLine = document.createElement('div');
+      logLine.style.color = color;
+      logLine.style.marginBottom = '2px';
+      logLine.textContent = timestamp + ' ' + icon + ' ' + message;
+      logContent.appendChild(logLine);
+
+      // Автоскролл вниз
+      var logPanel = document.getElementById('log-panel');
+      if (logPanel) logPanel.scrollTop = logPanel.scrollHeight;
+
+      // Дублируем в консоль
+      console.log(message);
+    };
+
+    // Клик по панели для скрытия
+    document.getElementById('log-panel').onclick = function() {
+      this.style.display = 'none';
+    };
+
     // Отлавливаем ВСЕ ошибки JavaScript
     window.onerror = function(msg, url, line, col, error) {
+      addLog('JS ERROR: ' + msg + ' (строка ' + line + ')', 'error');
       var d = document.getElementById('debug-status');
       if (d) {
         d.textContent = '❌ JS ERROR: ' + msg + ' (строка ' + line + ')';
         d.style.background = 'rgba(139,0,0,0.9)';
         d.style.color = '#ff0000';
       }
-      alert('JavaScript Error: ' + msg + '\nLine: ' + line);
       return false;
     };
 
     (function() {
       try {
+        addLog('INLINE JS РАБОТАЕТ!', 'success');
         var d = document.getElementById('debug-status');
         if (d) {
           d.textContent = '✅ INLINE JS РАБОТАЕТ!';
           d.style.background = 'rgba(0,139,0,0.9)';
         }
         var u = document.getElementById('username');
-        if (u) u.textContent = '✅ Inline скрипт выполнился';
+        if (u) {
+          u.textContent = '✅ Inline скрипт выполнился';
+          addLog('Username элемент найден и обновлен', 'success');
+        }
       } catch(e) {
+        addLog('ERROR in inline script: ' + e.message, 'error');
         var d = document.getElementById('debug-status');
         if (d) {
           d.textContent = '❌ ERROR: ' + e.message;
           d.style.background = 'rgba(139,0,0,0.9)';
         }
-        alert('ERROR in inline script: ' + e.message);
       }
     })();
   </script>
@@ -937,7 +989,11 @@ app.get("/", (req, res) => {
       document.getElementById('username').textContent = '🔄 SDK загружен...';
 
       updateDebugStatus('🔄 [4/10] Инициализация Telegram...');
-      console.log('=== Telegram WebApp Debug START ===');
+      addLog('=== Telegram WebApp Debug START ===', 'info');
+      addLog('Platform: ' + tg.platform, 'info');
+      addLog('Version: ' + tg.version, 'info');
+      addLog('initData length: ' + (tg.initData ? tg.initData.length : 0), 'info');
+
       console.log('1. WebApp доступен?', typeof window.Telegram !== 'undefined');
       console.log('2. tg.isVersionAtLeast:', tg.isVersionAtLeast ? tg.isVersionAtLeast('6.0') : 'N/A');
       console.log('3. Platform:', tg.platform);
@@ -947,7 +1003,13 @@ app.get("/", (req, res) => {
       console.log('7. initDataUnsafe (parsed):', JSON.stringify(tg.initDataUnsafe, null, 2));
 
       // КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ
-      console.log('🔍 КРИТИЧЕСКАЯ ПРОВЕРКА:');
+      addLog('🔍 КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ:', 'info');
+      addLog('URL: ' + window.location.href, 'info');
+      addLog('Как открыт: ' + (tg.platform || 'unknown'), 'info');
+      addLog('initData пустой? ' + (!tg.initData || tg.initData.length === 0), 'info');
+      addLog('initDataUnsafe существует? ' + !!tg.initDataUnsafe, 'info');
+      addLog('initDataUnsafe.user существует? ' + !!(tg.initDataUnsafe && tg.initDataUnsafe.user), 'info');
+
       console.log('  - URL:', window.location.href);
       console.log('  - Как открыт:', tg.platform || 'unknown');
       console.log('  - initData пустой?', !tg.initData || tg.initData.length === 0);
@@ -955,6 +1017,11 @@ app.get("/", (req, res) => {
       console.log('  - initDataUnsafe.user существует?', !!(tg.initDataUnsafe && tg.initDataUnsafe.user));
 
       if (!tg.initData || tg.initData.length === 0) {
+        addLog('⚠️ ВНИМАНИЕ: initData пустой!', 'warning');
+        addLog('Миниапп открыт НЕ через Telegram бота!', 'warning');
+        addLog('Причина 1: Открыто через браузер', 'warning');
+        addLog('Причина 2: WEB_APP_URL не настроен', 'warning');
+        addLog('Причина 3: Используется HTTP вместо HTTPS', 'warning');
         console.log('⚠️ ВНИМАНИЕ: initData пустой - миниапп открыт НЕ через Telegram бота!');
         console.log('📌 Возможные причины:');
         console.log('   1. Открыто напрямую через браузер (а не через кнопку в Telegram боте)');
@@ -964,10 +1031,15 @@ app.get("/", (req, res) => {
       }
 
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        addLog('✅ User ID: ' + tg.initDataUnsafe.user.id, 'success');
+        addLog('✅ User Name: ' + tg.initDataUnsafe.user.first_name, 'success');
+        addLog('✅ Username: ' + (tg.initDataUnsafe.user.username || 'нет'), 'success');
         console.log('  ✅ User ID:', tg.initDataUnsafe.user.id);
         console.log('  ✅ User Name:', tg.initDataUnsafe.user.first_name);
         updateDebugStatus('✅ Данные от Telegram ЕСТЬ! User: ' + tg.initDataUnsafe.user.first_name);
       } else {
+        addLog('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', 'error');
+        addLog('❌ initDataUnsafe: ' + JSON.stringify(tg.initDataUnsafe), 'error');
         console.log('  ❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!');
         console.log('  ❌ tg.initDataUnsafe:', tg.initDataUnsafe);
         console.log('  ❌ Полная структура:', JSON.stringify(tg.initDataUnsafe));
@@ -1013,12 +1085,14 @@ app.get("/", (req, res) => {
       const usernameEl = document.getElementById('username');
 
       updateDebugStatus('🔄 [7/10] Загрузка данных пользователя...');
+      addLog('=== Загрузка данных пользователя ===', 'info');
       console.log('=== Попытка загрузки данных пользователя ===');
       console.log('Шаг 1: Начало функции loadUserData');
       if (usernameEl) usernameEl.textContent = '🔄 Загрузка данных...';
 
       isLoadingUser = true;
       setButtonsDisabled(true);
+      addLog('Кнопки заблокированы (isLoadingUser = true)', 'info');
       console.log('Шаг 2: Кнопки заблокированы');
 
       try {
@@ -1112,6 +1186,9 @@ app.get("/", (req, res) => {
 
               success = true;
               updateDebugStatus('✅ [9/10] Данные загружены из базы!');
+              addLog('✅ Пользователь загружен из базы', 'success');
+              addLog('Username: ' + fullName, 'success');
+              addLog('Balance: ' + (data.balance ? data.balance.toFixed(2) : '0.00'), 'success');
               console.log('✅ Загрузка данных успешно завершена!');
             } else if (response.status === 404) {
               // Пользователь не найден, создаем нового
@@ -1210,6 +1287,16 @@ app.get("/", (req, res) => {
               .catch(err => console.error('Ошибка проверки админа:', err));
           }
         } else {
+          addLog('❌ ДАННЫЕ НЕ НАЙДЕНЫ!', 'error');
+          addLog('initData пустой? ' + (!tg.initData || tg.initData.length === 0), 'error');
+          addLog('initDataUnsafe пустой? ' + (!tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0), 'error');
+          addLog('initDataUnsafe: ' + JSON.stringify(tg.initDataUnsafe), 'error');
+          addLog('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:', 'warning');
+          addLog('1. Mini App не открыт через Telegram бота', 'warning');
+          addLog('2. WEB_APP_URL не настроен в BotFather', 'warning');
+          addLog('3. URL должен быть HTTPS (не HTTP)', 'warning');
+          addLog('4. Домен не подтверждён в BotFather', 'warning');
+
           console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
           console.log('initData пустой?', !tg.initData || tg.initData.length === 0);
           console.log('initDataUnsafe пустой?', !tg.initDataUnsafe || Object.keys(tg.initDataUnsafe).length === 0);
@@ -1243,12 +1330,15 @@ app.get("/", (req, res) => {
         }
       } finally {
         // Разблокируем кнопки после завершения загрузки
+        addLog('🎯 FINALLY: Завершение загрузки', 'info');
         console.log('🎯 FINALLY БЛОК ВЫПОЛНЯЕТСЯ!');
         console.log('  isLoadingUser перед:', isLoadingUser);
         isLoadingUser = false;
         console.log('  isLoadingUser после:', isLoadingUser);
+        addLog('Устанавливаю isLoadingUser = false', 'info');
         console.log('  Вызываю setButtonsDisabled(false)...');
         setButtonsDisabled(false);
+        addLog('✅ Кнопки разблокированы!', 'success');
         console.log('✅ Загрузка завершена, кнопки разблокированы');
       }
     }
