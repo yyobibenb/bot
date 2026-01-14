@@ -901,7 +901,14 @@ app.get("/", (req, res) => {
         updateDebugStatus('🔄 [1/10] Скрипт начал загружаться...');
 
         // Показываем что скрипт начал загружаться
-        document.getElementById('username').textContent = '🔄 Скрипт загружается...';
+        const usernameElStart = document.getElementById('username');
+        console.log('🔍 username элемент найден?', !!usernameElStart, usernameElStart);
+        if (usernameElStart) {
+          usernameElStart.textContent = '🔄 Скрипт загружается...';
+          console.log('✅ username текст установлен:', usernameElStart.textContent);
+        } else {
+          console.error('❌ username элемент НЕ НАЙДЕН!');
+        }
 
         console.log('=== SCRIPT START ===');
         updateDebugStatus('🔄 [2/10] Проверка Telegram SDK...');
@@ -957,15 +964,18 @@ app.get("/", (req, res) => {
     // Функция для блокировки/разблокировки кнопок
     function setButtonsDisabled(disabled) {
       const buttons = document.querySelectorAll('.btn');
-      buttons.forEach(btn => {
+      console.log(\`🔧 setButtonsDisabled(\${disabled}) - найдено кнопок: \${buttons.length}\`);
+      buttons.forEach((btn, index) => {
         if (disabled) {
           btn.classList.add('disabled');
           btn.style.opacity = '0.5';
           btn.style.pointerEvents = 'none';
+          console.log(\`  ❌ Кнопка #\${index} заблокирована\`);
         } else {
           btn.classList.remove('disabled');
           btn.style.opacity = '1';
           btn.style.pointerEvents = 'auto';
+          console.log(\`  ✅ Кнопка #\${index} разблокирована\`);
         }
       });
     }
@@ -1205,7 +1215,11 @@ app.get("/", (req, res) => {
         }
       } finally {
         // Разблокируем кнопки после завершения загрузки
+        console.log('🎯 FINALLY БЛОК ВЫПОЛНЯЕТСЯ!');
+        console.log('  isLoadingUser перед:', isLoadingUser);
         isLoadingUser = false;
+        console.log('  isLoadingUser после:', isLoadingUser);
+        console.log('  Вызываю setButtonsDisabled(false)...');
         setButtonsDisabled(false);
         console.log('✅ Загрузка завершена, кнопки разблокированы');
       }
@@ -1213,7 +1227,12 @@ app.get("/", (req, res) => {
 
     // Load user data immediately
     console.log('🚀 Вызываю loadUserData()...');
-    document.getElementById('username').textContent = '🚀 Запускаю загрузку...';
+    const usernameElBeforeLoad = document.getElementById('username');
+    console.log('🔍 username элемент перед loadUserData:', !!usernameElBeforeLoad);
+    if (usernameElBeforeLoad) {
+      usernameElBeforeLoad.textContent = '🚀 Запускаю загрузку...';
+      console.log('✅ Установлен текст:', usernameElBeforeLoad.textContent);
+    }
     loadUserData().then(() => {
       updateDebugStatus('✅ [10/10] Готово! Нажми для скрытия', false);
       // Скрываем индикатор через 3 секунды
