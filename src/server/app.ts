@@ -970,7 +970,7 @@ app.get("/", (req, res) => {
         const maxAttempts = 50; // 50 * 100ms = 5 секунд
 
         while (typeof window.Telegram === 'undefined' && attempts < maxAttempts) {
-          updateDebugStatus(\`🔄 [2/10] Ожидание SDK... (\${attempts}/\${maxAttempts})\`);
+          updateDebugStatus('🔄 [2/10] Ожидание SDK... (' + attempts + '/' + maxAttempts + ')');
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
@@ -1064,18 +1064,18 @@ app.get("/", (req, res) => {
     // Функция для блокировки/разблокировки кнопок
     function setButtonsDisabled(disabled) {
       const buttons = document.querySelectorAll('.btn');
-      console.log(\`🔧 setButtonsDisabled(\${disabled}) - найдено кнопок: \${buttons.length}\`);
+      console.log('🔧 setButtonsDisabled(' + disabled + ') - найдено кнопок: ' + buttons.length);
       buttons.forEach((btn, index) => {
         if (disabled) {
           btn.classList.add('disabled');
           btn.style.opacity = '0.5';
           btn.style.pointerEvents = 'none';
-          console.log(\`  ❌ Кнопка #\${index} заблокирована\`);
+          console.log('  ❌ Кнопка #' + index + ' заблокирована');
         } else {
           btn.classList.remove('disabled');
           btn.style.opacity = '1';
           btn.style.pointerEvents = 'auto';
-          console.log(\`  ✅ Кнопка #\${index} разблокирована\`);
+          console.log('  ✅ Кнопка #' + index + ' разблокирована');
         }
       });
     }
@@ -1149,11 +1149,11 @@ app.get("/", (req, res) => {
         while (retries > 0 && !success) {
           try {
             const attemptNum = 4 - retries;
-            console.log(\`🔍 Загружаю данные из базы... (попытка \${attemptNum}/3)\`);
-            console.log(\`📡 Отправляю запрос: GET /api/user/telegram/\${tgUser.id}\`);
+            console.log('🔍 Загружаю данные из базы... (попытка ' + attemptNum + '/3)');
+            console.log('📡 Отправляю запрос: GET /api/user/telegram/' + tgUser.id);
 
-            const response = await fetch(\`/api/user/telegram/\${tgUser.id}\`);
-            console.log(\`📨 Ответ получен. Статус: \${response.status}\`);
+            const response = await fetch('/api/user/telegram/' + tgUser.id);
+            console.log('📨 Ответ получен. Статус: ' + response.status);
 
             if (response.ok) {
               // Пользователь найден в базе
@@ -1173,7 +1173,7 @@ app.get("/", (req, res) => {
               // Устанавливаем аватар из базы (если есть)
               if (currentUser.photo_url) {
                 console.log('✅ Устанавливаю аватар из базы:', currentUser.photo_url);
-                avatar.innerHTML = \`<img src="\${currentUser.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">\`;
+                avatar.innerHTML = '<img src="' + currentUser.photo_url + '" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
               } else {
                 console.log('📝 Аватар не найден, использую первую букву');
                 avatar.textContent = fullName.charAt(0).toUpperCase();
@@ -1420,7 +1420,7 @@ app.get("/", (req, res) => {
         return;
       }
 
-      const amount = prompt(\`Введите сумму вывода (USDT):\n\nДоступно: \${balance} USDT\nМинимум: 10 USDT\`);
+      const amount = prompt('Введите сумму вывода (USDT):\\n\\nДоступно: ' + balance + ' USDT\\nМинимум: 10 USDT');
 
       if (!amount) return;
 
@@ -1432,7 +1432,7 @@ app.get("/", (req, res) => {
       }
 
       if (withdrawAmount > balance) {
-        tg.showAlert(\`Недостаточно средств. Доступно: \${balance} USDT\`);
+        tg.showAlert('Недостаточно средств. Доступно: ' + balance + ' USDT');
         return;
       }
 
@@ -1453,7 +1453,7 @@ app.get("/", (req, res) => {
         if (data.success) {
           // Обновляем баланс
           document.getElementById('balance').textContent = data.newBalance.toFixed(2);
-          tg.showAlert(\`✅ Заявка на вывод создана!\n\nСумма: \${withdrawAmount} USDT\n\nСредства будут отправлены через @send в течение 1-24 часов.\`);
+          tg.showAlert('✅ Заявка на вывод создана!\\n\\nСумма: ' + withdrawAmount + ' USDT\\n\\nСредства будут отправлены через @send в течение 1-24 часов.');
         } else {
           tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать заявку'));
         }
