@@ -584,7 +584,7 @@ app.get("/", (req, res) => {
 
     // Отлавливаем ВСЕ ошибки JavaScript
     window.onerror = function(msg, url, line, col, error) {
-      addLog('JS ERROR: ' + msg + ' (строка ' + line + ')', 'error');
+      window.addLog('JS ERROR: ' + msg + ' (строка ' + line + ')', 'error');
       var d = document.getElementById('debug-status');
       if (d) {
         d.textContent = '❌ JS ERROR: ' + msg + ' (строка ' + line + ')';
@@ -596,7 +596,7 @@ app.get("/", (req, res) => {
 
     (function() {
       try {
-        addLog('INLINE JS РАБОТАЕТ!', 'success');
+        window.addLog('INLINE JS РАБОТАЕТ!', 'success');
         var d = document.getElementById('debug-status');
         if (d) {
           d.textContent = '✅ INLINE JS РАБОТАЕТ!';
@@ -605,10 +605,10 @@ app.get("/", (req, res) => {
         var u = document.getElementById('username');
         if (u) {
           u.textContent = '✅ Inline скрипт выполнился';
-          addLog('Username элемент найден и обновлен', 'success');
+          window.addLog('Username элемент найден и обновлен', 'success');
         }
       } catch(e) {
-        addLog('ERROR in inline script: ' + e.message, 'error');
+        window.addLog('ERROR in inline script: ' + e.message, 'error');
         var d = document.getElementById('debug-status');
         if (d) {
           d.textContent = '❌ ERROR: ' + e.message;
@@ -950,7 +950,7 @@ app.get("/", (req, res) => {
     // Глобальный async блок
     (async function() {
       try {
-        updateDebugStatus('🔄 [1/10] Скрипт начал загружаться...');
+        window.updateDebugStatus('🔄 [1/10] Скрипт начал загружаться...');
 
         // Показываем что скрипт начал загружаться
         const usernameElStart = document.getElementById('username');
@@ -963,21 +963,21 @@ app.get("/", (req, res) => {
         }
 
         console.log('=== SCRIPT START ===');
-        updateDebugStatus('🔄 [2/10] Проверка Telegram SDK...');
+        window.updateDebugStatus('🔄 [2/10] Проверка Telegram SDK...');
 
         // Ждем загрузки Telegram SDK (максимум 5 секунд)
         let attempts = 0;
         const maxAttempts = 50; // 50 * 100ms = 5 секунд
 
         while (typeof window.Telegram === 'undefined' && attempts < maxAttempts) {
-          updateDebugStatus('🔄 [2/10] Ожидание SDK... (' + attempts + '/' + maxAttempts + ')');
+          window.updateDebugStatus('🔄 [2/10] Ожидание SDK... (' + attempts + '/' + maxAttempts + ')');
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
 
         // Проверяем доступность Telegram WebApp
         if (typeof window.Telegram === 'undefined') {
-          updateDebugStatus('❌ ERROR: Telegram SDK не загрузился!', true);
+          window.updateDebugStatus('❌ ERROR: Telegram SDK не загрузился!', true);
           console.error('❌ window.Telegram не найден!');
           document.getElementById('username').textContent = '❌ Telegram SDK не загружен';
           throw new Error('Telegram SDK not loaded after 5 seconds');
@@ -986,16 +986,16 @@ app.get("/", (req, res) => {
         const tg = window.Telegram.WebApp;
       // Сохраняем tg глобально для функций обработчиков
       window.tg = tg;
-      addLog('✅ window.tg установлен', 'success');
-      updateDebugStatus('✅ [3/10] Telegram SDK загружен');
+      window.addLog('✅ window.tg установлен', 'success');
+      window.updateDebugStatus('✅ [3/10] Telegram SDK загружен');
       console.log('✅ Telegram SDK загружен');
       document.getElementById('username').textContent = '🔄 SDK загружен...';
 
-      updateDebugStatus('🔄 [4/10] Инициализация Telegram...');
-      addLog('=== Telegram WebApp Debug START ===', 'info');
-      addLog('Platform: ' + window.tg.platform, 'info');
-      addLog('Version: ' + window.tg.version, 'info');
-      addLog('initData length: ' + (window.tg.initData ? window.tg.initData.length : 0), 'info');
+      window.updateDebugStatus('🔄 [4/10] Инициализация Telegram...');
+      window.addLog('=== Telegram WebApp Debug START ===', 'info');
+      window.addLog('Platform: ' + window.tg.platform, 'info');
+      window.addLog('Version: ' + window.tg.version, 'info');
+      window.addLog('initData length: ' + (window.tg.initData ? window.tg.initData.length : 0), 'info');
 
       console.log('1. WebApp доступен?', typeof window.Telegram !== 'undefined');
       console.log('2. window.tg.isVersionAtLeast:', window.tg.isVersionAtLeast ? window.tg.isVersionAtLeast('6.0') : 'N/A');
@@ -1006,12 +1006,12 @@ app.get("/", (req, res) => {
       console.log('7. initDataUnsafe (parsed):', JSON.stringify(window.tg.initDataUnsafe, null, 2));
 
       // КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ
-      addLog('🔍 КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ:', 'info');
-      addLog('URL: ' + window.location.href, 'info');
-      addLog('Как открыт: ' + (window.tg.platform || 'unknown'), 'info');
-      addLog('initData пустой? ' + (!window.tg.initData || window.tg.initData.length === 0), 'info');
-      addLog('initDataUnsafe существует? ' + !!window.tg.initDataUnsafe, 'info');
-      addLog('initDataUnsafe.user существует? ' + !!(window.tg.initDataUnsafe && window.tg.initDataUnsafe.user), 'info');
+      window.addLog('🔍 КРИТИЧЕСКАЯ ПРОВЕРКА ДАННЫХ:', 'info');
+      window.addLog('URL: ' + window.location.href, 'info');
+      window.addLog('Как открыт: ' + (window.tg.platform || 'unknown'), 'info');
+      window.addLog('initData пустой? ' + (!window.tg.initData || window.tg.initData.length === 0), 'info');
+      window.addLog('initDataUnsafe существует? ' + !!window.tg.initDataUnsafe, 'info');
+      window.addLog('initDataUnsafe.user существует? ' + !!(window.tg.initDataUnsafe && window.tg.initDataUnsafe.user), 'info');
 
       console.log('  - URL:', window.location.href);
       console.log('  - Как открыт:', window.tg.platform || 'unknown');
@@ -1020,43 +1020,43 @@ app.get("/", (req, res) => {
       console.log('  - initDataUnsafe.user существует?', !!(window.tg.initDataUnsafe && window.tg.initDataUnsafe.user));
 
       if (!window.tg.initData || window.tg.initData.length === 0) {
-        addLog('⚠️ ВНИМАНИЕ: initData пустой!', 'warning');
-        addLog('Миниапп открыт НЕ через Telegram бота!', 'warning');
-        addLog('Причина 1: Открыто через браузер', 'warning');
-        addLog('Причина 2: WEB_APP_URL не настроен', 'warning');
-        addLog('Причина 3: Используется HTTP вместо HTTPS', 'warning');
+        window.addLog('⚠️ ВНИМАНИЕ: initData пустой!', 'warning');
+        window.addLog('Миниапп открыт НЕ через Telegram бота!', 'warning');
+        window.addLog('Причина 1: Открыто через браузер', 'warning');
+        window.addLog('Причина 2: WEB_APP_URL не настроен', 'warning');
+        window.addLog('Причина 3: Используется HTTP вместо HTTPS', 'warning');
         console.log('⚠️ ВНИМАНИЕ: initData пустой - миниапп открыт НЕ через Telegram бота!');
         console.log('📌 Возможные причины:');
         console.log('   1. Открыто напрямую через браузер (а не через кнопку в Telegram боте)');
         console.log('   2. WEB_APP_URL не настроен правильно в BotFather');
         console.log('   3. Используется HTTP вместо HTTPS');
-        updateDebugStatus('⚠️ Открыто не через бота! initData пустой', true);
+        window.updateDebugStatus('⚠️ Открыто не через бота! initData пустой', true);
       }
 
       if (window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
-        addLog('✅ User ID: ' + window.tg.initDataUnsafe.user.id, 'success');
-        addLog('✅ User Name: ' + window.tg.initDataUnsafe.user.first_name, 'success');
-        addLog('✅ Username: ' + (window.tg.initDataUnsafe.user.username || 'нет'), 'success');
+        window.addLog('✅ User ID: ' + window.tg.initDataUnsafe.user.id, 'success');
+        window.addLog('✅ User Name: ' + window.tg.initDataUnsafe.user.first_name, 'success');
+        window.addLog('✅ Username: ' + (window.tg.initDataUnsafe.user.username || 'нет'), 'success');
         console.log('  ✅ User ID:', window.tg.initDataUnsafe.user.id);
         console.log('  ✅ User Name:', window.tg.initDataUnsafe.user.first_name);
-        updateDebugStatus('✅ Данные от Telegram ЕСТЬ! User: ' + window.tg.initDataUnsafe.user.first_name);
+        window.updateDebugStatus('✅ Данные от Telegram ЕСТЬ! User: ' + window.tg.initDataUnsafe.user.first_name);
       } else {
-        addLog('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', 'error');
-        addLog('❌ initDataUnsafe: ' + JSON.stringify(window.tg.initDataUnsafe), 'error');
+        window.addLog('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', 'error');
+        window.addLog('❌ initDataUnsafe: ' + JSON.stringify(window.tg.initDataUnsafe), 'error');
         console.log('  ❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!');
         console.log('  ❌ window.tg.initDataUnsafe:', window.tg.initDataUnsafe);
         console.log('  ❌ Полная структура:', JSON.stringify(window.tg.initDataUnsafe));
-        updateDebugStatus('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', true);
+        window.updateDebugStatus('❌ ДАННЫЕ ОТ TELEGRAM ОТСУТСТВУЮТ!', true);
       }
 
       // Ready and expand
-      updateDebugStatus('🔄 [5/10] Вызов window.tg.ready()...');
+      window.updateDebugStatus('🔄 [5/10] Вызов window.tg.ready()...');
       window.tg.ready();
       window.tg.expand();
       window.tg.setBackgroundColor('#071C15');
       window.tg.setHeaderColor('#071C15');
 
-      updateDebugStatus('✅ [6/10] Telegram готов');
+      window.updateDebugStatus('✅ [6/10] Telegram готов');
       document.getElementById('username').textContent = '🔄 Telegram готов...';
 
     // Global state - делаем доступными для обработчиков
@@ -1067,7 +1067,7 @@ app.get("/", (req, res) => {
     // Функция для блокировки/разблокировки кнопок
     window.setButtonsDisabled = function(disabled) {
       const buttons = document.querySelectorAll('.btn');
-      console.log('🔧 setButtonsDisabled(' + disabled + ') - найдено кнопок: ' + buttons.length);
+      console.log('🔧 window.setButtonsDisabled(' + disabled + ') - найдено кнопок: ' + buttons.length);
       buttons.forEach((btn, index) => {
         if (disabled) {
           btn.classList.add('disabled');
@@ -1087,19 +1087,19 @@ app.get("/", (req, res) => {
     async function loadUserData() {
       const usernameEl = document.getElementById('username');
 
-      updateDebugStatus('🔄 [7/10] Загрузка данных пользователя...');
-      addLog('=== Загрузка данных пользователя ===', 'info');
+      window.updateDebugStatus('🔄 [7/10] Загрузка данных пользователя...');
+      window.addLog('=== Загрузка данных пользователя ===', 'info');
       console.log('=== Попытка загрузки данных пользователя ===');
       console.log('Шаг 1: Начало функции loadUserData');
       if (usernameEl) usernameEl.textContent = '🔄 Загрузка данных...';
 
       window.isLoadingUser = true;
-      setButtonsDisabled(true);
-      addLog('Кнопки заблокированы (window.isLoadingUser = true)', 'info');
+      window.setButtonsDisabled(true);
+      window.addLog('Кнопки заблокированы (window.isLoadingUser = true)', 'info');
       console.log('Шаг 2: Кнопки заблокированы');
 
       try {
-        updateDebugStatus('🔄 [8/10] Проверка initDataUnsafe...');
+        window.updateDebugStatus('🔄 [8/10] Проверка initDataUnsafe...');
         console.log('Шаг 3: Проверка window.tg.initDataUnsafe...');
         console.log('window.tg.initDataUnsafe существует?', !!window.tg.initDataUnsafe);
         console.log('window.tg.initDataUnsafe.user существует?', !!(window.tg.initDataUnsafe && window.tg.initDataUnsafe.user));
@@ -1139,7 +1139,7 @@ app.get("/", (req, res) => {
               balance: !balanceEl
             });
             window.isLoadingUser = false;
-            setButtonsDisabled(false);
+            window.setButtonsDisabled(false);
             return;
           }
 
@@ -1188,10 +1188,10 @@ app.get("/", (req, res) => {
               }
 
               success = true;
-              updateDebugStatus('✅ [9/10] Данные загружены из базы!');
-              addLog('✅ Пользователь загружен из базы', 'success');
-              addLog('Username: ' + fullName, 'success');
-              addLog('Balance: ' + (data.balance ? data.balance.toFixed(2) : '0.00'), 'success');
+              window.updateDebugStatus('✅ [9/10] Данные загружены из базы!');
+              window.addLog('✅ Пользователь загружен из базы', 'success');
+              window.addLog('Username: ' + fullName, 'success');
+              window.addLog('Balance: ' + (data.balance ? data.balance.toFixed(2) : '0.00'), 'success');
               console.log('✅ Загрузка данных успешно завершена!');
             } else if (response.status === 404) {
               // Пользователь не найден, создаем нового
@@ -1290,15 +1290,15 @@ app.get("/", (req, res) => {
               .catch(err => console.error('Ошибка проверки админа:', err));
           }
         } else {
-          addLog('❌ ДАННЫЕ НЕ НАЙДЕНЫ!', 'error');
-          addLog('initData пустой? ' + (!window.tg.initData || window.tg.initData.length === 0), 'error');
-          addLog('initDataUnsafe пустой? ' + (!window.tg.initDataUnsafe || Object.keys(window.tg.initDataUnsafe).length === 0), 'error');
-          addLog('initDataUnsafe: ' + JSON.stringify(window.tg.initDataUnsafe), 'error');
-          addLog('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:', 'warning');
-          addLog('1. Mini App не открыт через Telegram бота', 'warning');
-          addLog('2. WEB_APP_URL не настроен в BotFather', 'warning');
-          addLog('3. URL должен быть HTTPS (не HTTP)', 'warning');
-          addLog('4. Домен не подтверждён в BotFather', 'warning');
+          window.addLog('❌ ДАННЫЕ НЕ НАЙДЕНЫ!', 'error');
+          window.addLog('initData пустой? ' + (!window.tg.initData || window.tg.initData.length === 0), 'error');
+          window.addLog('initDataUnsafe пустой? ' + (!window.tg.initDataUnsafe || Object.keys(window.tg.initDataUnsafe).length === 0), 'error');
+          window.addLog('initDataUnsafe: ' + JSON.stringify(window.tg.initDataUnsafe), 'error');
+          window.addLog('📌 ВОЗМОЖНЫЕ ПРИЧИНЫ:', 'warning');
+          window.addLog('1. Mini App не открыт через Telegram бота', 'warning');
+          window.addLog('2. WEB_APP_URL не настроен в BotFather', 'warning');
+          window.addLog('3. URL должен быть HTTPS (не HTTP)', 'warning');
+          window.addLog('4. Домен не подтверждён в BotFather', 'warning');
 
           console.error('❌ ДАННЫЕ НЕ НАЙДЕНЫ!');
           console.log('initData пустой?', !window.tg.initData || window.tg.initData.length === 0);
@@ -1333,15 +1333,15 @@ app.get("/", (req, res) => {
         }
       } finally {
         // Разблокируем кнопки после завершения загрузки
-        addLog('🎯 FINALLY: Завершение загрузки', 'info');
+        window.addLog('🎯 FINALLY: Завершение загрузки', 'info');
         console.log('🎯 FINALLY БЛОК ВЫПОЛНЯЕТСЯ!');
         console.log('  window.isLoadingUser перед:', window.isLoadingUser);
         window.isLoadingUser = false;
         console.log('  window.isLoadingUser после:', window.isLoadingUser);
-        addLog('Устанавливаю window.isLoadingUser = false', 'info');
-        console.log('  Вызываю setButtonsDisabled(false)...');
-        setButtonsDisabled(false);
-        addLog('✅ Кнопки разблокированы!', 'success');
+        window.addLog('Устанавливаю window.isLoadingUser = false', 'info');
+        console.log('  Вызываю window.setButtonsDisabled(false)...');
+        window.setButtonsDisabled(false);
+        window.addLog('✅ Кнопки разблокированы!', 'success');
         console.log('✅ Загрузка завершена, кнопки разблокированы');
       }
     }
@@ -1355,25 +1355,24 @@ app.get("/", (req, res) => {
       console.log('✅ Установлен текст:', usernameElBeforeLoad.textContent);
     }
     loadUserData().then(() => {
-      updateDebugStatus('✅ [10/10] Готово! Нажми для скрытия', false);
+      window.updateDebugStatus('✅ [10/10] Готово! Нажми для скрытия', false);
       // Скрываем индикатор через 3 секунды
       setTimeout(() => {
         const debugEl = document.getElementById('debug-status');
         if (debugEl) debugEl.style.display = 'none';
       }, 3000);
     }).catch(err => {
-      updateDebugStatus('❌ ERROR: ' + err.message, true);
+      window.updateDebugStatus('❌ ERROR: ' + err.message, true);
     });
 
     // Делаем функции доступными глобально для onclick
     window.handleDeposit = async function handleDeposit() {
-      addLog('🔘 Нажата кнопка Пополнить', 'info');
+      window.addLog('🔘 Нажата кнопка Пополнить', 'info');
       if (!window.tg) {
-        addLog('❌ tg не определен!', 'error');
+        window.addLog('❌ tg не определен!', 'error');
         alert('Ошибка: Telegram WebApp не загружен');
         return;
       }
-      const tg = window.tg;
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
 
       if (window.isLoadingUser || !window.currentUser) {
@@ -1417,13 +1416,12 @@ app.get("/", (req, res) => {
     };
 
     window.handleWithdraw = async function handleWithdraw() {
-      addLog('🔘 Нажата кнопка Вывести', 'info');
+      window.addLog('🔘 Нажата кнопка Вывести', 'info');
       if (!window.tg) {
-        addLog('❌ tg не определен!', 'error');
+        window.addLog('❌ tg не определен!', 'error');
         alert('Ошибка: Telegram WebApp не загружен');
         return;
       }
-      const tg = window.tg;
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('medium');
 
       if (window.isLoadingUser || !window.currentUser) {
@@ -2041,7 +2039,7 @@ app.get("/", (req, res) => {
 
       // Глобальный catch для всего скрипта
       } catch (globalError) {
-        updateDebugStatus('❌ КРИТИЧЕСКАЯ ОШИБКА: ' + globalError.message, true);
+        window.updateDebugStatus('❌ КРИТИЧЕСКАЯ ОШИБКА: ' + globalError.message, true);
         console.error('❌ Глобальная ошибка:', globalError);
         const usernameEl = document.getElementById('username');
         if (usernameEl) {
