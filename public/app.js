@@ -4,6 +4,7 @@ console.log('🚀 App.js загружается...');
 // Global state
 window.currentUser = null;
 window.selectedGameMode = null;
+window.userDataFromUrl = null;
 
 // Initialize Telegram WebApp
 if (window.Telegram && window.Telegram.WebApp) {
@@ -15,14 +16,45 @@ if (window.Telegram && window.Telegram.WebApp) {
   console.error('❌ Telegram WebApp not found');
 }
 
+// Parse URL parameters
+function getUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    user_id: params.get('user_id'),
+    first_name: params.get('first_name'),
+    last_name: params.get('last_name'),
+    username: params.get('username'),
+    photo_url: params.get('photo_url'),
+    is_premium: params.get('is_premium') === 'true'
+  };
+}
+
 // Load user data from API
 window.loadUserData = async function() {
-  if (!window.tg || !window.tg.initDataUnsafe || !window.tg.initDataUnsafe.user) {
-    console.error('❌ Нет данных Telegram');
+  // Сначала пробуем получить данные из URL параметров
+  const urlParams = getUrlParams();
+
+  // Если нет URL параметров, пробуем использовать Telegram SDK
+  let tgUser;
+  if (urlParams.user_id) {
+    tgUser = {
+      id: parseInt(urlParams.user_id),
+      first_name: urlParams.first_name || 'User',
+      last_name: urlParams.last_name || '',
+      username: urlParams.username || '',
+      photo_url: urlParams.photo_url || null,
+      is_premium: urlParams.is_premium || false
+    };
+    window.userDataFromUrl = tgUser;
+    console.log('✅ Данные пользователя из URL параметров');
+  } else if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+    tgUser = window.tg.initDataUnsafe.user;
+    console.log('✅ Данные пользователя из Telegram SDK');
+  } else {
+    console.error('❌ Нет данных пользователя');
     return;
   }
 
-  const tgUser = window.tg.initDataUnsafe.user;
   const fullName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
 
   try {
@@ -39,8 +71,10 @@ window.loadUserData = async function() {
       document.getElementById('balance').textContent = (data.balance || 0).toFixed(2);
 
       const avatar = document.getElementById('avatar');
-      if (window.currentUser.photo_url) {
-        avatar.innerHTML = `<img src="${window.currentUser.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+      // Используем photo_url из URL параметров или из базы данных
+      const photoUrl = tgUser.photo_url || window.currentUser.photo_url;
+      if (photoUrl) {
+        avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
       } else {
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
@@ -57,7 +91,7 @@ window.loadUserData = async function() {
           first_name: tgUser.first_name,
           last_name: tgUser.last_name || '',
           language_code: tgUser.language_code || '',
-          photo_url: null,
+          photo_url: tgUser.photo_url || null,
           is_premium: tgUser.is_premium || false
         })
       });
@@ -68,7 +102,13 @@ window.loadUserData = async function() {
         document.getElementById('username').textContent = fullName;
         document.getElementById('handle').textContent = '@' + (window.currentUser.username || 'user' + window.currentUser.telegram_id);
         document.getElementById('balance').textContent = (createData.balance || 0).toFixed(2);
-        document.getElementById('avatar').textContent = fullName.charAt(0).toUpperCase();
+
+        const avatar = document.getElementById('avatar');
+        if (tgUser.photo_url) {
+          avatar.innerHTML = `<img src="${tgUser.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        } else {
+          avatar.textContent = fullName.charAt(0).toUpperCase();
+        }
 
         console.log('✅ Новый пользователь создан');
       }

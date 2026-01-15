@@ -31,10 +31,24 @@ export class TelegramBotService {
     return process.env.WEB_APP_URL || "https://your-app-url.com";
   }
 
+  private buildWebAppUrlWithParams(user: any, photoUrl: string | null): string {
+    const baseUrl = this.getWebAppUrl();
+    const params = new URLSearchParams();
+
+    params.append('user_id', user.telegram_id.toString());
+    params.append('first_name', user.first_name || '');
+    if (user.last_name) params.append('last_name', user.last_name);
+    if (user.username) params.append('username', user.username);
+    if (photoUrl) params.append('photo_url', photoUrl);
+    if (user.is_premium) params.append('is_premium', 'true');
+
+    return `${baseUrl}?${params.toString()}`;
+  }
+
   private async handleStart(msg: TelegramBot.Message, referralCode?: string) {
     const chatId = msg.chat.id;
     const telegramId = msg.from?.id;
-    const webAppUrl = this.getWebAppUrl();
+    const baseWebAppUrl = this.getWebAppUrl();
 
     if (!telegramId) {
       await this.bot.sendMessage(chatId, "❌ Ошибка: не удалось определить пользователя");
@@ -118,11 +132,20 @@ export class TelegramBotService {
         });
       }
 
+      // Строим URL с параметрами пользователя
+      const webAppUrlWithParams = this.buildWebAppUrlWithParams({
+        telegram_id: telegramId,
+        first_name: msg.from?.first_name || user.first_name,
+        last_name: msg.from?.last_name,
+        username: msg.from?.username,
+        is_premium: (msg.from as any)?.is_premium || false,
+      }, photoUrl);
+
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
           keyboard: [
-            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
+            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrlWithParams } }]
           ],
           resize_keyboard: true,
         },
@@ -133,7 +156,7 @@ export class TelegramBotService {
         parse_mode: "Markdown",
         reply_markup: {
           keyboard: [
-            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
+            [{ text: "🚀 Открыть Mini App", web_app: { url: baseWebAppUrl } }]
           ],
           resize_keyboard: true,
         },
