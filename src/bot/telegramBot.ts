@@ -21,15 +21,17 @@ export class TelegramBotService {
 
   private setupHandlers() {
     this.bot.onText(/\/start/, (msg) => this.handleStart(msg));
+    this.bot.onText(/\/start (.+)/, (msg, match) => this.handleStart(msg, match?.[1]));
     this.bot.onText(/\/balance/, (msg) => this.handleBalance(msg));
     this.bot.onText(/\/help/, (msg) => this.handleHelp(msg));
+    this.bot.onText(/\/ref/, (msg) => this.handleReferral(msg));
   }
 
   private getWebAppUrl(): string {
     return process.env.WEB_APP_URL || "https://your-app-url.com";
   }
 
-  private async handleStart(msg: TelegramBot.Message) {
+  private async handleStart(msg: TelegramBot.Message, referralCode?: string) {
     const chatId = msg.chat.id;
     const telegramId = msg.from?.id;
     const webAppUrl = this.getWebAppUrl();
@@ -55,8 +57,26 @@ export class TelegramBotService {
 
       // Создаем или обновляем пользователя
       let user = await UserModel.findByTelegramId(telegramId);
+      let isNewUser = false;
 
       if (!user) {
+        isNewUser = true;
+
+        // Обрабатываем реферальный код
+        let referrerId = null;
+        if (referralCode) {
+          try {
+            const referrerTelegramId = parseInt(referralCode);
+            const referrer = await UserModel.findByTelegramId(referrerTelegramId);
+            if (referrer && referrer.telegram_id !== telegramId) {
+              referrerId = referrer.id;
+              console.log(`📎 Пользователь ${telegramId} приглашен рефералом ${referrerTelegramId}`);
+            }
+          } catch (err) {
+            console.log("Неверный реферальный код:", referralCode);
+          }
+        }
+
         user = await UserModel.create({
           telegram_id: telegramId,
           first_name: msg.from?.first_name || "User",
@@ -65,10 +85,27 @@ export class TelegramBotService {
           language_code: msg.from?.language_code,
           photo_url: photoUrl,
           is_premium: (msg.from as any)?.is_premium || false,
+          referrer_id: referrerId,
         });
 
         // Создаем баланс
         await BalanceModel.createForUser(user.id);
+
+        // Создаем реферальную связь
+        if (referrerId) {
+          const { ReferralModel } = await import("../models/Referral");
+          await ReferralModel.create(referrerId, user.id);
+
+          // Уведомляем реферера
+          const referrer = await UserModel.getUserById(referrerId);
+          if (referrer) {
+            await this.bot.sendMessage(
+              referrer.telegram_id,
+              `🎉 У вас новый реферал!\n\n👤 ${user.first_name}\n💰 Вы будете получать 5% от его депозитов!`
+            );
+          }
+        }
+
         console.log(`✅ Новый пользователь создан: ${telegramId} (${user.first_name})`);
       } else {
         // Обновляем данные пользователя
@@ -155,6 +192,7 @@ export class TelegramBotService {
 
 /start - Открыть Mini App
 /balance - Проверить баланс
+/ref - Партнерская программа
 /help - Показать эту справку
 
 **Игры:**
@@ -174,6 +212,58 @@ export class TelegramBotService {
     `;
 
     await this.bot.sendMessage(chatId, helpMessage, { parse_mode: "Markdown" });
+  }
+
+  private async handleReferral(msg: TelegramBot.Message) {
+    const chatId = msg.chat.id;
+    const telegramId = msg.from?.id;
+
+    if (!telegramId) {
+      await this.bot.sendMessage(chatId, "❌ Ошибка: не удалось определить пользователя");
+      return;
+    }
+
+    try {
+      const user = await UserModel.findByTelegramId(telegramId);
+
+      if (!user) {
+        await this.bot.sendMessage(chatId, "❌ Пользователь не найден. Используйте /start");
+        return;
+      }
+
+      const { ReferralModel } = await import("../models/Referral");
+      const stats = await ReferralModel.getReferralStats(user.id);
+
+      const botUsername = (await this.bot.getMe()).username;
+      const referralLink = `https://t.me/${botUsername}?start=${telegramId}`;
+
+      const message = `
+👥 **Партнерская программа**
+
+🔗 **Ваша реферальная ссылка:**
+\`${referralLink}\`
+
+📊 **Статистика:**
+Рефералов: ${stats.total_referrals}
+Заработано: ${stats.total_earned.toFixed(2)} USDT
+
+💰 **Условия:**
+• 5% от каждого депозита реферала
+• Моментальное зачисление на баланс
+• Неограниченное количество рефералов
+
+${stats.referrals.length > 0 ? `\n👥 **Ваши рефералы:**\n${stats.referrals.slice(0, 5).map(ref =>
+  `• ${ref.first_name} - ${ref.total_deposited.toFixed(2)} USDT`
+).join('\n')}` : ''}
+
+Поделитесь ссылкой с друзьями и зарабатывайте! 🚀
+      `;
+
+      await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+    } catch (error: any) {
+      console.error("Error handling referral:", error);
+      await this.bot.sendMessage(chatId, "❌ Ошибка при получении реферальной информации");
+    }
   }
 
   start() {

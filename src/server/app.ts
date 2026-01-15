@@ -10,6 +10,9 @@ import { OtherGamesService } from "../services/OtherGamesService";
 import cryptoService from "../services/CryptoService";
 import cryptoBotService from "../services/CryptoBotService";
 import { DuelService } from "../services/DuelService";
+import { SlotsGameService } from "../services/SlotsGameService";
+import { RPSGameService } from "../services/RPSGameService";
+import pool from "../database/pool";
 
 const app = express();
 
@@ -443,6 +446,43 @@ app.post("/api/games/basketball/miss", async (req, res) => {
   }
 });
 
+// ========== СЛОТЫ API ==========
+
+app.post("/api/games/slots/play", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await SlotsGameService.playSlots(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing slots:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== КАМЕНЬ-НОЖНИЦЫ-БУМАГА API ==========
+
+app.post("/api/games/rps/play", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (!["rock", "paper", "scissors", "random"].includes(choice)) {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await RPSGameService.playRPS(user_id, bet_amount, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing RPS:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
 // ========== ДАРТС API ==========
 
 app.post("/api/games/darts/red", async (req, res) => {
@@ -814,6 +854,174 @@ app.get("/api/admin/stats", async (req, res) => {
   }
 });
 
+// Получить детальную статистику (для админов)
+app.get("/api/admin/stats/detailed", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "view_stats");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Общая статистика пользователей
+    const totalUsersResult = await pool.query("SELECT COUNT(*) as count FROM users");
+    const totalUsers = parseInt(totalUsersResult.rows[0].count);
+
+    const usersWithDepositsResult = await pool.query(
+      "SELECT COUNT(DISTINCT user_id) as count FROM transactions WHERE type = 'deposit' AND status = 'completed'"
+    );
+    const usersWithDeposits = parseInt(usersWithDepositsResult.rows[0].count);
+
+    // Депозиты и выводы за месяц по дням
+    const transactionsPerDayResult = await pool.query(
+      `SELECT
+        DATE(created_at) as date,
+        type,
+        COUNT(*) as count,
+        SUM(amount) as total_amount
+       FROM transactions
+       WHERE created_at >= NOW() - INTERVAL '30 days'
+       AND status = 'completed'
+       GROUP BY DATE(created_at), type
+       ORDER BY DATE(created_at) DESC`
+    );
+
+    const transactionsPerDay = transactionsPerDayResult.rows.map(row => ({
+      date: row.date,
+      type: row.type,
+      count: parseInt(row.count),
+      total_amount: parseFloat(row.total_amount),
+    }));
+
+    // Топ пользователей по депозитам
+    const topUsersResult = await pool.query(
+      `SELECT
+        u.id,
+        u.username,
+        u.first_name,
+        u.created_at,
+        b.total_deposited,
+        b.total_withdrawn,
+        b.balance,
+        COUNT(DISTINCT t.id) as total_transactions
+       FROM users u
+       LEFT JOIN balances b ON u.id = b.user_id
+       LEFT JOIN transactions t ON u.id = t.user_id
+       GROUP BY u.id, u.username, u.first_name, u.created_at, b.total_deposited, b.total_withdrawn, b.balance
+       ORDER BY b.total_deposited DESC
+       LIMIT 50`
+    );
+
+    const topUsers = topUsersResult.rows.map(row => ({
+      id: row.id,
+      username: row.username,
+      first_name: row.first_name,
+      created_at: row.created_at,
+      total_deposited: parseFloat(row.total_deposited) || 0,
+      total_withdrawn: parseFloat(row.total_withdrawn) || 0,
+      balance: parseFloat(row.balance) || 0,
+      total_transactions: parseInt(row.total_transactions) || 0,
+    }));
+
+    // Статистика игр
+    const gamesStatsResult = await pool.query(
+      `SELECT
+        g.id,
+        g.name,
+        g.type,
+        COUNT(gh.id) as total_plays,
+        SUM(CASE WHEN gh.is_win THEN 1 ELSE 0 END) as total_wins,
+        SUM(CASE WHEN gh.is_win THEN 0 ELSE 1 END) as total_losses,
+        SUM(gh.bet_amount) as total_bet,
+        SUM(gh.win_amount) as total_win,
+        ROUND(AVG(CASE WHEN gh.is_win THEN 100 ELSE 0 END), 2) as win_rate
+       FROM games g
+       LEFT JOIN game_history gh ON g.id = gh.game_id
+       GROUP BY g.id, g.name, g.type
+       ORDER BY total_plays DESC`
+    );
+
+    const gamesStats = gamesStatsResult.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      total_plays: parseInt(row.total_plays) || 0,
+      total_wins: parseInt(row.total_wins) || 0,
+      total_losses: parseInt(row.total_losses) || 0,
+      total_bet: parseFloat(row.total_bet) || 0,
+      total_win: parseFloat(row.total_win) || 0,
+      win_rate: parseFloat(row.win_rate) || 0,
+    }));
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        usersWithDeposits,
+        transactionsPerDay,
+        topUsers,
+        gamesStats,
+      }
+    });
+  } catch (error: any) {
+    console.error("Error getting detailed stats:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить детальную информацию о конкретном пользователе (для админов)
+app.get("/api/admin/user/:user_id", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+    const { user_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "view_stats");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const user = await UserModel.getUserById(parseInt(user_id));
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Баланс
+    const balance = await BalanceModel.getBalance(parseInt(user_id));
+
+    // Транзакции
+    const transactions = await TransactionModel.getUserTransactions(parseInt(user_id), 100);
+
+    // История игр
+    const gamesHistory = await GameModel.getUserGameHistory(parseInt(user_id));
+
+    res.json({
+      success: true,
+      user: {
+        ...user,
+        balance: balance ? parseFloat(balance.balance.toString()) : 0,
+        total_deposited: balance ? parseFloat(balance.total_deposited.toString()) : 0,
+        total_withdrawn: balance ? parseFloat(balance.total_withdrawn.toString()) : 0,
+      },
+      transactions,
+      gamesHistory,
+    });
+  } catch (error: any) {
+    console.error("Error getting user details:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ============================================
 // DUEL API ENDPOINTS
 // ============================================
@@ -1009,6 +1217,130 @@ app.get("/api/duels/user/:user_id", async (req, res) => {
   } catch (error: any) {
     console.error("Error getting user duels:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to get user duels" });
+  }
+});
+
+// ============================================
+// USER STATS API ENDPOINTS
+// ============================================
+
+// Получить детальную статистику пользователя
+app.get("/api/user/:user_id/stats", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const userId = parseInt(user_id);
+
+    const user = await UserModel.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Вычисляем дни с регистрации
+    const daysWithBot = Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24));
+
+    // Получаем статистику из user_stats
+    const statsResult = await pool.query(
+      `SELECT
+        us.*,
+        g.name as favorite_game_name,
+        g.type as favorite_game_type
+       FROM user_stats us
+       LEFT JOIN games g ON us.favorite_game_id = g.id
+       WHERE us.user_id = $1`,
+      [userId]
+    );
+
+    let stats = {
+      total_games: 0,
+      total_wins: 0,
+      total_losses: 0,
+      total_bet_amount: 0,
+      total_win_amount: 0,
+      biggest_win: 0,
+      favorite_game_name: null,
+      favorite_game_type: null,
+    };
+
+    if (statsResult.rows.length > 0) {
+      const row = statsResult.rows[0];
+      stats = {
+        total_games: parseInt(row.total_games) || 0,
+        total_wins: parseInt(row.total_wins) || 0,
+        total_losses: parseInt(row.total_losses) || 0,
+        total_bet_amount: parseFloat(row.total_bet_amount) || 0,
+        total_win_amount: parseFloat(row.total_win_amount) || 0,
+        biggest_win: parseFloat(row.biggest_win) || 0,
+        favorite_game_name: row.favorite_game_name,
+        favorite_game_type: row.favorite_game_type,
+      };
+    }
+
+    // Получаем историю последних игр
+    const historyResult = await pool.query(
+      `SELECT
+        gh.*,
+        g.name as game_name,
+        g.type as game_type
+       FROM game_history gh
+       JOIN games g ON gh.game_id = g.id
+       WHERE gh.user_id = $1
+       ORDER BY gh.played_at DESC
+       LIMIT 10`,
+      [userId]
+    );
+
+    const history = historyResult.rows.map(row => ({
+      game_name: row.game_name,
+      game_type: row.game_type,
+      bet_amount: parseFloat(row.bet_amount),
+      win_amount: parseFloat(row.win_amount),
+      is_win: row.is_win,
+      result: row.result,
+      played_at: row.played_at,
+    }));
+
+    res.json({
+      success: true,
+      daysWithBot,
+      stats,
+      history,
+    });
+  } catch (error: any) {
+    console.error("Error getting user stats:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get user stats" });
+  }
+});
+
+// ============================================
+// REFERRAL API ENDPOINTS
+// ============================================
+
+// Получить реферальную статистику пользователя
+app.get("/api/referrals/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const userId = parseInt(user_id);
+
+    const user = await UserModel.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    const { ReferralModel } = await import("../models/Referral");
+    const stats = await ReferralModel.getReferralStats(userId);
+
+    // Получаем имя бота для ссылки
+    const botUsername = process.env.BOT_USERNAME || "your_bot";
+    const referralLink = `https://t.me/${botUsername}?start=${user.telegram_id}`;
+
+    res.json({
+      success: true,
+      referralLink,
+      stats
+    });
+  } catch (error: any) {
+    console.error("Error getting referral stats:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get referral stats" });
   }
 });
 
