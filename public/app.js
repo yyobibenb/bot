@@ -1,7 +1,11 @@
 // Telegram WebApp initialization
 console.log('🚀 App.js загружается...');
 
-// Wait for Telegram WebApp to be ready
+// Global state
+window.currentUser = null;
+window.selectedGameMode = null;
+
+// Initialize Telegram WebApp
 if (window.Telegram && window.Telegram.WebApp) {
   window.tg = window.Telegram.WebApp;
   window.tg.ready();
@@ -11,84 +15,10 @@ if (window.Telegram && window.Telegram.WebApp) {
   console.error('❌ Telegram WebApp not found');
 }
 
-// Global state
-window.currentUser = null;
-window.isLoadingUser = false;
-window.selectedGameMode = null;
-
-// Logging function
-window.addLog = function(message, type) {
-  const logContent = document.getElementById('log-content');
-  if (!logContent) return;
-
-  const timestamp = new Date().toLocaleTimeString('ru-RU', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    fractionalSecondDigits: 3
-  });
-
-  let color = '#00ff00'; // green
-  let icon = '✅';
-
-  if (type === 'error') {
-    color = '#ff0000';
-    icon = '❌';
-  } else if (type === 'warning') {
-    color = '#ffaa00';
-    icon = '⚠️';
-  } else if (type === 'info') {
-    color = '#00aaff';
-    icon = 'ℹ️';
-  } else if (type === 'success') {
-    color = '#00ff00';
-    icon = '✅';
-  }
-
-  const logLine = document.createElement('div');
-  logLine.style.color = color;
-  logLine.textContent = `${timestamp} ${icon} ${message}`;
-  logContent.appendChild(logLine);
-
-  const logPanel = document.getElementById('log-panel');
-  if (logPanel) logPanel.scrollTop = logPanel.scrollHeight;
-
-  console.log(message);
-};
-
-// Click log panel to hide
-document.getElementById('log-panel').onclick = function() {
-  this.style.display = 'none';
-};
-
-// Global error handler
-window.onerror = function(msg, url, line, col, error) {
-  window.addLog('JS ERROR: ' + msg + ' (строка ' + line + ')', 'error');
-  const d = document.getElementById('debug-status');
-  if (d) {
-    d.textContent = '❌ JS ERROR: ' + msg + ' (строка ' + line + ')';
-    d.style.background = 'rgba(139,0,0,0.9)';
-    d.style.color = '#ff0000';
-  }
-  return false;
-};
-
-// Update debug status
-window.updateDebugStatus = function(message, isError = false) {
-  const debugEl = document.getElementById('debug-status');
-  if (debugEl) {
-    debugEl.textContent = message;
-    debugEl.style.color = isError ? '#ff0000' : '#00ff00';
-    debugEl.style.background = isError ? 'rgba(139,0,0,0.9)' : 'rgba(0,0,0,0.9)';
-  }
-  console.log(message);
-};
-
 // Load user data from API
 window.loadUserData = async function() {
   if (!window.tg || !window.tg.initDataUnsafe || !window.tg.initDataUnsafe.user) {
-    window.addLog('❌ Нет данных Telegram', 'error');
+    console.error('❌ Нет данных Telegram');
     return;
   }
 
@@ -115,7 +45,7 @@ window.loadUserData = async function() {
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
-      window.addLog('✅ Пользователь загружен', 'success');
+      console.log('✅ Пользователь загружен');
     } else if (response.status === 404) {
       // Create new user
       const createResponse = await fetch('/api/user', {
@@ -140,20 +70,19 @@ window.loadUserData = async function() {
         document.getElementById('balance').textContent = (createData.balance || 0).toFixed(2);
         document.getElementById('avatar').textContent = fullName.charAt(0).toUpperCase();
 
-        window.addLog('✅ Новый пользователь создан', 'success');
+        console.log('✅ Новый пользователь создан');
       }
     }
   } catch (error) {
-    window.addLog('❌ Ошибка загрузки: ' + error.message, 'error');
+    console.error('❌ Ошибка загрузки:', error);
   }
 };
 
-// Handle deposit button
-function handleDeposit() {
-  window.addLog('🔘 Нажата кнопка Пополнить', 'info');
+// Handle deposit button - CryptoBot Integration
+async function handleDeposit() {
+  console.log('🔘 Нажата кнопка Пополнить');
 
   if (!window.tg) {
-    window.addLog('❌ tg не определен!', 'error');
     alert('Ошибка: Telegram WebApp не загружен');
     return;
   }
@@ -167,15 +96,74 @@ function handleDeposit() {
     return;
   }
 
-  window.tg.showAlert('Функция пополнения скоро будет доступна!');
+  // Показываем popup с вводом суммы
+  const amount = window.tg.showPopup({
+    title: 'Пополнение баланса',
+    message: 'Введите сумму в USDT:',
+    buttons: [
+      { id: '10', type: 'default', text: '10 USDT' },
+      { id: '50', type: 'default', text: '50 USDT' },
+      { id: '100', type: 'default', text: '100 USDT' },
+      { id: 'custom', type: 'default', text: 'Другая сумма' },
+      { type: 'cancel' }
+    ]
+  }, async (buttonId) => {
+    if (!buttonId || buttonId === 'cancel') return;
+
+    let depositAmount = 0;
+
+    if (buttonId === 'custom') {
+      // Запрашиваем произвольную сумму
+      const customAmount = prompt('Введите сумму в USDT (минимум 1):');
+      if (!customAmount) return;
+      depositAmount = parseFloat(customAmount);
+    } else {
+      depositAmount = parseFloat(buttonId);
+    }
+
+    if (isNaN(depositAmount) || depositAmount < 1) {
+      window.tg.showAlert('❌ Минимальная сумма: 1 USDT');
+      return;
+    }
+
+    try {
+      // Показываем индикатор загрузки
+      window.tg.MainButton.setText('Создание счета...').show().showProgress();
+
+      // Создаем инвойс через CryptoBot
+      const response = await fetch('/api/crypto/create-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: window.currentUser.id,
+          amount: depositAmount
+        })
+      });
+
+      const data = await response.json();
+
+      window.tg.MainButton.hideProgress().hide();
+
+      if (data.success && data.invoice_url) {
+        // Открываем страницу оплаты CryptoBot
+        window.tg.openLink(data.invoice_url);
+        window.tg.showAlert('✅ Счет создан! После оплаты баланс пополнится автоматически.');
+      } else {
+        window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать счет'));
+      }
+    } catch (error) {
+      window.tg.MainButton.hideProgress().hide();
+      window.tg.showAlert('❌ Ошибка при создании счета');
+      console.error('Deposit error:', error);
+    }
+  });
 }
 
-// Handle withdraw button
-function handleWithdraw() {
-  window.addLog('🔘 Нажата кнопка Вывести', 'info');
+// Handle withdraw button - via @send
+async function handleWithdraw() {
+  console.log('🔘 Нажата кнопка Вывести');
 
   if (!window.tg) {
-    window.addLog('❌ tg не определен!', 'error');
     alert('Ошибка: Telegram WebApp не загружен');
     return;
   }
@@ -189,7 +177,62 @@ function handleWithdraw() {
     return;
   }
 
-  window.tg.showAlert('Функция вывода скоро будет доступна!');
+  // Получаем текущий баланс
+  const currentBalance = parseFloat(document.getElementById('balance').textContent || '0');
+
+  if (currentBalance < 10) {
+    window.tg.showAlert('❌ Минимальная сумма вывода: 10 USDT\nВаш баланс: ' + currentBalance.toFixed(2) + ' USDT');
+    return;
+  }
+
+  // Запрашиваем сумму вывода
+  const withdrawAmount = prompt(`Введите сумму для вывода (минимум 10 USDT):\nВаш баланс: ${currentBalance.toFixed(2)} USDT`);
+
+  if (!withdrawAmount) return;
+
+  const amount = parseFloat(withdrawAmount);
+
+  if (isNaN(amount) || amount < 10) {
+    window.tg.showAlert('❌ Минимальная сумма вывода: 10 USDT');
+    return;
+  }
+
+  if (amount > currentBalance) {
+    window.tg.showAlert('❌ Недостаточно средств\nВаш баланс: ' + currentBalance.toFixed(2) + ' USDT');
+    return;
+  }
+
+  try {
+    // Показываем индикатор загрузки
+    window.tg.MainButton.setText('Создание заявки...').show().showProgress();
+
+    // Создаем заявку на вывод
+    const response = await fetch('/api/withdraw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        telegram_id: window.currentUser.telegram_id,
+        amount: amount
+      })
+    });
+
+    const data = await response.json();
+
+    window.tg.MainButton.hideProgress().hide();
+
+    if (data.success) {
+      // Обновляем баланс на экране
+      document.getElementById('balance').textContent = (data.newBalance || 0).toFixed(2);
+      window.tg.showAlert('✅ Заявка на вывод создана!\n\nСумма: ' + amount + ' USDT\n\nАдмин обработает заявку и отправит средства через @send бота в ближайшее время.');
+    } else {
+      window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать заявку'));
+    }
+  } catch (error) {
+    window.tg.MainButton.hideProgress().hide();
+    window.tg.showAlert('❌ Ошибка при создании заявки');
+    console.error('Withdraw error:', error);
+  }
 }
 
 // Navigation handler
@@ -363,8 +406,7 @@ function shareReferralLink() {
 // Initialize app
 (async function initApp() {
   try {
-    window.addLog('✅ INLINE JS РАБОТАЕТ!', 'success');
-    window.updateDebugStatus('🔄 Загрузка...', false);
+    console.log('✅ Инициализация приложения');
 
     // Wait for Telegram SDK
     let attempts = 0;
@@ -377,23 +419,16 @@ function shareReferralLink() {
       window.tg = window.Telegram.WebApp;
       window.tg.ready();
       window.tg.expand();
-      window.addLog('✅ Telegram SDK загружен', 'success');
+      console.log('✅ Telegram SDK загружен');
 
       // Load user data
       await window.loadUserData();
-
-      window.updateDebugStatus('✅ Готово!', false);
-      setTimeout(() => {
-        const debugEl = document.getElementById('debug-status');
-        if (debugEl) debugEl.style.display = 'none';
-      }, 3000);
+      console.log('✅ Приложение готово');
     } else {
-      window.addLog('❌ Telegram SDK не загружен', 'error');
-      window.updateDebugStatus('❌ Telegram SDK не загружен', true);
+      console.error('❌ Telegram SDK не загружен');
     }
   } catch (error) {
-    window.addLog('❌ Ошибка инициализации: ' + error.message, 'error');
-    window.updateDebugStatus('❌ Ошибка: ' + error.message, true);
+    console.error('❌ Ошибка инициализации:', error);
   }
 })();
 
