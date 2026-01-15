@@ -53,18 +53,81 @@
 
     <!-- Games Screen -->
     <div id="games-screen" class="screen">
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">🎮 Игры</h2>
-      <div class="game-grid">
-        <button class="game-btn" onclick="openDiceGame()">
-          <div style="font-size: 48px; margin-bottom: 8px;">🎲</div>
-          <div style="font-weight: 600;">Кости</div>
-          <small>Угадай результат</small>
-        </button>
-        <button class="game-btn" style="opacity: 0.5; cursor: not-allowed;">
-          <div style="font-size: 48px; margin-bottom: 8px;">🎰</div>
-          <div style="font-weight: 600;">Слоты</div>
-          <small>Скоро...</small>
-        </button>
+      <!-- Top Banner -->
+      <div class="games-banner">
+        <div class="banner-content">
+          <div class="banner-icon">🎰</div>
+          <div class="banner-text">
+            <div class="banner-title">Казино</div>
+            <div class="banner-subtitle">Удача на твоей стороне</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Games Section -->
+      <div class="games-section">
+        <h3 class="section-title">🔥 Популярные</h3>
+        <div class="games-scroll">
+          <button class="game-card" onclick="openDiceGame()">
+            <div class="game-card-icon">🎲</div>
+            <div class="game-card-name">Кости</div>
+            <div class="game-card-info">До x5.5</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">🎰</div>
+            <div class="game-card-name">Слоты</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">🃏</div>
+            <div class="game-card-name">Покер</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- New Games Section -->
+      <div class="games-section">
+        <h3 class="section-title">✨ Новинки</h3>
+        <div class="games-scroll">
+          <button class="game-card disabled">
+            <div class="game-card-icon">🎯</div>
+            <div class="game-card-name">Дартс</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">🎱</div>
+            <div class="game-card-name">Бильярд</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">🏀</div>
+            <div class="game-card-name">Баскет</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Slots Section -->
+      <div class="games-section">
+        <h3 class="section-title">🎰 Слоты</h3>
+        <div class="games-scroll">
+          <button class="game-card disabled">
+            <div class="game-card-icon">💎</div>
+            <div class="game-card-name">Алмазы</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">🍒</div>
+            <div class="game-card-name">Фрукты</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">⭐</div>
+            <div class="game-card-name">Звёзды</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+        </div>
       </div>
     </div>
 
