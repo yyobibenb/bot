@@ -529,7 +529,7 @@ app.get("/", (req, res) => {
 <body>
   <!-- Debug Status Indicator -->
   <div id="debug-status" style="position: fixed; top: 0; left: 0; right: 0; background: rgba(255,0,0,0.9); color: #ffffff; padding: 10px; font-family: monospace; font-size: 14px; z-index: 99999; text-align: center; cursor: pointer; font-weight: bold;" onclick="this.style.display='none';">
-    🚨 ВЕРСИЯ 7bb43a1 - ОЖИДАНИЕ JS...
+    🚨 ВЕРСИЯ 7fae342 - ОЖИДАНИЕ JS...
   </div>
 
   <!-- LOG PANEL - Показываем все логи на экране -->
@@ -1364,6 +1364,9 @@ app.get("/", (req, res) => {
     });
 
     // Делаем функции доступными глобально для onclick
+    window.addLog('📝 Начинаю определение функций handleDeposit и handleWithdraw...', 'info');
+    console.log('📝 Определяю глобальные функции для кнопок');
+
     window.handleDeposit = async function handleDeposit() {
       window.addLog('🔘 Нажата кнопка Пополнить', 'info');
       if (!window.tg) {
@@ -1412,6 +1415,8 @@ app.get("/", (req, res) => {
         window.tg.showAlert('❌ Ошибка при создании счета');
       }
     };
+    window.addLog('✅ window.handleDeposit определена!', 'success');
+    console.log('✅ window.handleDeposit =', typeof window.handleDeposit);
 
     window.handleWithdraw = async function handleWithdraw() {
       window.addLog('🔘 Нажата кнопка Вывести', 'info');
@@ -1475,6 +1480,8 @@ app.get("/", (req, res) => {
         window.tg.showAlert('❌ Ошибка при создании заявки на вывод');
       }
     };
+    window.addLog('✅ window.handleWithdraw определена!', 'success');
+    console.log('✅ window.handleWithdraw =', typeof window.handleWithdraw);
 
     window.handleNav = function(event, section) {
       if (window.tg.HapticFeedback) window.tg.HapticFeedback.impactOccurred('light');
