@@ -594,6 +594,394 @@ function openBasketballGame() {
   window.tg.showAlert('🏀 Баскетбол скоро будет доступен!\nИгра находится в разработке.');
 }
 
+// ========== ADMIN PANEL ==========
+
+window.isAdmin = false;
+window.currentUserForEdit = null;
+
+// Check admin permission
+async function checkAdminPermission() {
+  if (!window.currentUser) return;
+
+  try {
+    const response = await fetch(`/api/admin/check/${window.currentUser.id}`);
+    const data = await response.json();
+
+    if (data.isAdmin) {
+      window.isAdmin = true;
+      // Show admin tab
+      const adminTab = document.getElementById('admin-tab');
+      if (adminTab) {
+        adminTab.style.display = 'flex';
+      }
+      console.log('✅ Админские права активированы');
+    }
+  } catch (error) {
+    console.error('Ошибка проверки админских прав:', error);
+  }
+}
+
+// Show admin section
+function showAdminSection(section) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+
+  // Update tabs
+  document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+
+  // Update sections
+  document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
+  document.getElementById(`admin-${section}-section`).classList.add('active');
+
+  // Load data for section
+  if (section === 'stats') {
+    loadAdminStats();
+  } else if (section === 'broadcast') {
+    loadBroadcasts();
+  }
+}
+
+// Load admin statistics
+async function loadAdminStats() {
+  try {
+    const response = await fetch('/api/admin/stats/detailed');
+    const data = await response.json();
+
+    if (data.success) {
+      const stats = data.stats;
+      document.getElementById('stat-total-users').textContent = stats.totalUsers || 0;
+      document.getElementById('stat-active-users').textContent = stats.activeUsersToday || 0;
+      document.getElementById('stat-total-deposits').textContent = (stats.totalDeposits || 0).toFixed(2) + ' USDT';
+      document.getElementById('stat-total-withdrawals').textContent = (stats.totalWithdrawals || 0).toFixed(2) + ' USDT';
+      document.getElementById('stat-total-games').textContent = stats.totalGames || 0;
+
+      if (window.tg && window.tg.HapticFeedback) {
+        window.tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки статистики:', error);
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка загрузки статистики');
+    }
+  }
+}
+
+// Load user info
+async function loadUserInfo() {
+  const userId = document.getElementById('user-id-input').value;
+
+  if (!userId) {
+    window.tg.showAlert('Введите ID пользователя');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/admin/user/${userId}`);
+    const data = await response.json();
+
+    if (data.success) {
+      window.currentUserForEdit = data.user;
+
+      // Show user info block
+      document.getElementById('user-info-block').style.display = 'block';
+
+      // Fill data
+      document.getElementById('user-info-id').textContent = data.user.id;
+      document.getElementById('user-info-name').textContent = data.user.first_name + (data.user.last_name ? ' ' + data.user.last_name : '');
+      document.getElementById('user-info-balance').textContent = (data.balance || 0).toFixed(2) + ' USDT';
+      document.getElementById('user-info-blocked').textContent = data.user.is_blocked ? '🚫 Заблокирован' : '✅ Активен';
+
+      // Update block button
+      const blockBtn = document.getElementById('block-user-btn');
+      if (data.user.is_blocked) {
+        blockBtn.textContent = '✅ Разблокировать';
+      } else {
+        blockBtn.textContent = '🚫 Заблокировать';
+      }
+
+      if (window.tg && window.tg.HapticFeedback) {
+        window.tg.HapticFeedback.notificationOccurred('success');
+      }
+    } else {
+      window.tg.showAlert('❌ Пользователь не найден');
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки пользователя:', error);
+    window.tg.showAlert('❌ Ошибка загрузки');
+  }
+}
+
+// Edit user balance
+async function editUserBalance(operation) {
+  if (!window.currentUserForEdit) {
+    window.tg.showAlert('Сначала загрузите пользователя');
+    return;
+  }
+
+  const amount = parseFloat(document.getElementById('balance-amount-input').value);
+
+  if (isNaN(amount) || amount <= 0) {
+    window.tg.showAlert('Введите корректную сумму');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/edit-balance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operation, amount })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Update balance display
+      document.getElementById('user-info-balance').textContent = (data.newBalance || 0).toFixed(2) + ' USDT';
+      document.getElementById('balance-amount-input').value = '';
+
+      window.tg.showAlert('✅ Баланс обновлен!');
+
+      if (window.tg && window.tg.HapticFeedback) {
+        window.tg.HapticFeedback.notificationOccurred('success');
+      }
+    } else {
+      window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+    }
+  } catch (error) {
+    console.error('Ошибка изменения баланса:', error);
+    window.tg.showAlert('❌ Ошибка');
+  }
+}
+
+// Toggle block user
+async function toggleBlockUser() {
+  if (!window.currentUserForEdit) {
+    window.tg.showAlert('Сначала загрузите пользователя');
+    return;
+  }
+
+  const isCurrentlyBlocked = window.currentUserForEdit.is_blocked;
+
+  try {
+    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/block`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ block: !isCurrentlyBlocked })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      window.currentUserForEdit.is_blocked = !isCurrentlyBlocked;
+
+      // Update display
+      document.getElementById('user-info-blocked').textContent = window.currentUserForEdit.is_blocked ? '🚫 Заблокирован' : '✅ Активен';
+
+      const blockBtn = document.getElementById('block-user-btn');
+      if (window.currentUserForEdit.is_blocked) {
+        blockBtn.textContent = '✅ Разблокировать';
+      } else {
+        blockBtn.textContent = '🚫 Заблокировать';
+      }
+
+      window.tg.showAlert(window.currentUserForEdit.is_blocked ? '✅ Пользователь заблокирован' : '✅ Пользователь разблокирован');
+
+      if (window.tg && window.tg.HapticFeedback) {
+        window.tg.HapticFeedback.notificationOccurred('success');
+      }
+    } else {
+      window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+    }
+  } catch (error) {
+    console.error('Ошибка блокировки:', error);
+    window.tg.showAlert('❌ Ошибка');
+  }
+}
+
+// Create broadcast
+async function createBroadcast() {
+  const text = document.getElementById('broadcast-text').value;
+  const mediaUrl = document.getElementById('broadcast-media-url').value;
+  const mediaType = document.getElementById('broadcast-media-type').value;
+
+  if (!text.trim()) {
+    window.tg.showAlert('Введите текст сообщения');
+    return;
+  }
+
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
+  try {
+    // Create broadcast
+    const createResponse = await fetch('/api/admin/broadcast/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        admin_id: window.currentUser.id,
+        message_text: text,
+        media_url: mediaUrl || null,
+        media_type: mediaType || null
+      })
+    });
+
+    const createData = await createResponse.json();
+
+    if (createData.success && createData.broadcast) {
+      // Send broadcast
+      const sendResponse = await fetch(`/api/admin/broadcast/${createData.broadcast.id}/send`, {
+        method: 'POST'
+      });
+
+      const sendData = await sendResponse.json();
+
+      if (sendData.success) {
+        window.tg.showAlert('✅ Рассылка запущена!');
+
+        // Clear form
+        document.getElementById('broadcast-text').value = '';
+        document.getElementById('broadcast-media-url').value = '';
+        document.getElementById('broadcast-media-type').value = '';
+
+        // Reload broadcasts list
+        setTimeout(() => loadBroadcasts(), 1000);
+
+        if (window.tg && window.tg.HapticFeedback) {
+          window.tg.HapticFeedback.notificationOccurred('success');
+        }
+      } else {
+        window.tg.showAlert('❌ ' + (sendData.error || 'Ошибка отправки'));
+      }
+    } else {
+      window.tg.showAlert('❌ ' + (createData.error || 'Ошибка создания'));
+    }
+  } catch (error) {
+    console.error('Ошибка рассылки:', error);
+    window.tg.showAlert('❌ Ошибка');
+  }
+}
+
+// Load broadcasts
+async function loadBroadcasts() {
+  try {
+    const response = await fetch('/api/admin/broadcasts?limit=10');
+    const data = await response.json();
+
+    if (data.success) {
+      const listEl = document.getElementById('broadcasts-list');
+
+      if (data.broadcasts.length === 0) {
+        listEl.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Нет рассылок</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+
+      data.broadcasts.forEach(broadcast => {
+        const item = document.createElement('div');
+        item.className = 'stat-row';
+        item.style.marginBottom = '8px';
+        item.style.flexDirection = 'column';
+        item.style.alignItems = 'flex-start';
+
+        const statusEmoji = broadcast.status === 'completed' ? '✅' : broadcast.status === 'sending' ? '📤' : '📝';
+
+        item.innerHTML = `
+          <div style="display: flex; justify-content: space-between; width: 100%;">
+            <span>${statusEmoji} ID: ${broadcast.id}</span>
+            <span>${new Date(broadcast.created_at).toLocaleDateString('ru-RU')}</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+            Отправлено: ${broadcast.total_sent || 0} | Прочитано: ${broadcast.total_read || 0}
+          </div>
+        `;
+
+        listEl.appendChild(item);
+      });
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки рассылок:', error);
+  }
+}
+
+// Save RTP settings
+async function saveRTPSettings() {
+  const games = ['dice', 'slots', 'rps', 'darts', 'football', 'basketball'];
+  const gameIds = { dice: 1, slots: 2, rps: 3, darts: 4, football: 5, basketball: 6 };
+
+  try {
+    for (const game of games) {
+      const rtp = parseFloat(document.getElementById(`rtp-${game}`).value);
+
+      if (isNaN(rtp) || rtp < 50 || rtp > 100) {
+        window.tg.showAlert(`❌ RTP для ${game} должен быть от 50 до 100`);
+        return;
+      }
+
+      await fetch(`/api/admin/games/${gameIds[game]}/rtp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rtp })
+      });
+    }
+
+    window.tg.showAlert('✅ RTP обновлен!');
+
+    if (window.tg && window.tg.HapticFeedback) {
+      window.tg.HapticFeedback.notificationOccurred('success');
+    }
+  } catch (error) {
+    console.error('Ошибка сохранения RTP:', error);
+    window.tg.showAlert('❌ Ошибка');
+  }
+}
+
+// Save global settings
+async function saveGlobalSettings() {
+  const minDeposit = parseFloat(document.getElementById('setting-min-deposit').value);
+  const minWithdrawal = parseFloat(document.getElementById('setting-min-withdrawal').value);
+  const minBet = parseFloat(document.getElementById('setting-min-bet').value);
+
+  if (isNaN(minDeposit) || isNaN(minWithdrawal) || isNaN(minBet)) {
+    window.tg.showAlert('❌ Введите корректные значения');
+    return;
+  }
+
+  try {
+    await fetch('/api/admin/settings/min_deposit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: minDeposit.toString() })
+    });
+
+    await fetch('/api/admin/settings/min_withdrawal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: minWithdrawal.toString() })
+    });
+
+    await fetch('/api/admin/settings/min_bet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: minBet.toString() })
+    });
+
+    window.tg.showAlert('✅ Настройки сохранены!');
+
+    if (window.tg && window.tg.HapticFeedback) {
+      window.tg.HapticFeedback.notificationOccurred('success');
+    }
+  } catch (error) {
+    console.error('Ошибка сохранения настроек:', error);
+    window.tg.showAlert('❌ Ошибка');
+  }
+}
+
 // Initialize app
 (async function initApp() {
   try {
@@ -615,6 +1003,9 @@ function openBasketballGame() {
       // Load user data
       await window.loadUserData();
       console.log('✅ Приложение готово');
+
+      // Check admin permissions
+      await checkAdminPermission();
     } else {
       console.error('❌ Telegram SDK не загружен');
     }
