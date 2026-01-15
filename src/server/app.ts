@@ -1237,14 +1237,14 @@ app.get("/", (req, res) => {
                 console.error('❌ Ошибка: createData.success =', createData.success);
               }
             } else {
-              throw new Error(\`HTTP \${response.status}\`);
+              throw new Error('HTTP ' + response.status);
             }
           } catch (error) {
-            console.error(\`❌ Ошибка загрузки (попытка \${4 - retries}/3):\`, error);
+            console.error('❌ Ошибка загрузки (попытка ' + (4 - retries) + '/3):', error);
             console.error('Детали ошибки:', error.message, error.stack);
             retries--;
             if (retries > 0) {
-              console.log(\`⏳ Ожидаю 2 секунды перед повторной попыткой...\`);
+              console.log('⏳ Ожидаю 2 секунды перед повторной попыткой...');
               await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }
@@ -1261,7 +1261,7 @@ app.get("/", (req, res) => {
 
           // Проверяем является ли пользователь админом
           if (window.currentUser && window.currentUser.id) {
-            fetch(\`/api/admin/check?user_id=\${window.currentUser.id}\`)
+            fetch('/api/admin/check?user_id=' + window.currentUser.id)
               .then(res => res.json())
               .then(adminData => {
                 if (adminData.success && adminData.isAdmin) {
@@ -1594,11 +1594,11 @@ app.get("/", (req, res) => {
 
             if (data.isWin) {
               resultDisplay.style.color = 'var(--accent-green)';
-              resultDisplay.textContent = \`🎉 Выигрыш: \${data.winAmount.toFixed(2)} USDT! (x\${data.multiplier})\`;
+              resultDisplay.textContent = '🎉 Выигрыш: ' + data.winAmount.toFixed(2) + ' USDT! (x' + data.multiplier + ')';
               if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
             } else {
               resultDisplay.style.color = '#ef4444';
-              resultDisplay.textContent = \`❌ Проигрыш. Результат: \${data.result}\`;
+              resultDisplay.textContent = '❌ Проигрыш. Результат: ' + data.result;
               if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
             }
 
@@ -1671,10 +1671,10 @@ app.get("/", (req, res) => {
         const data = await response.json();
 
         if (data.success && data.isWin) {
-          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: var(--accent-green);">🎉 Выигрыш: +' + data.winAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
-          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: #ef4444;">❌ Проигрыш: -' + betAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
@@ -1743,10 +1743,10 @@ app.get("/", (req, res) => {
         const data = await response.json();
 
         if (data.success && data.isWin) {
-          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: var(--accent-green);">🎉 Выигрыш: +' + data.winAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
-          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: #ef4444;">❌ Проигрыш: -' + betAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
@@ -1811,10 +1811,10 @@ app.get("/", (req, res) => {
         const data = await response.json();
 
         if (data.success && data.isWin) {
-          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: var(--accent-green);">🎉 Выигрыш: +' + data.winAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
-          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: #ef4444;">❌ Проигрыш: -' + betAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
@@ -1884,10 +1884,10 @@ app.get("/", (req, res) => {
         const data = await response.json();
 
         if (data.success && data.isWin) {
-          resultDisplay.innerHTML = \`<span style="color: var(--accent-green);">🎉 Выигрыш: +\${data.winAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: var(--accent-green);">🎉 Выигрыш: +' + data.winAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('success');
         } else {
-          resultDisplay.innerHTML = \`<span style="color: #ef4444;">❌ Проигрыш: -\${betAmount} USDT</span>\`;
+          resultDisplay.innerHTML = '<span style="color: #ef4444;">❌ Проигрыш: -' + betAmount + ' USDT</span>';
           if (window.tg.HapticFeedback) window.tg.HapticFeedback.notificationOccurred('error');
         }
 
@@ -1904,9 +1904,9 @@ app.get("/", (req, res) => {
       const user = window.tg.initDataUnsafe?.user;
       if (user) {
         const botUsername = 'YOUR_BOT_USERNAME'; // Replace with actual bot username
-        const inviteUrl = \`https://t.me/\${botUsername}?start=ref\${user.id}\`;
+        const inviteUrl = 'https://t.me/' + botUsername + '?start=ref' + user.id;
         const shareText = '🎰 Присоединяйся ко мне в Casino Bot! Играй и зарабатывай!';
-        window.tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
+        window.tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(inviteUrl) + '&text=' + encodeURIComponent(shareText));
       }
     };
 
@@ -1944,7 +1944,7 @@ app.get("/", (req, res) => {
 
       try {
         // Загружаем статистику
-        const statsResponse = await fetch(\`/api/admin/stats?admin_id=\${window.currentUser.id}\`);
+        const statsResponse = await fetch('/api/admin/stats?admin_id=' + window.currentUser.id);
         const statsData = await statsResponse.json();
 
         if (statsData.success) {
@@ -1953,7 +1953,7 @@ app.get("/", (req, res) => {
         }
 
         // Загружаем заявки на вывод
-        const withdrawalsResponse = await fetch(\`/api/admin/pending-withdrawals?admin_id=\${window.currentUser.id}\`);
+        const withdrawalsResponse = await fetch('/api/admin/pending-withdrawals?admin_id=' + window.currentUser.id);
         const withdrawalsData = await withdrawalsResponse.json();
 
         if (withdrawalsData.success) {
@@ -1963,23 +1963,23 @@ app.get("/", (req, res) => {
           if (withdrawals.length === 0) {
             listDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Нет заявок на вывод</p>';
           } else {
-            listDiv.innerHTML = withdrawals.map(w => \`
-              <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 0; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <div>
-                    <div style="font-weight: 600;">\${w.first_name || 'User'} \${w.username ? '@' + w.username : ''}</div>
-                    <div style="font-size: 13px; color: var(--text-secondary);">ID: \${w.user_id} | Telegram ID: \${w.telegram_id || 'N/A'}</div>
-                  </div>
-                  <div style="text-align: right;">
-                    <div style="font-size: 18px; font-weight: 700; color: var(--accent-green);">\${w.amount} USDT</div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">\${new Date(w.created_at).toLocaleString('ru-RU')}</div>
-                  </div>
-                </div>
-                <button class="btn primary" style="width: 100%; padding: 8px;" onclick="window.completeWithdrawal(\${w.id}, \${w.user_id})">
-                  ✅ Отправил через CryptoBot
-                </button>
-              </div>
-            \`).join('');
+            listDiv.innerHTML = withdrawals.map(w =>
+              '<div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 0; margin-bottom: 12px;">' +
+                '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+                  '<div>' +
+                    '<div style="font-weight: 600;">' + (w.first_name || 'User') + ' ' + (w.username ? '@' + w.username : '') + '</div>' +
+                    '<div style="font-size: 13px; color: var(--text-secondary);">ID: ' + w.user_id + ' | Telegram ID: ' + (w.telegram_id || 'N/A') + '</div>' +
+                  '</div>' +
+                  '<div style="text-align: right;">' +
+                    '<div style="font-size: 18px; font-weight: 700; color: var(--accent-green);">' + w.amount + ' USDT</div>' +
+                    '<div style="font-size: 12px; color: var(--text-secondary);">' + new Date(w.created_at).toLocaleString('ru-RU') + '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<button class="btn primary" style="width: 100%; padding: 8px;" onclick="window.completeWithdrawal(' + w.id + ', ' + w.user_id + ')">' +
+                  '✅ Отправил через CryptoBot' +
+                '</button>' +
+              '</div>'
+            ).join('');
           }
         }
       } catch (error) {
@@ -1999,7 +1999,7 @@ app.get("/", (req, res) => {
       if (!confirmed) return;
 
       try {
-        const response = await fetch(\`/api/admin/withdrawals/\${withdrawalId}/complete\`, {
+        const response = await fetch('/api/admin/withdrawals/' + withdrawalId + '/complete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ admin_id: window.currentUser.id })
