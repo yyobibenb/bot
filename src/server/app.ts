@@ -1618,7 +1618,7 @@ app.get("/", (req, res) => {
         playBtn.disabled = false;
         playBtn.textContent = 'Бросить кубик 🎲';
       }
-    }
+    };
 
     // === BOWLING GAME ===
     let selectedBowlingMode = null;
@@ -1686,7 +1686,7 @@ app.get("/", (req, res) => {
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🎳';
       }
-    }
+    };
 
     // === FOOTBALL GAME ===
     let selectedFootballMode = null;
@@ -1758,7 +1758,7 @@ app.get("/", (req, res) => {
         playBtn.disabled = false;
         playBtn.textContent = 'Играть ⚽';
       }
-    }
+    };
 
     // === BASKETBALL GAME ===
     let selectedBasketballMode = null;
@@ -1826,7 +1826,7 @@ app.get("/", (req, res) => {
         playBtn.disabled = false;
         playBtn.textContent = 'Играть 🏀';
       }
-    }
+    };
 
     // === DARTS GAME ===
     let selectedDartsMode = null;
@@ -1908,7 +1908,7 @@ app.get("/", (req, res) => {
         const shareText = '🎰 Присоединяйся ко мне в Casino Bot! Играй и зарабатывай!';
         window.tg.openTelegramLink(\`https://t.me/share/url?url=\${encodeURIComponent(inviteUrl)}&text=\${encodeURIComponent(shareText)}\`);
       }
-    }
+    };
 
     // === ADMIN PANEL FUNCTIONS ===
 
@@ -2010,14 +2010,14 @@ app.get("/", (req, res) => {
         if (data.success) {
           window.tg.showAlert('✅ Вывод отмечен как выполненный!');
           // Перезагружаем список
-          loadAdminData();
+          window.loadAdminData();
         } else {
           window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось обработать'));
         }
       } catch (error) {
         window.tg.showAlert('❌ Ошибка при обработке');
       }
-    }
+    };
 
       // Глобальный catch для всего скрипта
       } catch (globalError) {
