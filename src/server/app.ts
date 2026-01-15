@@ -650,14 +650,14 @@ app.get("/", (req, res) => {
 
     <!-- Action Buttons -->
     <div class="actions">
-      <button class="btn secondary" onclick="handleDeposit()">
+      <button class="btn secondary" onclick="window.handleDeposit()">
         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"/>
           <polyline points="19 12 12 19 5 12"/>
         </svg>
         <span>Пополнить</span>
       </button>
-      <button class="btn primary" onclick="handleWithdraw()">
+      <button class="btn primary" onclick="window.handleWithdraw()">
         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="19" x2="12" y2="5"/>
           <polyline points="5 12 12 5 19 12"/>
@@ -671,7 +671,7 @@ app.get("/", (req, res) => {
   <div id="games-screen" class="screen">
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎰 Выберите игру</h2>
 
-    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDiceGame()">
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="window.openDiceGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 48px;">🎲</div>
         <div style="flex: 1;">
@@ -681,7 +681,7 @@ app.get("/", (req, res) => {
       </div>
     </div>
 
-    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBowlingGame()">
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="window.openBowlingGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 48px;">🎳</div>
         <div style="flex: 1;">
@@ -691,7 +691,7 @@ app.get("/", (req, res) => {
       </div>
     </div>
 
-    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openFootballGame()">
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="window.openFootballGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 48px;">⚽</div>
         <div style="flex: 1;">
@@ -701,7 +701,7 @@ app.get("/", (req, res) => {
       </div>
     </div>
 
-    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openBasketballGame()">
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="window.openBasketballGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 48px;">🏀</div>
         <div style="flex: 1;">
@@ -711,7 +711,7 @@ app.get("/", (req, res) => {
       </div>
     </div>
 
-    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="openDartsGame()">
+    <div class="glass-card" style="cursor: pointer; margin-bottom: 12px;" onclick="window.openDartsGame()">
       <div style="display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 48px;">🎯</div>
         <div style="flex: 1;">
@@ -724,7 +724,7 @@ app.get("/", (req, res) => {
 
   <!-- Dice Game Screen -->
   <div id="dice-game-screen" class="screen">
-    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+    <button onclick="window.backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
 
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎲 Кубик</h2>
 
@@ -733,12 +733,12 @@ app.get("/", (req, res) => {
       <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-        <button class="game-btn" onclick="selectMode('higher')">Больше 3<br><small>1.84x</small></button>
-        <button class="game-btn" onclick="selectMode('lower')">Меньше 4<br><small>1.84x</small></button>
-        <button class="game-btn" onclick="selectMode('even')">Четное<br><small>1.84x</small></button>
-        <button class="game-btn" onclick="selectMode('odd')">Нечетное<br><small>1.84x</small></button>
-        <button class="game-btn" onclick="selectMode('exact')">Грань<br><small>5.52x</small></button>
-        <button class="game-btn" onclick="selectMode('duel')">Дуэль<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectMode('higher')">Больше 3<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectMode('lower')">Меньше 4<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectMode('even')">Четное<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectMode('odd')">Нечетное<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectMode('exact')">Грань<br><small>5.52x</small></button>
+        <button class="game-btn" onclick="window.selectMode('duel')">Дуэль<br><small>1.84x</small></button>
       </div>
 
       <div style="margin: 20px 0;">
@@ -746,7 +746,7 @@ app.get("/", (req, res) => {
         <input type="number" id="bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
       </div>
 
-      <button class="btn primary" style="width: 100%;" onclick="playDice()" id="play-btn">Бросить кубик 🎲</button>
+      <button class="btn primary" style="width: 100%;" onclick="window.playDice()" id="play-btn">Бросить кубик 🎲</button>
 
       <div id="result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
     </div>
@@ -754,7 +754,7 @@ app.get("/", (req, res) => {
 
   <!-- Bowling Game Screen -->
   <div id="bowling-game-screen" class="screen">
-    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+    <button onclick="window.backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
 
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎳 Боулинг</h2>
 
@@ -763,8 +763,8 @@ app.get("/", (req, res) => {
       <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-        <button class="game-btn" onclick="selectBowlingMode('strike')">Страйк<br><small>1.84x</small></button>
-        <button class="game-btn" onclick="selectBowlingMode('duel')">Дуэль<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectBowlingMode('strike')">Страйк<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectBowlingMode('duel')">Дуэль<br><small>1.84x</small></button>
       </div>
 
       <div style="margin: 20px 0;">
@@ -772,7 +772,7 @@ app.get("/", (req, res) => {
         <input type="number" id="bowling-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
       </div>
 
-      <button class="btn primary" style="width: 100%;" onclick="playBowling()" id="bowling-play-btn">Играть 🎳</button>
+      <button class="btn primary" style="width: 100%;" onclick="window.playBowling()" id="bowling-play-btn">Играть 🎳</button>
 
       <div id="bowling-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
     </div>
@@ -780,7 +780,7 @@ app.get("/", (req, res) => {
 
   <!-- Football Game Screen -->
   <div id="football-game-screen" class="screen">
-    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+    <button onclick="window.backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
 
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">⚽ Футбол</h2>
 
@@ -789,9 +789,9 @@ app.get("/", (req, res) => {
       <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-        <button class="game-btn" onclick="selectFootballMode('goal')">Гол<br><small>1.33x</small></button>
-        <button class="game-btn" onclick="selectFootballMode('miss')">Мимо<br><small>1.84x</small></button>
-        <button class="game-btn" onclick="selectFootballMode('duel')">Дуэль<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectFootballMode('goal')">Гол<br><small>1.33x</small></button>
+        <button class="game-btn" onclick="window.selectFootballMode('miss')">Мимо<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectFootballMode('duel')">Дуэль<br><small>1.84x</small></button>
       </div>
 
       <div style="margin: 20px 0;">
@@ -799,7 +799,7 @@ app.get("/", (req, res) => {
         <input type="number" id="football-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
       </div>
 
-      <button class="btn primary" style="width: 100%;" onclick="playFootball()" id="football-play-btn">Играть ⚽</button>
+      <button class="btn primary" style="width: 100%;" onclick="window.playFootball()" id="football-play-btn">Играть ⚽</button>
 
       <div id="football-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
     </div>
@@ -807,7 +807,7 @@ app.get("/", (req, res) => {
 
   <!-- Basketball Game Screen -->
   <div id="basketball-game-screen" class="screen">
-    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+    <button onclick="window.backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
 
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🏀 Баскетбол</h2>
 
@@ -816,8 +816,8 @@ app.get("/", (req, res) => {
       <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-        <button class="game-btn" onclick="selectBasketballMode('goal')">Попал<br><small>1.84x</small></button>
-        <button class="game-btn" onclick="selectBasketballMode('miss')">Мимо<br><small>1.33x</small></button>
+        <button class="game-btn" onclick="window.selectBasketballMode('goal')">Попал<br><small>1.84x</small></button>
+        <button class="game-btn" onclick="window.selectBasketballMode('miss')">Мимо<br><small>1.33x</small></button>
       </div>
 
       <div style="margin: 20px 0;">
@@ -825,7 +825,7 @@ app.get("/", (req, res) => {
         <input type="number" id="basketball-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
       </div>
 
-      <button class="btn primary" style="width: 100%;" onclick="playBasketball()" id="basketball-play-btn">Играть 🏀</button>
+      <button class="btn primary" style="width: 100%;" onclick="window.playBasketball()" id="basketball-play-btn">Играть 🏀</button>
 
       <div id="basketball-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
     </div>
@@ -833,7 +833,7 @@ app.get("/", (req, res) => {
 
   <!-- Darts Game Screen -->
   <div id="darts-game-screen" class="screen">
-    <button onclick="backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+    <button onclick="window.backToGames()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
 
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">🎯 Дартс</h2>
 
@@ -842,10 +842,10 @@ app.get("/", (req, res) => {
       <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Выберите режим игры</div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-        <button class="game-btn" onclick="selectDartsMode('red')">Красное<br><small>3.68x</small></button>
-        <button class="game-btn" onclick="selectDartsMode('white')">Белое<br><small>3.68x</small></button>
-        <button class="game-btn" onclick="selectDartsMode('center')">Центр<br><small>3.68x</small></button>
-        <button class="game-btn" onclick="selectDartsMode('miss')">Мимо<br><small>3.68x</small></button>
+        <button class="game-btn" onclick="window.selectDartsMode('red')">Красное<br><small>3.68x</small></button>
+        <button class="game-btn" onclick="window.selectDartsMode('white')">Белое<br><small>3.68x</small></button>
+        <button class="game-btn" onclick="window.selectDartsMode('center')">Центр<br><small>3.68x</small></button>
+        <button class="game-btn" onclick="window.selectDartsMode('miss')">Мимо<br><small>3.68x</small></button>
       </div>
 
       <div style="margin: 20px 0;">
@@ -853,7 +853,7 @@ app.get("/", (req, res) => {
         <input type="number" id="darts-bet-input" value="1.00" min="0.1" step="0.1" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--accent-green); font-size: 16px; text-align: center;">
       </div>
 
-      <button class="btn primary" style="width: 100%;" onclick="playDarts()" id="darts-play-btn">Играть 🎯</button>
+      <button class="btn primary" style="width: 100%;" onclick="window.playDarts()" id="darts-play-btn">Играть 🎯</button>
 
       <div id="darts-result-display" style="margin-top: 16px; font-size: 18px; font-weight: 600;"></div>
     </div>
@@ -864,13 +864,13 @@ app.get("/", (req, res) => {
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">👥 Пригласить друзей</h2>
     <div class="glass-card">
       <p style="text-align: center; margin-bottom: 16px;">Приглашайте друзей и получайте 5% от их депозитов!</p>
-      <button class="btn primary" style="width: 100%;" onclick="shareInvite()">Поделиться ссылкой</button>
+      <button class="btn primary" style="width: 100%;" onclick="window.shareInvite()">Поделиться ссылкой</button>
     </div>
   </div>
 
   <!-- Admin Screen -->
   <div id="admin-screen" class="screen">
-    <button onclick="backToProfile()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
+    <button onclick="window.backToProfile()" style="background: none; border: none; font-size: 24px; margin-bottom: 16px; cursor: pointer;">← Назад</button>
 
     <h2 style="text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700;">👑 Админ-панель</h2>
 
@@ -896,14 +896,14 @@ app.get("/", (req, res) => {
 
   <!-- Bottom TabBar - BIGGER -->
   <div class="tabbar">
-    <button class="tab active" onclick="handleNav(event, 'profile')">
+    <button class="tab active" onclick="window.handleNav(event, 'profile')">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </svg>
       <span class="tab-label">Профиль</span>
     </button>
-    <button class="tab" onclick="handleNav(event, 'play')">
+    <button class="tab" onclick="window.handleNav(event, 'play')">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2.5" ry="2.5"/>
         <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
@@ -914,7 +914,7 @@ app.get("/", (req, res) => {
       </svg>
       <span class="tab-label">Играть</span>
     </button>
-    <button class="tab" onclick="handleNav(event, 'invite')">
+    <button class="tab" onclick="window.handleNav(event, 'invite')">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
         <circle cx="9" cy="7" r="4"/>
@@ -1975,7 +1975,7 @@ app.get("/", (req, res) => {
                     <div style="font-size: 12px; color: var(--text-secondary);">\${new Date(w.created_at).toLocaleString('ru-RU')}</div>
                   </div>
                 </div>
-                <button class="btn primary" style="width: 100%; padding: 8px;" onclick="completeWithdrawal(\${w.id}, \${w.user_id})">
+                <button class="btn primary" style="width: 100%; padding: 8px;" onclick="window.completeWithdrawal(\${w.id}, \${w.user_id})">
                   ✅ Отправил через CryptoBot
                 </button>
               </div>
