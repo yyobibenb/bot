@@ -255,6 +255,22 @@ function openDiceGame() {
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('medium');
   }
+
+  // Update dice screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('dice-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const diceAvatar = document.getElementById('dice-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      diceAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      diceAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('dice-game-screen').classList.add('active');
 }
@@ -268,33 +284,20 @@ function backToGames() {
   document.getElementById('games-screen').classList.add('active');
 }
 
-// Select game mode
-function selectMode(event, mode) {
-  if (window.tg && window.tg.HapticFeedback) {
-    window.tg.HapticFeedback.impactOccurred('light');
-  }
-  window.selectedGameMode = mode;
-
-  // Update button states
-  document.querySelectorAll('.game-btn').forEach(btn => btn.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
-}
-
-// Play dice game
-async function playDice() {
+// Play dice game with specific mode
+async function playDiceMode(choice, modeName) {
   if (!window.currentUser) {
-    window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
-    return;
-  }
-
-  if (!window.selectedGameMode) {
-    window.tg.showAlert('Выберите режим игры!');
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
     return;
   }
 
   const betAmount = parseFloat(document.getElementById('bet-input').value);
-  if (betAmount <= 0) {
-    window.tg.showAlert('Введите корректную ставку!');
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
     return;
   }
 
@@ -302,14 +305,19 @@ async function playDice() {
     window.tg.HapticFeedback.impactOccurred('heavy');
   }
 
-  const playBtn = document.getElementById('play-btn');
-  const diceDisplay = document.getElementById('dice-display');
-  const resultDisplay = document.getElementById('result-display');
+  // Get the correct dice display element based on mode
+  let diceDisplay;
+  if (modeName === 'higher-lower') {
+    diceDisplay = document.getElementById('dice-higher-lower-result');
+  } else if (modeName === 'even-odd') {
+    diceDisplay = document.getElementById('dice-even-odd-result');
+  } else if (modeName === 'exact') {
+    diceDisplay = document.getElementById('dice-exact-result');
+  }
 
-  playBtn.disabled = true;
-  playBtn.textContent = 'Бросаем...';
-  resultDisplay.textContent = '';
+  if (!diceDisplay) return;
 
+  // Add spinning animation
   diceDisplay.classList.add('spinning');
 
   try {
@@ -319,19 +327,15 @@ async function playDice() {
       bet_amount: betAmount
     };
 
-    if (window.selectedGameMode === 'higher' || window.selectedGameMode === 'lower') {
+    if (modeName === 'higher-lower') {
       endpoint = '/api/games/dice/higher-lower';
-      body.choice = window.selectedGameMode;
-    } else if (window.selectedGameMode === 'even' || window.selectedGameMode === 'odd') {
+      body.choice = choice;
+    } else if (modeName === 'even-odd') {
       endpoint = '/api/games/dice/even-odd';
-      body.choice = window.selectedGameMode;
-    } else if (window.selectedGameMode === 'exact') {
-      const number = prompt('Введите число от 1 до 6:');
-      if (!number || number < 1 || number > 6) {
-        throw new Error('Неверное число!');
-      }
+      body.choice = choice;
+    } else if (modeName === 'exact') {
       endpoint = '/api/games/dice/exact-number';
-      body.choice = parseInt(number);
+      body.choice = parseInt(choice);
     }
 
     const response = await fetch(endpoint, {
@@ -349,38 +353,40 @@ async function playDice() {
         const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
         diceDisplay.textContent = diceEmojis[data.result - 1] || '🎲';
 
+        // Show result message
         if (data.isWin) {
-          resultDisplay.style.color = 'var(--accent-green)';
-          resultDisplay.textContent = `🎉 Выигрыш: ${data.winAmount.toFixed(2)} USDT! (x${data.multiplier})`;
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.notificationOccurred('success');
           }
+          if (window.tg) {
+            window.tg.showAlert(`🎉 Выигрыш: ${data.winAmount.toFixed(2)} USDT! (x${data.multiplier})`);
+          }
         } else {
-          resultDisplay.style.color = 'var(--accent-red)';
-          resultDisplay.textContent = `❌ Проигрыш. Выпало: ${data.result}`;
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.notificationOccurred('error');
+          }
+          if (window.tg) {
+            window.tg.showAlert(`❌ Проигрыш. Выпало: ${data.result}`);
           }
         }
 
         // Update balance
         if (data.newBalance !== undefined) {
           document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          document.getElementById('dice-balance-amount').textContent = data.newBalance.toFixed(2);
         }
       } else {
-        resultDisplay.style.color = 'var(--accent-red)';
-        resultDisplay.textContent = '❌ ' + (data.error || 'Ошибка');
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
       }
-
-      playBtn.disabled = false;
-      playBtn.textContent = '🎲 Бросить кости';
     }, 1500);
   } catch (error) {
     diceDisplay.classList.remove('spinning');
-    resultDisplay.style.color = 'var(--accent-red)';
-    resultDisplay.textContent = '❌ Ошибка: ' + error.message;
-    playBtn.disabled = false;
-    playBtn.textContent = '🎲 Бросить кости';
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Dice game error:', error);
   }
 }
 

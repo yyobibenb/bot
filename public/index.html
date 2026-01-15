@@ -133,52 +133,97 @@
 
     <!-- Dice Game Screen -->
     <div id="dice-game-screen" class="screen">
-      <button class="back-btn" onclick="backToGames()">← Назад</button>
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">🎲 Игра в кости</h2>
-
-      <!-- Game Mode Selection -->
-      <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--text-secondary);">Выбери режим:</h3>
-        <div class="game-grid">
-          <button class="game-btn" onclick="selectMode(event, 'higher')">
-            <div style="font-weight: 600;">Больше 3</div>
-            <small>Коэф. x1.8</small>
-          </button>
-          <button class="game-btn" onclick="selectMode(event, 'lower')">
-            <div style="font-weight: 600;">Меньше 4</div>
-            <small>Коэф. x1.8</small>
-          </button>
-          <button class="game-btn" onclick="selectMode(event, 'even')">
-            <div style="font-weight: 600;">Четное</div>
-            <small>Коэф. x1.9</small>
-          </button>
-          <button class="game-btn" onclick="selectMode(event, 'odd')">
-            <div style="font-weight: 600;">Нечетное</div>
-            <small>Коэф. x1.9</small>
-          </button>
-          <button class="game-btn" onclick="selectMode(event, 'exact')">
-            <div style="font-weight: 600;">Точное число</div>
-            <small>Коэф. x5.5</small>
-          </button>
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="dice-balance-amount">0.00</span> USDT
+          </div>
+          <div id="dice-avatar" class="dice-avatar-small">?</div>
         </div>
       </div>
 
       <!-- Bet Input -->
-      <div style="margin-bottom: 20px;">
-        <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-secondary);">Ставка (USDT):</label>
+      <div class="dice-bet-section">
+        <label>Ставка (USDT):</label>
         <input type="number" id="bet-input" class="input" placeholder="Введи сумму" min="0.1" step="0.1" value="1.0">
       </div>
 
-      <!-- Dice Display -->
-      <div style="text-align: center; margin: 30px 0;">
-        <div id="dice-display" style="font-size: 80px; margin-bottom: 10px;">🎲</div>
-        <div id="result-display" style="font-size: 16px; font-weight: 600; min-height: 24px;"></div>
-      </div>
+      <!-- Game Modes List (Scrollable) -->
+      <div class="dice-modes-scroll">
 
-      <!-- Play Button -->
-      <button id="play-btn" class="btn primary" style="width: 100%;" onclick="playDice()">
-        🎲 Бросить кости
-      </button>
+        <!-- Mode: Higher/Lower -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>🎲 Больше / Меньше</h3>
+            <span class="dice-mode-coef">x1.8</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result" id="dice-higher-lower-result">🎲</div>
+          </div>
+          <div class="dice-mode-buttons">
+            <button class="dice-choice-btn" onclick="playDiceMode('higher', 'higher-lower')">
+              Больше 3
+            </button>
+            <button class="dice-choice-btn" onclick="playDiceMode('lower', 'higher-lower')">
+              Меньше 4
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode: Even/Odd -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>🎯 Четное / Нечетное</h3>
+            <span class="dice-mode-coef">x1.9</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result" id="dice-even-odd-result">🎲</div>
+          </div>
+          <div class="dice-mode-buttons">
+            <button class="dice-choice-btn" onclick="playDiceMode('even', 'even-odd')">
+              Четное
+            </button>
+            <button class="dice-choice-btn" onclick="playDiceMode('odd', 'even-odd')">
+              Нечетное
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode: Exact Number -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>🎰 Точное число</h3>
+            <span class="dice-mode-coef">x5.5</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result" id="dice-exact-result">🎲</div>
+          </div>
+          <div class="dice-mode-buttons-grid">
+            <button class="dice-number-btn" onclick="playDiceMode(1, 'exact')">1</button>
+            <button class="dice-number-btn" onclick="playDiceMode(2, 'exact')">2</button>
+            <button class="dice-number-btn" onclick="playDiceMode(3, 'exact')">3</button>
+            <button class="dice-number-btn" onclick="playDiceMode(4, 'exact')">4</button>
+            <button class="dice-number-btn" onclick="playDiceMode(5, 'exact')">5</button>
+            <button class="dice-number-btn" onclick="playDiceMode(6, 'exact')">6</button>
+          </div>
+        </div>
+
+        <!-- Placeholder for more modes -->
+        <div class="dice-mode-card disabled-mode">
+          <div class="dice-mode-header">
+            <h3>⭐ Дополнительные режимы</h3>
+            <span class="dice-mode-coef">Скоро</span>
+          </div>
+          <div class="dice-display-area">
+            <div style="font-size: 14px; color: var(--text-secondary); text-align: center;">
+              Ещё больше режимов игры появятся совсем скоро!
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- Referral Screen -->

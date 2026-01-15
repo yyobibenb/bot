@@ -571,6 +571,217 @@ body {
   z-index: 1;
 }
 
+/* Dice Game Screen Styles */
+.dice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.back-btn-small {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn-small:active {
+  transform: scale(0.95);
+}
+
+.dice-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dice-balance {
+  padding: 8px 14px;
+  background: linear-gradient(135deg, rgba(24, 226, 154, 0.15), rgba(15, 216, 138, 0.08));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(24, 226, 154, 0.2);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--emerald);
+  text-shadow: 0 0 10px rgba(24, 226, 154, 0.3);
+}
+
+.dice-avatar-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 0 0 2px var(--glass-border), 0 4px 12px rgba(24, 226, 154, 0.3);
+}
+
+.dice-bet-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  animation: slideUp 0.4s ease;
+}
+
+.dice-bet-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.dice-modes-scroll {
+  overflow-y: auto;
+  max-height: calc(100vh - 280px);
+  padding-bottom: 20px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dice-modes-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.dice-mode-card {
+  margin-bottom: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease;
+  transition: all 0.3s ease;
+}
+
+.dice-mode-card.disabled-mode {
+  opacity: 0.6;
+}
+
+.dice-mode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dice-mode-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dice-mode-coef {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bg-dark);
+  box-shadow: 0 4px 12px rgba(245, 199, 106, 0.3);
+}
+
+.dice-display-area {
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+}
+
+.dice-result {
+  font-size: 72px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  transition: transform 0.3s ease;
+}
+
+.dice-result.spinning {
+  animation: spin 0.5s ease-in-out 3;
+}
+
+.dice-mode-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.dice-choice-btn {
+  padding: 14px;
+  background: rgba(24, 226, 154, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(24, 226, 154, 0.3);
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dice-choice-btn:hover {
+  background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+  color: white;
+  box-shadow: 0 6px 20px rgba(24, 226, 154, 0.4);
+  transform: translateY(-2px);
+}
+
+.dice-choice-btn:active {
+  transform: scale(0.96);
+}
+
+.dice-mode-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.dice-number-btn {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dice-number-btn:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--bg-dark);
+  box-shadow: 0 6px 20px rgba(245, 199, 106, 0.4);
+  transform: translateY(-2px);
+}
+
+.dice-number-btn:active {
+  transform: scale(0.94);
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
