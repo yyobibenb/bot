@@ -10,9 +10,12 @@ CREATE TABLE IF NOT EXISTS users (
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255),
   language_code VARCHAR(10),
+  photo_url VARCHAR(500),
   is_premium BOOLEAN DEFAULT false,
   is_blocked BOOLEAN DEFAULT false,
   referrer_id INTEGER REFERENCES users(id),
+  deposit_address VARCHAR(255),
+  deposit_private_key VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

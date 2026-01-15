@@ -1184,7 +1184,7 @@ app.get("/", (req, res) => {
 
               if (data.balance !== undefined) {
                 balanceEl.textContent = data.balance.toFixed(2);
-                console.log(\`✅ Баланс обновлен: \${data.balance}\`);
+                console.log('✅ Баланс обновлен: ' + data.balance);
               }
 
               success = true;
@@ -1214,7 +1214,7 @@ app.get("/", (req, res) => {
                 })
               });
 
-              console.log(\`📨 Ответ на создание. Статус: \${createResponse.status}\`);
+              console.log('📨 Ответ на создание. Статус: ' + createResponse.status);
               const createData = await createResponse.json();
               console.log('✅ Пользователь создан:', createData);
 
@@ -1228,7 +1228,7 @@ app.get("/", (req, res) => {
 
                 if (createData.balance !== undefined) {
                   balanceEl.textContent = createData.balance.toFixed(2);
-                  console.log(\`✅ Баланс установлен: \${createData.balance}\`);
+                  console.log('✅ Баланс установлен: ' + createData.balance);
                 }
 
                 success = true;
