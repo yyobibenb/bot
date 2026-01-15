@@ -629,23 +629,187 @@ body {
   box-shadow: 0 0 0 2px var(--glass-border), 0 4px 12px rgba(24, 226, 154, 0.3);
 }
 
-.dice-bet-section {
+/* Main Game Area - Play Screen */
+.dice-game-area {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 24px;
   margin-bottom: 20px;
-  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.4s ease;
+}
+
+.dice-display-main {
+  text-align: center;
+  padding: 40px 20px;
+  margin-bottom: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.dice-emoji {
+  font-size: 100px;
+  line-height: 1;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6));
+  transition: transform 0.3s ease;
+}
+
+.dice-emoji.spinning {
+  animation: spin 0.5s ease-in-out 3;
+}
+
+/* Bet Input - Play Screen */
+.dice-bet-input-section {
+  position: relative;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.dice-bet-input {
+  width: 100%;
+  max-width: 200px;
+  padding: 16px 40px 16px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.dice-bet-input:focus {
+  border-color: var(--emerald);
+  box-shadow: 0 0 0 3px rgba(24, 226, 154, 0.15);
+}
+
+.dice-bet-currency {
+  position: absolute;
+  right: calc(50% - 80px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+/* Play Button */
+.dice-play-btn {
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  border: none;
+  border-radius: 18px;
+  font-size: 20px;
+  font-weight: 800;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+  letter-spacing: 1px;
+}
+
+.dice-play-btn:hover {
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
+  transform: translateY(-2px);
+}
+
+.dice-play-btn:active {
+  transform: scale(0.98);
+}
+
+.dice-play-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Wins History Section */
+.dice-wins-section {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  animation: slideUp 0.4s ease;
+  border-radius: 20px;
+  padding: 20px;
+  animation: slideUp 0.5s ease;
 }
 
-.dice-bet-section label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  font-weight: 600;
+.wins-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.wins-list {
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--emerald) rgba(255, 255, 255, 0.1);
+}
+
+.wins-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wins-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.wins-list::-webkit-scrollbar-thumb {
+  background: var(--emerald);
+  border-radius: 10px;
+}
+
+.wins-empty {
+  text-align: center;
+  padding: 20px;
   color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.win-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: rgba(24, 226, 154, 0.1);
+  border: 1px solid rgba(24, 226, 154, 0.2);
+  border-radius: 12px;
+  animation: slideUp 0.3s ease;
+}
+
+.win-item-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--emerald);
+}
+
+.win-item-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Confetti Canvas */
+.confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
 }
 
 .dice-modes-scroll {

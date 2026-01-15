@@ -284,11 +284,65 @@ function backToGames() {
   document.getElementById('games-screen').classList.add('active');
 }
 
-// Play dice game with specific mode
-async function playDiceMode(choice, modeName) {
+// Open play screen with selected mode
+function openPlayScreen(choice, modeName, modeLabel, multiplier) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Store selected game mode
+  window.selectedDiceChoice = choice;
+  window.selectedDiceMode = modeName;
+  window.selectedDiceMultiplier = multiplier;
+
+  // Update play screen title
+  const modeTitle = document.getElementById('play-mode-title');
+  modeTitle.textContent = `🎲 ${modeLabel} (x${multiplier})`;
+
+  // Update balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('dice-play-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const playAvatar = document.getElementById('dice-play-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      playAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      playAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Reset dice emoji
+  document.getElementById('dice-emoji').textContent = '🎲';
+
+  // Open play screen
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('dice-play-screen').classList.add('active');
+}
+
+// Back to dice modes
+function backToDiceModes() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('dice-game-screen').classList.add('active');
+}
+
+// Play dice game
+async function playDiceGame() {
   if (!window.currentUser) {
     if (window.tg) {
       window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  if (!window.selectedDiceChoice || !window.selectedDiceMode) {
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: режим не выбран');
     }
     return;
   }
@@ -305,20 +359,13 @@ async function playDiceMode(choice, modeName) {
     window.tg.HapticFeedback.impactOccurred('heavy');
   }
 
-  // Get the correct dice display element based on mode
-  let diceDisplay;
-  if (modeName === 'higher-lower') {
-    diceDisplay = document.getElementById('dice-higher-lower-result');
-  } else if (modeName === 'even-odd') {
-    diceDisplay = document.getElementById('dice-even-odd-result');
-  } else if (modeName === 'exact') {
-    diceDisplay = document.getElementById('dice-exact-result');
-  }
+  const playBtn = document.getElementById('play-dice-btn');
+  const diceEmoji = document.getElementById('dice-emoji');
 
-  if (!diceDisplay) return;
-
-  // Add spinning animation
-  diceDisplay.classList.add('spinning');
+  // Disable button and add spinning animation
+  playBtn.disabled = true;
+  playBtn.textContent = 'Бросаем...';
+  diceEmoji.classList.add('spinning');
 
   try {
     let endpoint = '';
@@ -327,15 +374,15 @@ async function playDiceMode(choice, modeName) {
       bet_amount: betAmount
     };
 
-    if (modeName === 'higher-lower') {
+    if (window.selectedDiceMode === 'higher-lower') {
       endpoint = '/api/games/dice/higher-lower';
-      body.choice = choice;
-    } else if (modeName === 'even-odd') {
+      body.choice = window.selectedDiceChoice;
+    } else if (window.selectedDiceMode === 'even-odd') {
       endpoint = '/api/games/dice/even-odd';
-      body.choice = choice;
-    } else if (modeName === 'exact') {
+      body.choice = window.selectedDiceChoice;
+    } else if (window.selectedDiceMode === 'exact') {
       endpoint = '/api/games/dice/exact-number';
-      body.choice = parseInt(choice);
+      body.choice = parseInt(window.selectedDiceChoice);
     }
 
     const response = await fetch(endpoint, {
@@ -347,47 +394,143 @@ async function playDiceMode(choice, modeName) {
     const data = await response.json();
 
     setTimeout(() => {
-      diceDisplay.classList.remove('spinning');
+      diceEmoji.classList.remove('spinning');
 
       if (data.success) {
         const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-        diceDisplay.textContent = diceEmojis[data.result - 1] || '🎲';
-
-        // Show result message
-        if (data.isWin) {
-          if (window.tg && window.tg.HapticFeedback) {
-            window.tg.HapticFeedback.notificationOccurred('success');
-          }
-          if (window.tg) {
-            window.tg.showAlert(`🎉 Выигрыш: ${data.winAmount.toFixed(2)} USDT! (x${data.multiplier})`);
-          }
-        } else {
-          if (window.tg && window.tg.HapticFeedback) {
-            window.tg.HapticFeedback.notificationOccurred('error');
-          }
-          if (window.tg) {
-            window.tg.showAlert(`❌ Проигрыш. Выпало: ${data.result}`);
-          }
-        }
+        diceEmoji.textContent = diceEmojis[data.result - 1] || '🎲';
 
         // Update balance
         if (data.newBalance !== undefined) {
           document.getElementById('balance').textContent = data.newBalance.toFixed(2);
           document.getElementById('dice-balance-amount').textContent = data.newBalance.toFixed(2);
+          document.getElementById('dice-play-balance-amount').textContent = data.newBalance.toFixed(2);
+        }
+
+        // Show result
+        if (data.isWin) {
+          // Win - show confetti and congratulations
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          launchConfetti();
+
+          if (window.tg) {
+            window.tg.showAlert(`🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`);
+          }
+
+          // Add to wins history
+          addWinToHistory(data.winAmount, data.multiplier);
+        } else {
+          // Loss - no action, just update balance silently
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.impactOccurred('medium');
+          }
         }
       } else {
         if (window.tg) {
           window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
         }
       }
+
+      playBtn.disabled = false;
+      playBtn.textContent = 'ИГРАТЬ';
     }, 1500);
   } catch (error) {
-    diceDisplay.classList.remove('spinning');
+    diceEmoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = 'ИГРАТЬ';
+
     if (window.tg) {
       window.tg.showAlert('❌ Ошибка: ' + error.message);
     }
     console.error('Dice game error:', error);
   }
+}
+
+// Add win to history
+function addWinToHistory(amount, multiplier) {
+  const winsList = document.getElementById('wins-list');
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+}
+
+// Confetti animation
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const confetti = [];
+  const confettiCount = 150;
+  const colors = ['#18E29A', '#F5C76A', '#EF4444', '#60A5FA', '#F472B6'];
+
+  // Create confetti particles
+  for (let i = 0; i < confettiCount; i++) {
+    confetti.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      size: Math.random() * 10 + 5,
+      speedY: Math.random() * 3 + 2,
+      speedX: Math.random() * 3 - 1.5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      rotationSpeed: Math.random() * 10 - 5
+    });
+  }
+
+  function drawConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let stillVisible = false;
+
+    confetti.forEach((particle) => {
+      ctx.save();
+      ctx.translate(particle.x, particle.y);
+      ctx.rotate(particle.rotation * Math.PI / 180);
+      ctx.fillStyle = particle.color;
+      ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+      ctx.restore();
+
+      particle.y += particle.speedY;
+      particle.x += particle.speedX;
+      particle.rotation += particle.rotationSpeed;
+
+      if (particle.y < canvas.height) {
+        stillVisible = true;
+      }
+    });
+
+    if (stillVisible) {
+      requestAnimationFrame(drawConfetti);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  drawConfetti();
 }
 
 // Copy referral link
