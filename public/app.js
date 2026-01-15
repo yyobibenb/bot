@@ -552,6 +552,48 @@ function shareReferralLink() {
   }
 }
 
+// ========== NEW GAMES ==========
+
+// Open Slots Game
+function openSlotsGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+  window.tg.showAlert('🎰 Слоты скоро будут доступны!\nИгра находится в разработке.');
+}
+
+// Open Rock-Paper-Scissors Game
+function openRPSGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+  window.tg.showAlert('🪨 Камень-Ножницы-Бумага скоро будут доступны!\nИгра находится в разработке.');
+}
+
+// Open Darts Game
+function openDartsGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+  window.tg.showAlert('🎯 Дартс скоро будет доступен!\nИгра находится в разработке.');
+}
+
+// Open Football Game
+function openFootballGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+  window.tg.showAlert('⚽ Футбол скоро будет доступен!\nИгра находится в разработке.');
+}
+
+// Open Basketball Game
+function openBasketballGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+  window.tg.showAlert('🏀 Баскетбол скоро будет доступен!\nИгра находится в разработке.');
+}
+
 // Initialize app
 (async function initApp() {
   try {
