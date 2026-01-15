@@ -1434,7 +1434,7 @@ app.get("/", (req, res) => {
         return;
       }
 
-      const amount = prompt('Введите сумму вывода (USDT):\\n\\nДоступно: ' + balance + ' USDT\\nМинимум: 10 USDT');
+      const amount = prompt('Введите сумму вывода (USDT):\n\nДоступно: ' + balance + ' USDT\nМинимум: 10 USDT');
 
       if (!amount) return;
 
@@ -1467,7 +1467,7 @@ app.get("/", (req, res) => {
         if (data.success) {
           // Обновляем баланс
           document.getElementById('balance').textContent = data.newBalance.toFixed(2);
-          window.tg.showAlert('✅ Заявка на вывод создана!\\n\\nСумма: ' + withdrawAmount + ' USDT\\n\\nСредства будут отправлены через @send в течение 1-24 часов.');
+          window.tg.showAlert('✅ Заявка на вывод создана!\n\nСумма: ' + withdrawAmount + ' USDT\n\nСредства будут отправлены через @send в течение 1-24 часов.');
         } else {
           window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать заявку'));
         }
