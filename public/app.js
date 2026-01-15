@@ -604,7 +604,7 @@ async function checkAdminPermission() {
   if (!window.currentUser) return;
 
   try {
-    const response = await fetch(`/api/admin/check/${window.currentUser.id}`);
+    const response = await fetch(`/api/admin/check?user_id=${window.currentUser.id}`);
     const data = await response.json();
 
     if (data.isAdmin) {
