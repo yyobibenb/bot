@@ -270,6 +270,10 @@ ${stats.referrals.length > 0 ? `\n👥 **Ваши рефералы:**\n${stats.r
     console.log("✅ Telegram бот запущен");
   }
 
+  getBot() {
+    return this.bot;
+  }
+
   async sendMessage(chatId: number, text: string, options?: any) {
     return this.bot.sendMessage(chatId, text, options);
   }

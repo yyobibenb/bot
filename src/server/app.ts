@@ -12,6 +12,8 @@ import cryptoBotService from "../services/CryptoBotService";
 import { DuelService } from "../services/DuelService";
 import { SlotsGameService } from "../services/SlotsGameService";
 import { RPSGameService } from "../services/RPSGameService";
+import { BroadcastModel } from "../models/Broadcast";
+import { BroadcastService } from "../services/BroadcastService";
 import pool from "../database/pool";
 
 const app = express();
@@ -1018,6 +1020,331 @@ app.get("/api/admin/user/:user_id", async (req, res) => {
     });
   } catch (error: any) {
     console.error("Error getting user details:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Заблокировать/разблокировать пользователя (для админов)
+app.post("/api/admin/user/:user_id/block", async (req, res) => {
+  try {
+    const { admin_id, is_blocked } = req.body;
+    const { user_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await UserModel.updateUser(parseInt(user_id), { is_blocked });
+
+    res.json({
+      success: true,
+      message: is_blocked ? "User blocked" : "User unblocked"
+    });
+  } catch (error: any) {
+    console.error("Error blocking user:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Редактировать баланс пользователя (для админов)
+app.post("/api/admin/user/:user_id/edit-balance", async (req, res) => {
+  try {
+    const { admin_id, amount, operation } = req.body;
+    const { user_id } = req.params;
+
+    if (!admin_id || !amount || !operation) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const parsedAmount = parseFloat(amount);
+
+    if (operation === "add") {
+      await BalanceModel.addBalance(parseInt(user_id), parsedAmount);
+    } else if (operation === "subtract") {
+      await BalanceModel.subtractBalance(parseInt(user_id), parsedAmount);
+    } else if (operation === "set") {
+      // Установить точное значение баланса
+      const currentBalance = await BalanceModel.getBalance(parseInt(user_id));
+      if (currentBalance) {
+        const diff = parsedAmount - parseFloat(currentBalance.balance.toString());
+        if (diff > 0) {
+          await BalanceModel.addBalance(parseInt(user_id), diff);
+        } else if (diff < 0) {
+          await BalanceModel.subtractBalance(parseInt(user_id), Math.abs(diff));
+        }
+      }
+    }
+
+    const newBalance = await BalanceModel.getBalance(parseInt(user_id));
+
+    res.json({
+      success: true,
+      newBalance: newBalance ? parseFloat(newBalance.balance.toString()) : 0
+    });
+  } catch (error: any) {
+    console.error("Error editing balance:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// BROADCAST API ENDPOINTS
+// ============================================
+
+// Создать рассылку (для админов)
+app.post("/api/admin/broadcast/create", async (req, res) => {
+  try {
+    const { admin_id, message_text, media_url, media_type } = req.body;
+
+    if (!admin_id || !message_text) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const broadcast = await BroadcastModel.create(
+      parseInt(admin_id),
+      message_text,
+      media_url,
+      media_type
+    );
+
+    res.json({
+      success: true,
+      broadcast
+    });
+  } catch (error: any) {
+    console.error("Error creating broadcast:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Отправить рассылку (для админов)
+app.post("/api/admin/broadcast/:broadcast_id/send", async (req, res) => {
+  try {
+    const { admin_id } = req.body;
+    const { broadcast_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Подготавливаем рассылку
+    await BroadcastModel.sendBroadcast(parseInt(broadcast_id));
+
+    // Запускаем отправку в фоновом режиме
+    if (telegramBot) {
+      const broadcastService = new BroadcastService(telegramBot.getBot());
+      broadcastService.startBroadcast(parseInt(broadcast_id));
+    }
+
+    res.json({
+      success: true,
+      message: "Broadcast started"
+    });
+  } catch (error: any) {
+    console.error("Error sending broadcast:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить список рассылок (для админов)
+app.get("/api/admin/broadcasts", async (req, res) => {
+  try {
+    const { admin_id, limit, offset } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const broadcasts = await BroadcastModel.getAll(
+      limit ? parseInt(limit as string) : 50,
+      offset ? parseInt(offset as string) : 0
+    );
+
+    res.json({
+      success: true,
+      broadcasts
+    });
+  } catch (error: any) {
+    console.error("Error getting broadcasts:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить статистику рассылки (для админов)
+app.get("/api/admin/broadcast/:broadcast_id/stats", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+    const { broadcast_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const stats = await BroadcastModel.getStats(parseInt(broadcast_id));
+    const broadcast = await BroadcastModel.getById(parseInt(broadcast_id));
+
+    res.json({
+      success: true,
+      broadcast,
+      stats
+    });
+  } catch (error: any) {
+    console.error("Error getting broadcast stats:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// SETTINGS API ENDPOINTS
+// ============================================
+
+// Получить все настройки (для админов)
+app.get("/api/admin/settings", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const result = await pool.query("SELECT * FROM settings ORDER BY key");
+
+    res.json({
+      success: true,
+      settings: result.rows
+    });
+  } catch (error: any) {
+    console.error("Error getting settings:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Обновить настройку (для админов)
+app.post("/api/admin/settings/:key", async (req, res) => {
+  try {
+    const { admin_id, value } = req.body;
+    const { key } = req.params;
+
+    if (!admin_id || value === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await pool.query(
+      `UPDATE settings SET value = $1, updated_at = NOW() WHERE key = $2`,
+      [value, key]
+    );
+
+    res.json({
+      success: true,
+      message: "Setting updated"
+    });
+  } catch (error: any) {
+    console.error("Error updating setting:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Обновить RTP игры (для админов)
+app.post("/api/admin/games/:game_id/rtp", async (req, res) => {
+  try {
+    const { admin_id, rtp } = req.body;
+    const { game_id } = req.params;
+
+    if (!admin_id || rtp === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const rtpValue = parseFloat(rtp);
+    if (rtpValue < 0 || rtpValue > 100) {
+      return res.status(400).json({ success: false, error: "RTP must be between 0 and 100" });
+    }
+
+    await pool.query(
+      `UPDATE games SET rtp = $1 WHERE id = $2`,
+      [rtpValue, parseInt(game_id)]
+    );
+
+    res.json({
+      success: true,
+      message: "RTP updated"
+    });
+  } catch (error: any) {
+    console.error("Error updating RTP:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Включить/выключить игру (для админов)
+app.post("/api/admin/games/:game_id/toggle", async (req, res) => {
+  try {
+    const { admin_id, is_active } = req.body;
+    const { game_id } = req.params;
+
+    if (!admin_id || is_active === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await pool.query(
+      `UPDATE games SET is_active = $1 WHERE id = $2`,
+      [is_active, parseInt(game_id)]
+    );
+
+    res.json({
+      success: true,
+      message: is_active ? "Game enabled" : "Game disabled"
+    });
+  } catch (error: any) {
+    console.error("Error toggling game:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
