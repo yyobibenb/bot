@@ -34,13 +34,34 @@ export class TelegramBotService {
   private buildWebAppUrlWithParams(telegramId: number): string {
     const baseUrl = this.getWebAppUrl();
 
+    console.log('');
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('🔗 ФОРМИРУЮ URL ДЛЯ MINI APP');
+    console.log('═══════════════════════════════════════════════════════');
     console.log('🌐 Базовый URL из .env (WEB_APP_URL):', baseUrl);
-    console.log('📋 Передаю telegram_id через URL:', telegramId);
+    console.log('🆔 Telegram ID пользователя:', telegramId);
 
     // Передаем только telegram_id - все остальные данные фронтенд загрузит из API
     const finalUrl = `${baseUrl}?tg_id=${telegramId}`;
-    console.log('✅ Сформирован URL:', finalUrl);
-    console.log('💡 Остальные данные (имя, фото, баланс) загрузятся из API автоматически');
+
+    console.log('✅ Сформирован итоговый URL:', finalUrl);
+    console.log('');
+    console.log('💡 Что происходит:');
+    console.log('   1. Через URL передается ТОЛЬКО telegram_id');
+    console.log('   2. Все остальные данные (имя, фото, баланс) загрузятся из API');
+    console.log('   3. Это надежнее чем передавать всё через URL');
+    console.log('');
+    console.log('🔍 Проверка: URL должен содержать "?tg_id=' + telegramId + '"');
+
+    if (!baseUrl || baseUrl === 'https://your-app-url.com') {
+      console.log('');
+      console.log('⚠️  ВНИМАНИЕ! WEB_APP_URL не установлен или использует дефолтное значение!');
+      console.log('⚠️  Установи правильный WEB_APP_URL в .env файле!');
+      console.log('');
+    }
+
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('');
 
     return finalUrl;
   }
