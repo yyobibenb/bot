@@ -73,38 +73,22 @@
     </div>
 
     <div class="info-box">
-      <div class="label">Telegram ID (user_id):</div>
-      <div class="value" id="user-id"></div>
-    </div>
-
-    <div class="info-box">
-      <div class="label">Имя (first_name):</div>
-      <div class="value" id="first-name"></div>
-    </div>
-
-    <div class="info-box">
-      <div class="label">Фамилия (last_name):</div>
-      <div class="value" id="last-name"></div>
-    </div>
-
-    <div class="info-box">
-      <div class="label">Username:</div>
-      <div class="value" id="username"></div>
-    </div>
-
-    <div class="info-box">
-      <div class="label">Фото (photo_url):</div>
-      <div class="value" id="photo-url"></div>
-    </div>
-
-    <div class="info-box">
-      <div class="label">Премиум (is_premium):</div>
-      <div class="value" id="is-premium"></div>
+      <div class="label">Telegram ID (tg_id):</div>
+      <div class="value" id="tg-id"></div>
     </div>
 
     <div class="info-box">
       <div class="label">Данные переданы через URL:</div>
       <div id="status"></div>
+    </div>
+
+    <div class="info-box" style="background: rgba(0, 150, 255, 0.2); border: 1px solid rgba(0, 150, 255, 0.5);">
+      <div class="label">💡 Новый подход:</div>
+      <div style="font-size: 13px; line-height: 1.5; margin-top: 8px;">
+        Теперь через URL передается только <strong>telegram_id</strong>.<br>
+        Все остальные данные (имя, фото, баланс) загружаются из API автоматически.<br>
+        Это надежнее и проще чем передавать все данные через URL.
+      </div>
     </div>
   </div>
 
@@ -116,44 +100,31 @@
     const queryString = window.location.search;
     document.getElementById('query-string').textContent = queryString || '❌ Пусто';
 
-    // Парсим параметры
+    // Парсим параметры (новый формат - только tg_id)
     const params = new URLSearchParams(queryString);
-
-    const userId = params.get('user_id');
-    const firstName = params.get('first_name');
-    const lastName = params.get('last_name');
-    const username = params.get('username');
-    const photoUrl = params.get('photo_url');
-    const isPremium = params.get('is_premium');
+    const tgId = params.get('tg_id');
 
     // Заполняем данные
-    document.getElementById('user-id').textContent = userId || '❌ Нет';
-    document.getElementById('first-name').textContent = firstName || '❌ Нет';
-    document.getElementById('last-name').textContent = lastName || '❌ Нет';
-    document.getElementById('username').textContent = username || '❌ Нет';
-    document.getElementById('photo-url').textContent = photoUrl ? '✅ Есть' : '❌ Нет';
-    document.getElementById('is-premium').textContent = isPremium || '❌ Нет';
+    document.getElementById('tg-id').textContent = tgId || '❌ Нет';
 
     // Статус
     const statusDiv = document.getElementById('status');
-    if (userId) {
-      statusDiv.innerHTML = '<span class="status yes">✅ ДА - Параметры передаются!</span>';
+    if (tgId) {
+      statusDiv.innerHTML = '<span class="status yes">✅ ДА - Telegram ID передается!</span>';
     } else {
-      statusDiv.innerHTML = '<span class="status no">❌ НЕТ - Параметры не передаются</span>';
+      statusDiv.innerHTML = '<span class="status no">❌ НЕТ - Telegram ID не передается</span>';
     }
 
     // Логируем в консоль
-    console.log('=== ПРОВЕРКА URL ПАРАМЕТРОВ ===');
+    console.log('=== ПРОВЕРКА URL ПАРАМЕТРОВ (НОВЫЙ ФОРМАТ) ===');
     console.log('Полный URL:', window.location.href);
     console.log('Query string:', queryString);
-    console.log('Распарсенные параметры:', {
-      user_id: userId,
-      first_name: firstName,
-      last_name: lastName,
-      username: username,
-      photo_url: photoUrl ? 'есть' : 'нет',
-      is_premium: isPremium
-    });
+    console.log('Telegram ID (tg_id):', tgId);
+    console.log('');
+    console.log('💡 Новый подход:');
+    console.log('- Через URL передается только tg_id');
+    console.log('- Все остальные данные загружаются из API');
+    console.log('- Это надежнее чем передавать все через URL');
   </script>
 </body>
 </html>

@@ -16,75 +16,70 @@ if (window.Telegram && window.Telegram.WebApp) {
   console.error('❌ Telegram WebApp not found');
 }
 
-// Parse URL parameters
-function getUrlParams() {
+// Get telegram_id from URL or SDK
+function getTelegramId() {
+  // Сначала пробуем взять из URL
   const params = new URLSearchParams(window.location.search);
-  return {
-    user_id: params.get('user_id'),
-    first_name: params.get('first_name'),
-    last_name: params.get('last_name'),
-    username: params.get('username'),
-    photo_url: params.get('photo_url'),
-    is_premium: params.get('is_premium') === 'true'
-  };
+  const tgIdFromUrl = params.get('tg_id');
+
+  if (tgIdFromUrl) {
+    console.log('✅ Telegram ID из URL:', tgIdFromUrl);
+    return parseInt(tgIdFromUrl);
+  }
+
+  // Если нет в URL - берем из Telegram SDK
+  if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+    const tgId = window.tg.initDataUnsafe.user.id;
+    console.log('✅ Telegram ID из Telegram SDK:', tgId);
+    return tgId;
+  }
+
+  console.error('❌ Не удалось получить Telegram ID');
+  return null;
 }
 
 // Load user data from API
 window.loadUserData = async function() {
   console.log('═══════════════════════════════════════');
-  console.log('🚀 Начинаю загрузку пользователя...');
+  console.log('🚀 Начинаю загрузку профиля...');
   console.log('📍 Полный URL:', window.location.href);
-  console.log('🔗 URL search:', window.location.search);
+  console.log('🔗 URL параметры:', window.location.search);
   console.log('═══════════════════════════════════════');
 
-  // Сначала пробуем получить данные из URL параметров
-  const urlParams = getUrlParams();
-  console.log('🔍 Распарсенные URL параметры:', urlParams);
-  console.log('  - user_id:', urlParams.user_id);
-  console.log('  - first_name:', urlParams.first_name);
-  console.log('  - photo_url:', urlParams.photo_url ? 'есть' : 'нет');
+  // Получаем telegram_id из URL или SDK
+  const telegramId = getTelegramId();
 
-  // Если нет URL параметров, пробуем использовать Telegram SDK
-  let tgUser;
-  if (urlParams.user_id) {
-    tgUser = {
-      id: parseInt(urlParams.user_id),
-      first_name: urlParams.first_name || 'User',
-      last_name: urlParams.last_name || '',
-      username: urlParams.username || '',
-      photo_url: urlParams.photo_url || null,
-      is_premium: urlParams.is_premium || false
-    };
-    window.userDataFromUrl = tgUser;
-    console.log('✅ Данные пользователя из URL параметров:', tgUser);
-  } else if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
-    tgUser = window.tg.initDataUnsafe.user;
-    console.log('✅ Данные пользователя из Telegram SDK:', tgUser);
-  } else {
-    console.error('❌ Нет данных пользователя');
+  if (!telegramId) {
+    console.error('❌ Не могу загрузить профиль: нет telegram_id');
+    document.getElementById('username').textContent = 'Ошибка загрузки';
+    document.getElementById('handle').textContent = 'Нет telegram_id';
     return;
   }
 
-  const fullName = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+  console.log('🆔 Telegram ID:', telegramId);
+  console.log('📡 Загружаю все данные пользователя из API...');
 
   try {
-    // Try to load user from database
-    const response = await fetch(`/api/user/telegram/${tgUser.id}`);
+    // Загружаем пользователя из БД по telegram_id
+    const response = await fetch(`/api/user/telegram/${telegramId}`);
 
     if (response.ok) {
       const data = await response.json();
       window.currentUser = data.user;
-      console.log('💾 Пользователь из БД:', window.currentUser);
+      console.log('✅ Пользователь загружен из БД:', window.currentUser);
       console.log('💰 Баланс:', data.balance);
 
-      // Update UI
+      // Формируем полное имя
+      const fullName = window.currentUser.first_name + (window.currentUser.last_name ? ' ' + window.currentUser.last_name : '');
+
+      // Обновляем UI
       document.getElementById('username').textContent = fullName;
       document.getElementById('handle').textContent = '@' + (window.currentUser.username || 'user' + window.currentUser.telegram_id);
       document.getElementById('balance').textContent = (data.balance || 0).toFixed(2);
 
+      // Обновляем аватар
       const avatar = document.getElementById('avatar');
-      // Используем photo_url из URL параметров или из базы данных
-      const photoUrl = tgUser.photo_url || window.currentUser.photo_url;
+      const photoUrl = window.currentUser.photo_url;
       console.log('📷 Аватар URL:', photoUrl);
       if (photoUrl) {
         avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
@@ -92,86 +87,112 @@ window.loadUserData = async function() {
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
-      // Update debug info
+      // Обновляем debug карточку
       try {
         console.log('🔧 Обновляю debug карточку...');
+        const urlHasTgId = window.location.search.includes('tg_id=');
+
         const debugTelegramId = document.getElementById('debug-telegram-id');
         const debugDataSource = document.getElementById('debug-data-source');
         const debugUrlParams = document.getElementById('debug-url-params');
         const debugPhotoStatus = document.getElementById('debug-photo-status');
         const debugFullUrl = document.getElementById('debug-full-url');
 
-        if (debugTelegramId) debugTelegramId.textContent = tgUser.id;
-        if (debugDataSource) debugDataSource.textContent = urlParams.user_id ? '✅ URL параметры' : '📱 Telegram SDK';
-        if (debugUrlParams) debugUrlParams.textContent = urlParams.user_id ? '✅ Да' : '❌ Нет';
+        if (debugTelegramId) debugTelegramId.textContent = telegramId;
+        if (debugDataSource) debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
+        if (debugUrlParams) debugUrlParams.textContent = urlHasTgId ? '✅ Да' : '❌ Нет';
         if (debugPhotoStatus) debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
         if (debugFullUrl) debugFullUrl.textContent = window.location.href;
 
         console.log('✅ Debug карточка обновлена');
-        console.log('  - Telegram ID:', tgUser.id);
-        console.log('  - Источник:', urlParams.user_id ? 'URL параметры' : 'Telegram SDK');
-        console.log('  - URL параметры есть:', !!urlParams.user_id);
-        console.log('  - Полный URL:', window.location.href);
+        console.log('  - Telegram ID:', telegramId);
+        console.log('  - Источник:', urlHasTgId ? 'URL (tg_id)' : 'Telegram SDK');
+        console.log('  - URL:', window.location.href);
       } catch (debugError) {
         console.error('⚠️ Ошибка при обновлении debug карточки:', debugError);
       }
 
-      console.log('✅ Пользователь загружен и отображен в UI');
+      console.log('✅ Профиль загружен и отображен в UI');
     } else if (response.status === 404) {
-      // Create new user
-      const createResponse = await fetch('/api/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          telegram_id: tgUser.id,
+      console.log('⚠️ Пользователь не найден в БД, создаю нового...');
+
+      // Берем данные из Telegram SDK для создания пользователя
+      let userData = {
+        telegram_id: telegramId,
+        first_name: 'User',
+        username: '',
+        last_name: '',
+        language_code: '',
+        photo_url: null,
+        is_premium: false
+      };
+
+      if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+        const tgUser = window.tg.initDataUnsafe.user;
+        userData = {
+          telegram_id: telegramId,
           username: tgUser.username || '',
-          first_name: tgUser.first_name,
+          first_name: tgUser.first_name || 'User',
           last_name: tgUser.last_name || '',
           language_code: tgUser.language_code || '',
           photo_url: tgUser.photo_url || null,
           is_premium: tgUser.is_premium || false
-        })
+        };
+        console.log('📱 Данные пользователя из Telegram SDK:', tgUser);
+      } else {
+        console.log('⚠️ Telegram SDK недоступен, создаю с минимальными данными');
+      }
+
+      const createResponse = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
       });
 
       const createData = await createResponse.json();
       if (createData.success && createData.user) {
         window.currentUser = createData.user;
+        console.log('✅ Новый пользователь создан:', window.currentUser);
+
+        // Формируем полное имя
+        const fullName = window.currentUser.first_name + (window.currentUser.last_name ? ' ' + window.currentUser.last_name : '');
+
+        // Обновляем UI
         document.getElementById('username').textContent = fullName;
         document.getElementById('handle').textContent = '@' + (window.currentUser.username || 'user' + window.currentUser.telegram_id);
         document.getElementById('balance').textContent = (createData.balance || 0).toFixed(2);
 
+        // Обновляем аватар
         const avatar = document.getElementById('avatar');
-        if (tgUser.photo_url) {
-          avatar.innerHTML = `<img src="${tgUser.photo_url}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        const photoUrl = window.currentUser.photo_url;
+        if (photoUrl) {
+          avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
         } else {
           avatar.textContent = fullName.charAt(0).toUpperCase();
         }
 
-        // Update debug info
+        // Обновляем debug карточку
         try {
-          console.log('🔧 Обновляю debug карточку для нового пользователя...');
+          const urlHasTgId = window.location.search.includes('tg_id=');
+
           const debugTelegramId = document.getElementById('debug-telegram-id');
           const debugDataSource = document.getElementById('debug-data-source');
           const debugUrlParams = document.getElementById('debug-url-params');
           const debugPhotoStatus = document.getElementById('debug-photo-status');
           const debugFullUrl = document.getElementById('debug-full-url');
 
-          if (debugTelegramId) debugTelegramId.textContent = tgUser.id;
-          if (debugDataSource) debugDataSource.textContent = urlParams.user_id ? '✅ URL параметры' : '📱 Telegram SDK';
-          if (debugUrlParams) debugUrlParams.textContent = urlParams.user_id ? '✅ Да' : '❌ Нет';
-          if (debugPhotoStatus) debugPhotoStatus.textContent = tgUser.photo_url ? '✅ Есть' : '❌ Нет';
+          if (debugTelegramId) debugTelegramId.textContent = telegramId;
+          if (debugDataSource) debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
+          if (debugUrlParams) debugUrlParams.textContent = urlHasTgId ? '✅ Да' : '❌ Нет';
+          if (debugPhotoStatus) debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
           if (debugFullUrl) debugFullUrl.textContent = window.location.href;
 
-          console.log('✅ Debug карточка обновлена');
-          console.log('  - Telegram ID:', tgUser.id);
-          console.log('  - Источник:', urlParams.user_id ? 'URL параметры' : 'Telegram SDK');
-          console.log('  - URL параметры есть:', !!urlParams.user_id);
-          console.log('  - Полный URL:', window.location.href);
+          console.log('✅ Debug карточка обновлена для нового пользователя');
         } catch (debugError) {
           console.error('⚠️ Ошибка при обновлении debug карточки:', debugError);
         }
 
-        console.log('✅ Новый пользователь создан');
+        console.log('✅ Профиль нового пользователя отображен в UI');
       }
     }
   } catch (error) {

@@ -31,28 +31,16 @@ export class TelegramBotService {
     return process.env.WEB_APP_URL || "https://your-app-url.com";
   }
 
-  private buildWebAppUrlWithParams(user: any, photoUrl: string | null): string {
+  private buildWebAppUrlWithParams(telegramId: number): string {
     const baseUrl = this.getWebAppUrl();
-    const params = new URLSearchParams();
 
     console.log('🌐 Базовый URL из .env (WEB_APP_URL):', baseUrl);
-    console.log('📋 Формирую URL с данными пользователя:');
-    console.log('  - telegram_id:', user.telegram_id);
-    console.log('  - first_name:', user.first_name);
-    console.log('  - last_name:', user.last_name);
-    console.log('  - username:', user.username);
-    console.log('  - is_premium:', user.is_premium);
-    console.log('  - photo_url:', photoUrl);
+    console.log('📋 Передаю telegram_id через URL:', telegramId);
 
-    params.append('user_id', user.telegram_id.toString());
-    params.append('first_name', user.first_name || '');
-    if (user.last_name) params.append('last_name', user.last_name);
-    if (user.username) params.append('username', user.username);
-    if (photoUrl) params.append('photo_url', photoUrl);
-    if (user.is_premium) params.append('is_premium', 'true');
-
-    const finalUrl = `${baseUrl}?${params.toString()}`;
+    // Передаем только telegram_id - все остальные данные фронтенд загрузит из API
+    const finalUrl = `${baseUrl}?tg_id=${telegramId}`;
     console.log('✅ Сформирован URL:', finalUrl);
+    console.log('💡 Остальные данные (имя, фото, баланс) загрузятся из API автоматически');
 
     return finalUrl;
   }
@@ -144,14 +132,8 @@ export class TelegramBotService {
         });
       }
 
-      // Строим URL с параметрами пользователя
-      const webAppUrlWithParams = this.buildWebAppUrlWithParams({
-        telegram_id: telegramId,
-        first_name: msg.from?.first_name || user.first_name,
-        last_name: msg.from?.last_name,
-        username: msg.from?.username,
-        is_premium: (msg.from as any)?.is_premium || false,
-      }, photoUrl);
+      // Строим URL с telegram_id (остальные данные загрузятся из API)
+      const webAppUrlWithParams = this.buildWebAppUrlWithParams(telegramId);
 
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
