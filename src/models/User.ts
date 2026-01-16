@@ -104,6 +104,7 @@ export class UserModel {
       last_name?: string;
       photo_url?: string;
       is_premium?: boolean;
+      is_blocked?: boolean;
     }
   ): Promise<User> {
     const result = await pool.query(
@@ -113,8 +114,9 @@ export class UserModel {
            last_name = COALESCE($3, last_name),
            photo_url = COALESCE($4, photo_url),
            is_premium = COALESCE($5, is_premium),
+           is_blocked = COALESCE($6, is_blocked),
            last_activity = CURRENT_TIMESTAMP
-       WHERE id = $6
+       WHERE id = $7
        RETURNING *`,
       [
         data.first_name,
@@ -122,6 +124,7 @@ export class UserModel {
         data.last_name,
         data.photo_url,
         data.is_premium,
+        data.is_blocked,
         userId,
       ]
     );

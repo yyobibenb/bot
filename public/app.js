@@ -685,8 +685,13 @@ function showAdminSection(section) {
 
 // Load admin statistics
 async function loadAdminStats() {
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
   try {
-    const response = await fetch('/api/admin/stats/detailed');
+    const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
     const data = await response.json();
 
     if (data.success) {
@@ -718,8 +723,13 @@ async function loadUserInfo() {
     return;
   }
 
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
   try {
-    const response = await fetch(`/api/admin/user/${userId}`);
+    const response = await fetch(`/api/admin/user/${userId}?admin_id=${window.currentUser.id}`);
     const data = await response.json();
 
     if (data.success) {
@@ -761,6 +771,11 @@ async function editUserBalance(operation) {
     return;
   }
 
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
   const amount = parseFloat(document.getElementById('balance-amount-input').value);
 
   if (isNaN(amount) || amount <= 0) {
@@ -769,7 +784,7 @@ async function editUserBalance(operation) {
   }
 
   try {
-    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/edit-balance`, {
+    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/edit-balance?admin_id=${window.currentUser.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ operation, amount })
@@ -803,10 +818,15 @@ async function toggleBlockUser() {
     return;
   }
 
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
   const isCurrentlyBlocked = window.currentUserForEdit.is_blocked;
 
   try {
-    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/block`, {
+    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/block?admin_id=${window.currentUser.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ block: !isCurrentlyBlocked })
@@ -908,8 +928,13 @@ async function createBroadcast() {
 
 // Load broadcasts
 async function loadBroadcasts() {
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
   try {
-    const response = await fetch('/api/admin/broadcasts?limit=10');
+    const response = await fetch(`/api/admin/broadcasts?limit=10&admin_id=${window.currentUser.id}`);
     const data = await response.json();
 
     if (data.success) {
@@ -951,6 +976,11 @@ async function loadBroadcasts() {
 
 // Save RTP settings
 async function saveRTPSettings() {
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
   const games = ['dice', 'slots', 'rps', 'darts', 'football', 'basketball'];
   const gameIds = { dice: 1, slots: 2, rps: 3, darts: 4, football: 5, basketball: 6 };
 
@@ -963,7 +993,7 @@ async function saveRTPSettings() {
         return;
       }
 
-      await fetch(`/api/admin/games/${gameIds[game]}/rtp`, {
+      await fetch(`/api/admin/games/${gameIds[game]}/rtp?admin_id=${window.currentUser.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rtp })
@@ -983,6 +1013,11 @@ async function saveRTPSettings() {
 
 // Save global settings
 async function saveGlobalSettings() {
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
   const minDeposit = parseFloat(document.getElementById('setting-min-deposit').value);
   const minWithdrawal = parseFloat(document.getElementById('setting-min-withdrawal').value);
   const minBet = parseFloat(document.getElementById('setting-min-bet').value);
@@ -993,19 +1028,19 @@ async function saveGlobalSettings() {
   }
 
   try {
-    await fetch('/api/admin/settings/min_deposit', {
+    await fetch(`/api/admin/settings/min_deposit?admin_id=${window.currentUser.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: minDeposit.toString() })
     });
 
-    await fetch('/api/admin/settings/min_withdrawal', {
+    await fetch(`/api/admin/settings/min_withdrawal?admin_id=${window.currentUser.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: minWithdrawal.toString() })
     });
 
-    await fetch('/api/admin/settings/min_bet', {
+    await fetch(`/api/admin/settings/min_bet?admin_id=${window.currentUser.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: minBet.toString() })
