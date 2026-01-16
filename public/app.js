@@ -17,16 +17,19 @@ if (window.Telegram && window.Telegram.WebApp) {
 }
 
 // Показать URL информацию СРАЗУ при загрузке страницы
-(function showUrlInfoImmediately() {
-  console.log('📍 Показываю URL информацию сразу при загрузке...');
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('📍 Показываю URL сразу...');
 
-  // Показываем полный URL
   const fullUrl = window.location.href;
   const urlParamsString = window.location.search;
 
+  // Показываем полный URL
   const debugFullUrl = document.getElementById('debug-full-url');
   if (debugFullUrl) {
     debugFullUrl.textContent = fullUrl;
+    console.log('✅ URL показан:', fullUrl);
+  } else {
+    console.error('❌ Элемент debug-full-url не найден!');
   }
 
   // Проверяем наличие tg_id
@@ -48,22 +51,19 @@ if (window.Telegram && window.Telegram.WebApp) {
   const statusEl = document.getElementById('debug-loading-status');
   if (statusEl) {
     if (tgId) {
-      statusEl.textContent = '✅ URL содержит tg_id, загружаю данные из API...';
+      statusEl.textContent = '✅ URL содержит tg_id, загружаю...';
       statusEl.style.background = 'rgba(0, 255, 0, 0.2)';
       statusEl.style.color = '#00ff00';
     } else {
-      statusEl.textContent = '⚠️ URL не содержит tg_id, пробую Telegram SDK...';
+      statusEl.textContent = '⚠️ URL не содержит tg_id';
       statusEl.style.background = 'rgba(255, 165, 0, 0.2)';
       statusEl.style.color = '#ffaa00';
     }
   }
 
-  console.log('✅ URL информация показана:', {
-    url: fullUrl,
-    hasTgId: !!tgId,
-    tgId: tgId
-  });
-})();
+  console.log('URL:', fullUrl);
+  console.log('tg_id:', tgId || 'нет');
+});
 
 // Get telegram_id from URL or SDK
 function getTelegramId() {
