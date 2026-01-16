@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Проверка переменных</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #fff; }
+    .box { background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 8px; }
+    .label { color: #888; font-size: 12px; }
+    .value { color: #00ff00; font-size: 16px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Проверка настроек</h1>
+
+  <div class="box">
+    <div class="label">Твой URL (который сейчас открыт):</div>
+    <div class="value" id="url"></div>
+  </div>
+
+  <div class="box">
+    <div class="label">Должен быть (правильный формат):</div>
+    <div class="value">https://bot-rl59.onrender.com?tg_id=123456789#...</div>
+  </div>
+
+  <div class="box">
+    <div class="label">Есть ли ?tg_id= в URL:</div>
+    <div class="value" id="status"></div>
+  </div>
+
+  <div class="box" style="background: rgba(255,165,0,0.2); border: 2px solid orange;">
+    <div class="label">❗ Что делать если нет tg_id:</div>
+    <div style="margin-top: 10px; line-height: 1.6;">
+      <strong>1. Открой Render Dashboard</strong><br>
+      <strong>2. Найди свой сервис (bot)</strong><br>
+      <strong>3. Перейди в Environment</strong><br>
+      <strong>4. Добавь переменную:</strong><br>
+      &nbsp;&nbsp;&nbsp;Key: <code style="color: #00ff00;">WEB_APP_URL</code><br>
+      &nbsp;&nbsp;&nbsp;Value: <code style="color: #00ff00;">https://bot-rl59.onrender.com</code><br>
+      <strong>5. Save Changes</strong><br>
+      <strong>6. Дождись перезапуска бота</strong><br>
+      <strong>7. Отправь /start ЗАНОВО</strong><br>
+      <strong>8. Нажми на НОВУЮ кнопку</strong>
+    </div>
+  </div>
+
+  <script>
+    const url = window.location.href;
+    document.getElementById('url').textContent = url;
+
+    const hasTgId = url.includes('?tg_id=') || url.includes('&tg_id=');
+    const statusEl = document.getElementById('status');
+
+    if (hasTgId) {
+      statusEl.textContent = '✅ Да! URL содержит tg_id';
+      statusEl.style.color = '#00ff00';
+    } else {
+      statusEl.textContent = '❌ НЕТ! WEB_APP_URL не установлен на Render';
+      statusEl.style.color = '#ff5555';
+    }
+
+    console.log('URL:', url);
+    console.log('Есть tg_id:', hasTgId);
+  </script>
+</body>
+</html>
