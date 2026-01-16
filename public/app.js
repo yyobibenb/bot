@@ -16,6 +16,55 @@ if (window.Telegram && window.Telegram.WebApp) {
   console.error('❌ Telegram WebApp not found');
 }
 
+// Показать URL информацию СРАЗУ при загрузке страницы
+(function showUrlInfoImmediately() {
+  console.log('📍 Показываю URL информацию сразу при загрузке...');
+
+  // Показываем полный URL
+  const fullUrl = window.location.href;
+  const urlParamsString = window.location.search;
+
+  const debugFullUrl = document.getElementById('debug-full-url');
+  if (debugFullUrl) {
+    debugFullUrl.textContent = fullUrl;
+  }
+
+  // Проверяем наличие tg_id
+  const params = new URLSearchParams(urlParamsString);
+  const tgId = params.get('tg_id');
+
+  const debugUrlParams = document.getElementById('debug-url-params');
+  if (debugUrlParams) {
+    if (tgId) {
+      debugUrlParams.textContent = '✅ Да (tg_id=' + tgId + ')';
+      debugUrlParams.style.color = '#00ff00';
+    } else {
+      debugUrlParams.textContent = '❌ Нет';
+      debugUrlParams.style.color = '#ff5555';
+    }
+  }
+
+  // Обновляем статус
+  const statusEl = document.getElementById('debug-loading-status');
+  if (statusEl) {
+    if (tgId) {
+      statusEl.textContent = '✅ URL содержит tg_id, загружаю данные из API...';
+      statusEl.style.background = 'rgba(0, 255, 0, 0.2)';
+      statusEl.style.color = '#00ff00';
+    } else {
+      statusEl.textContent = '⚠️ URL не содержит tg_id, пробую Telegram SDK...';
+      statusEl.style.background = 'rgba(255, 165, 0, 0.2)';
+      statusEl.style.color = '#ffaa00';
+    }
+  }
+
+  console.log('✅ URL информация показана:', {
+    url: fullUrl,
+    hasTgId: !!tgId,
+    tgId: tgId
+  });
+})();
+
 // Get telegram_id from URL or SDK
 function getTelegramId() {
   // Сначала пробуем взять из URL
@@ -59,6 +108,14 @@ window.loadUserData = async function() {
   console.log('🆔 Telegram ID:', telegramId);
   console.log('📡 Загружаю все данные пользователя из API...');
 
+  // Обновляем статус загрузки
+  const statusEl = document.getElementById('debug-loading-status');
+  if (statusEl) {
+    statusEl.textContent = '📡 Загружаю профиль из базы данных...';
+    statusEl.style.background = 'rgba(0, 150, 255, 0.3)';
+    statusEl.style.color = '#87CEEB';
+  }
+
   try {
     // Загружаем пользователя из БД по telegram_id
     const response = await fetch(`/api/user/telegram/${telegramId}`);
@@ -94,15 +151,25 @@ window.loadUserData = async function() {
 
         const debugTelegramId = document.getElementById('debug-telegram-id');
         const debugDataSource = document.getElementById('debug-data-source');
-        const debugUrlParams = document.getElementById('debug-url-params');
         const debugPhotoStatus = document.getElementById('debug-photo-status');
-        const debugFullUrl = document.getElementById('debug-full-url');
+        const debugLoadingStatus = document.getElementById('debug-loading-status');
 
         if (debugTelegramId) debugTelegramId.textContent = telegramId;
-        if (debugDataSource) debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
-        if (debugUrlParams) debugUrlParams.textContent = urlHasTgId ? '✅ Да' : '❌ Нет';
-        if (debugPhotoStatus) debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
-        if (debugFullUrl) debugFullUrl.textContent = window.location.href;
+        if (debugDataSource) {
+          debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
+          debugDataSource.style.color = urlHasTgId ? '#00ff00' : '#ffaa00';
+        }
+        if (debugPhotoStatus) {
+          debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
+          debugPhotoStatus.style.color = photoUrl ? '#00ff00' : '#ff5555';
+        }
+
+        // Обновляем статус загрузки
+        if (debugLoadingStatus) {
+          debugLoadingStatus.textContent = '✅ Профиль загружен успешно!';
+          debugLoadingStatus.style.background = 'rgba(0, 255, 0, 0.2)';
+          debugLoadingStatus.style.color = '#00ff00';
+        }
 
         console.log('✅ Debug карточка обновлена');
         console.log('  - Telegram ID:', telegramId);
@@ -177,15 +244,25 @@ window.loadUserData = async function() {
 
           const debugTelegramId = document.getElementById('debug-telegram-id');
           const debugDataSource = document.getElementById('debug-data-source');
-          const debugUrlParams = document.getElementById('debug-url-params');
           const debugPhotoStatus = document.getElementById('debug-photo-status');
-          const debugFullUrl = document.getElementById('debug-full-url');
+          const debugLoadingStatus = document.getElementById('debug-loading-status');
 
           if (debugTelegramId) debugTelegramId.textContent = telegramId;
-          if (debugDataSource) debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
-          if (debugUrlParams) debugUrlParams.textContent = urlHasTgId ? '✅ Да' : '❌ Нет';
-          if (debugPhotoStatus) debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
-          if (debugFullUrl) debugFullUrl.textContent = window.location.href;
+          if (debugDataSource) {
+            debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
+            debugDataSource.style.color = urlHasTgId ? '#00ff00' : '#ffaa00';
+          }
+          if (debugPhotoStatus) {
+            debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
+            debugPhotoStatus.style.color = photoUrl ? '#00ff00' : '#ff5555';
+          }
+
+          // Обновляем статус загрузки
+          if (debugLoadingStatus) {
+            debugLoadingStatus.textContent = '✅ Новый пользователь создан!';
+            debugLoadingStatus.style.background = 'rgba(0, 255, 0, 0.2)';
+            debugLoadingStatus.style.color = '#00ff00';
+          }
 
           console.log('✅ Debug карточка обновлена для нового пользователя');
         } catch (debugError) {
@@ -197,6 +274,14 @@ window.loadUserData = async function() {
     }
   } catch (error) {
     console.error('❌ Ошибка загрузки:', error);
+
+    // Показываем ошибку в статусе
+    const statusEl = document.getElementById('debug-loading-status');
+    if (statusEl) {
+      statusEl.textContent = '❌ Ошибка загрузки: ' + error.message;
+      statusEl.style.background = 'rgba(255, 0, 0, 0.2)';
+      statusEl.style.color = '#ff5555';
+    }
   }
 };
 
