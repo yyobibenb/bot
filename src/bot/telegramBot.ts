@@ -25,6 +25,7 @@ export class TelegramBotService {
     this.bot.onText(/\/balance/, (msg) => this.handleBalance(msg));
     this.bot.onText(/\/help/, (msg) => this.handleHelp(msg));
     this.bot.onText(/\/ref/, (msg) => this.handleReferral(msg));
+    this.bot.onText(/\/debug/, (msg) => this.handleDebug(msg));
   }
 
   private getWebAppUrl(): string {
@@ -302,6 +303,34 @@ ${stats.referrals.length > 0 ? `\n👥 **Ваши рефералы:**\n${stats.r
       console.error("Error handling referral:", error);
       await this.bot.sendMessage(chatId, "❌ Ошибка при получении реферальной информации");
     }
+  }
+
+  private async handleDebug(msg: TelegramBot.Message) {
+    const chatId = msg.chat.id;
+    const telegramId = msg.from?.id;
+
+    const webAppUrl = this.getWebAppUrl();
+    const testUrl = telegramId ? this.buildWebAppUrlWithParams(telegramId) : 'нет ID';
+
+    const message = `
+🔍 **Проверка настроек**
+
+**WEB_APP_URL:**
+\`${webAppUrl}\`
+
+**Твой Telegram ID:**
+\`${telegramId}\`
+
+**Тестовый URL (с твоим ID):**
+\`${testUrl}\`
+
+**Проверка:**
+${webAppUrl === 'https://your-app-url.com' ? '❌ WEB_APP_URL НЕ УСТАНОВЛЕН!' : '✅ WEB_APP_URL установлен'}
+
+${webAppUrl.includes('bot-rl59.onrender.com') ? '✅ Правильный домен' : '⚠️ Проверь домен'}
+    `;
+
+    await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
   }
 
   start() {
