@@ -35,6 +35,14 @@ export class TelegramBotService {
     const baseUrl = this.getWebAppUrl();
     const params = new URLSearchParams();
 
+    console.log('📋 Формирую URL с данными пользователя:');
+    console.log('  - telegram_id:', user.telegram_id);
+    console.log('  - first_name:', user.first_name);
+    console.log('  - last_name:', user.last_name);
+    console.log('  - username:', user.username);
+    console.log('  - is_premium:', user.is_premium);
+    console.log('  - photo_url:', photoUrl);
+
     params.append('user_id', user.telegram_id.toString());
     params.append('first_name', user.first_name || '');
     if (user.last_name) params.append('last_name', user.last_name);
@@ -42,7 +50,10 @@ export class TelegramBotService {
     if (photoUrl) params.append('photo_url', photoUrl);
     if (user.is_premium) params.append('is_premium', 'true');
 
-    return `${baseUrl}?${params.toString()}`;
+    const finalUrl = `${baseUrl}?${params.toString()}`;
+    console.log('✅ Сформирован URL:', finalUrl);
+
+    return finalUrl;
   }
 
   private async handleStart(msg: TelegramBot.Message, referralCode?: string) {
