@@ -33,6 +33,7 @@ function getUrlParams() {
 window.loadUserData = async function() {
   // Сначала пробуем получить данные из URL параметров
   const urlParams = getUrlParams();
+  console.log('🔍 URL параметры:', urlParams);
 
   // Если нет URL параметров, пробуем использовать Telegram SDK
   let tgUser;
@@ -46,10 +47,10 @@ window.loadUserData = async function() {
       is_premium: urlParams.is_premium || false
     };
     window.userDataFromUrl = tgUser;
-    console.log('✅ Данные пользователя из URL параметров');
+    console.log('✅ Данные пользователя из URL параметров:', tgUser);
   } else if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
     tgUser = window.tg.initDataUnsafe.user;
-    console.log('✅ Данные пользователя из Telegram SDK');
+    console.log('✅ Данные пользователя из Telegram SDK:', tgUser);
   } else {
     console.error('❌ Нет данных пользователя');
     return;
@@ -64,6 +65,8 @@ window.loadUserData = async function() {
     if (response.ok) {
       const data = await response.json();
       window.currentUser = data.user;
+      console.log('💾 Пользователь из БД:', window.currentUser);
+      console.log('💰 Баланс:', data.balance);
 
       // Update UI
       document.getElementById('username').textContent = fullName;
@@ -73,13 +76,14 @@ window.loadUserData = async function() {
       const avatar = document.getElementById('avatar');
       // Используем photo_url из URL параметров или из базы данных
       const photoUrl = tgUser.photo_url || window.currentUser.photo_url;
+      console.log('📷 Аватар URL:', photoUrl);
       if (photoUrl) {
         avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
       } else {
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
-      console.log('✅ Пользователь загружен');
+      console.log('✅ Пользователь загружен и отображен в UI');
     } else if (response.status === 404) {
       // Create new user
       const createResponse = await fetch('/api/user', {
@@ -641,11 +645,17 @@ window.currentUserForEdit = null;
 
 // Check admin permission
 async function checkAdminPermission() {
-  if (!window.currentUser) return;
+  if (!window.currentUser) {
+    console.log('⚠️ Пропуск проверки админских прав - пользователь не загружен');
+    return;
+  }
+
+  console.log('🔐 Проверка админских прав для user_id:', window.currentUser.id);
 
   try {
     const response = await fetch(`/api/admin/check?user_id=${window.currentUser.id}`);
     const data = await response.json();
+    console.log('🔐 Результат проверки админа:', data);
 
     if (data.isAdmin) {
       window.isAdmin = true;
@@ -653,11 +663,14 @@ async function checkAdminPermission() {
       const adminTab = document.getElementById('admin-tab');
       if (adminTab) {
         adminTab.style.display = 'flex';
+        console.log('✅ Админская кнопка показана');
       }
-      console.log('✅ Админские права активированы');
+      console.log('✅ Админские права активированы для:', window.currentUser.first_name);
+    } else {
+      console.log('❌ Пользователь не является админом');
     }
   } catch (error) {
-    console.error('Ошибка проверки админских прав:', error);
+    console.error('❌ Ошибка проверки админских прав:', error);
   }
 }
 
@@ -1090,3 +1103,22 @@ async function saveGlobalSettings() {
 })();
 
 console.log('✅ App.js загружен полностью');
+
+// Debug функция для проверки статуса пользователя
+window.checkMyStatus = function() {
+  console.log('=== 📊 СТАТУС ПОЛЬЗОВАТЕЛЯ ===');
+  console.log('URL параметры:', getUrlParams());
+  console.log('Данные из URL:', window.userDataFromUrl);
+  console.log('Текущий пользователь:', window.currentUser);
+  console.log('Является админом:', window.isAdmin);
+  console.log('==============================');
+
+  if (!window.currentUser) {
+    console.warn('⚠️ Пользователь не загружен! Попробуйте перезагрузить страницу.');
+  } else {
+    console.log(`👤 ID: ${window.currentUser.id}`);
+    console.log(`📱 Telegram ID: ${window.currentUser.telegram_id}`);
+    console.log(`👨 Имя: ${window.currentUser.first_name}`);
+    console.log(`🔐 Админ: ${window.isAdmin ? 'ДА ✅' : 'НЕТ ❌'}`);
+  }
+};
