@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тест URL параметров</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .info-box {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+    }
+    .label {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .value {
+      font-size: 14px;
+      color: #FFD700;
+      font-weight: 600;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status.yes {
+      background: rgba(0, 255, 0, 0.3);
+      color: #00ff00;
+    }
+    .status.no {
+      background: rgba(255, 0, 0, 0.3);
+      color: #ff5555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Проверка URL параметров</h1>
+
+    <div class="info-box">
+      <div class="label">Полный URL:</div>
+      <div class="value" id="full-url"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">URL параметры (query string):</div>
+      <div class="value" id="query-string"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Telegram ID (user_id):</div>
+      <div class="value" id="user-id"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Имя (first_name):</div>
+      <div class="value" id="first-name"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Фамилия (last_name):</div>
+      <div class="value" id="last-name"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Username:</div>
+      <div class="value" id="username"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Фото (photo_url):</div>
+      <div class="value" id="photo-url"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Премиум (is_premium):</div>
+      <div class="value" id="is-premium"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Данные переданы через URL:</div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    // Показать полный URL
+    document.getElementById('full-url').textContent = window.location.href;
+
+    // Показать query string
+    const queryString = window.location.search;
+    document.getElementById('query-string').textContent = queryString || '❌ Пусто';
+
+    // Парсим параметры
+    const params = new URLSearchParams(queryString);
+
+    const userId = params.get('user_id');
+    const firstName = params.get('first_name');
+    const lastName = params.get('last_name');
+    const username = params.get('username');
+    const photoUrl = params.get('photo_url');
+    const isPremium = params.get('is_premium');
+
+    // Заполняем данные
+    document.getElementById('user-id').textContent = userId || '❌ Нет';
+    document.getElementById('first-name').textContent = firstName || '❌ Нет';
+    document.getElementById('last-name').textContent = lastName || '❌ Нет';
+    document.getElementById('username').textContent = username || '❌ Нет';
+    document.getElementById('photo-url').textContent = photoUrl ? '✅ Есть' : '❌ Нет';
+    document.getElementById('is-premium').textContent = isPremium || '❌ Нет';
+
+    // Статус
+    const statusDiv = document.getElementById('status');
+    if (userId) {
+      statusDiv.innerHTML = '<span class="status yes">✅ ДА - Параметры передаются!</span>';
+    } else {
+      statusDiv.innerHTML = '<span class="status no">❌ НЕТ - Параметры не передаются</span>';
+    }
+
+    // Логируем в консоль
+    console.log('=== ПРОВЕРКА URL ПАРАМЕТРОВ ===');
+    console.log('Полный URL:', window.location.href);
+    console.log('Query string:', queryString);
+    console.log('Распарсенные параметры:', {
+      user_id: userId,
+      first_name: firstName,
+      last_name: lastName,
+      username: username,
+      photo_url: photoUrl ? 'есть' : 'нет',
+      is_premium: isPremium
+    });
+  </script>
+</body>
+</html>

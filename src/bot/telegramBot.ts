@@ -35,6 +35,7 @@ export class TelegramBotService {
     const baseUrl = this.getWebAppUrl();
     const params = new URLSearchParams();
 
+    console.log('🌐 Базовый URL из .env (WEB_APP_URL):', baseUrl);
     console.log('📋 Формирую URL с данными пользователя:');
     console.log('  - telegram_id:', user.telegram_id);
     console.log('  - first_name:', user.first_name);
