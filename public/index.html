@@ -27,25 +27,32 @@
       </div>
 
       <!-- User Info Debug Card -->
-      <div class="balance-card" style="margin-top: 12px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3);">
-        <div class="balance-label">📋 Данные пользователя</div>
-        <div style="margin-top: 8px; font-size: 13px;">
-          <div class="stat-row" style="margin-bottom: 4px;">
-            <span style="color: var(--text-secondary);">Telegram ID:</span>
-            <span id="debug-telegram-id" style="color: var(--gold);">-</span>
+      <div class="balance-card" style="margin-top: 12px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15)); border: 2px solid rgba(255, 215, 0, 0.5); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);">
+        <div class="balance-label" style="font-size: 16px; font-weight: 700;">📋 Проверка передачи данных</div>
+        <div style="margin-top: 12px; font-size: 14px;">
+          <div class="stat-row" style="margin-bottom: 8px; padding: 8px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+            <span style="color: var(--text-secondary); font-weight: 600;">Telegram ID:</span>
+            <span id="debug-telegram-id" style="color: var(--gold); font-weight: 700;">Загрузка...</span>
           </div>
-          <div class="stat-row" style="margin-bottom: 4px;">
-            <span style="color: var(--text-secondary);">Источник:</span>
-            <span id="debug-data-source" style="color: var(--gold);">-</span>
+          <div class="stat-row" style="margin-bottom: 8px; padding: 8px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+            <span style="color: var(--text-secondary); font-weight: 600;">Источник данных:</span>
+            <span id="debug-data-source" style="color: var(--gold); font-weight: 700;">Загрузка...</span>
           </div>
-          <div class="stat-row" style="margin-bottom: 4px;">
-            <span style="color: var(--text-secondary);">URL параметры:</span>
-            <span id="debug-url-params" style="color: var(--gold);">-</span>
+          <div class="stat-row" style="margin-bottom: 8px; padding: 8px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+            <span style="color: var(--text-secondary); font-weight: 600;">URL параметры:</span>
+            <span id="debug-url-params" style="color: var(--gold); font-weight: 700;">Загрузка...</span>
           </div>
-          <div class="stat-row">
-            <span style="color: var(--text-secondary);">Фото:</span>
-            <span id="debug-photo-status" style="color: var(--gold);">-</span>
+          <div class="stat-row" style="margin-bottom: 8px; padding: 8px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+            <span style="color: var(--text-secondary); font-weight: 600;">Аватар:</span>
+            <span id="debug-photo-status" style="color: var(--gold); font-weight: 700;">Загрузка...</span>
           </div>
+          <div class="stat-row" style="margin-bottom: 0; padding: 8px; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+            <span style="color: var(--text-secondary); font-weight: 600;">Полный URL:</span>
+            <span id="debug-full-url" style="color: var(--gold); font-weight: 700; font-size: 11px; word-break: break-all;">Загрузка...</span>
+          </div>
+        </div>
+        <div style="margin-top: 12px; padding: 8px; background: rgba(0, 150, 255, 0.2); border-radius: 8px; font-size: 12px; color: #87CEEB;">
+          💡 <strong>Где смотреть:</strong> Эта карточка показывает как данные попали в Mini App. Если "URL параметры: ❌ Нет" - проверь .env и перезапусти бота.
         </div>
       </div>
 
