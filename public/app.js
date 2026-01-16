@@ -83,6 +83,12 @@ window.loadUserData = async function() {
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
+      // Update debug info
+      document.getElementById('debug-telegram-id').textContent = tgUser.id;
+      document.getElementById('debug-data-source').textContent = urlParams.user_id ? '✅ URL параметры' : '📱 Telegram SDK';
+      document.getElementById('debug-url-params').textContent = urlParams.user_id ? '✅ Да' : '❌ Нет';
+      document.getElementById('debug-photo-status').textContent = photoUrl ? '✅ Есть' : '❌ Нет';
+
       console.log('✅ Пользователь загружен и отображен в UI');
     } else if (response.status === 404) {
       // Create new user
@@ -113,6 +119,12 @@ window.loadUserData = async function() {
         } else {
           avatar.textContent = fullName.charAt(0).toUpperCase();
         }
+
+        // Update debug info
+        document.getElementById('debug-telegram-id').textContent = tgUser.id;
+        document.getElementById('debug-data-source').textContent = urlParams.user_id ? '✅ URL параметры' : '📱 Telegram SDK';
+        document.getElementById('debug-url-params').textContent = urlParams.user_id ? '✅ Да' : '❌ Нет';
+        document.getElementById('debug-photo-status').textContent = tgUser.photo_url ? '✅ Есть' : '❌ Нет';
 
         console.log('✅ Новый пользователь создан');
       }
