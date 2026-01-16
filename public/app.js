@@ -67,23 +67,29 @@ if (window.Telegram && window.Telegram.WebApp) {
 
 // Get telegram_id from URL or SDK
 function getTelegramId() {
-  // Сначала пробуем взять из URL
+  console.log('🔍 Ищу Telegram ID...');
+
+  // ПРИОРИТЕТ 1: Telegram SDK (самый надежный, всегда работает в Mini App)
+  if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+    const tgId = window.tg.initDataUnsafe.user.id;
+    console.log('✅ Telegram ID из Telegram SDK:', tgId);
+    console.log('💡 Используем SDK - он надежнее URL параметров');
+    return tgId;
+  }
+
+  // ПРИОРИТЕТ 2: URL параметры (запасной вариант, если SDK недоступен)
   const params = new URLSearchParams(window.location.search);
   const tgIdFromUrl = params.get('tg_id');
 
   if (tgIdFromUrl) {
     console.log('✅ Telegram ID из URL:', tgIdFromUrl);
+    console.log('⚠️ SDK недоступен, используем URL параметры');
     return parseInt(tgIdFromUrl);
   }
 
-  // Если нет в URL - берем из Telegram SDK
-  if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
-    const tgId = window.tg.initDataUnsafe.user.id;
-    console.log('✅ Telegram ID из Telegram SDK:', tgId);
-    return tgId;
-  }
-
   console.error('❌ Не удалось получить Telegram ID');
+  console.error('   - SDK недоступен:', !window.tg || !window.tg.initDataUnsafe || !window.tg.initDataUnsafe.user);
+  console.error('   - URL параметр отсутствует');
   return null;
 }
 
