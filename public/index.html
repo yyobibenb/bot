@@ -984,6 +984,7 @@
       <div class="admin-tabs">
         <button class="admin-tab active" onclick="showAdminSection('stats')">📊 Статистика</button>
         <button class="admin-tab" onclick="showAdminSection('users')">👥 Юзеры</button>
+        <button class="admin-tab" onclick="showAdminSection('control')">🎮 Контроль игр</button>
         <button class="admin-tab" onclick="showAdminSection('broadcast')">📢 Рассылки</button>
         <button class="admin-tab" onclick="showAdminSection('settings')">⚙️ Настройки</button>
       </div>
@@ -1058,6 +1059,84 @@
           </div>
 
           <button class="btn primary" style="width: 100%;" id="block-user-btn" onclick="toggleBlockUser()">🚫 Заблокировать</button>
+        </div>
+      </div>
+
+      <!-- Game Control Section -->
+      <div id="admin-control-section" class="admin-section">
+        <div class="balance-card" style="margin-bottom: 16px;">
+          <div class="balance-label">🎮 Контроль результатов игр</div>
+          <div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            Управляй результатами для контроля прибыли казино. Когда "Форсирование" включено, казино может принудительно показывать нужные результаты.
+          </div>
+
+          <div class="stat-row" style="margin-bottom: 16px; padding: 12px; background: rgba(24, 226, 154, 0.1); border-radius: 8px;">
+            <span style="font-weight: 600;">Форсирование результатов:</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="force-results-enabled" onchange="toggleForceResults()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div id="force-settings" style="display: none;">
+            <div style="margin-bottom: 12px;">
+              <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">
+                Процент форсированных проигрышей (0-100%):
+              </div>
+              <input type="range" id="force-loss-rate" class="range-slider" min="0" max="100" value="30" oninput="updateForceLossDisplay(this.value)">
+              <div style="text-align: center; color: var(--gold); font-weight: 600; margin-top: 4px;">
+                <span id="force-loss-display">30</span>% игр будут проигрышами
+              </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">
+                Применить к играм:
+              </div>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-dice" checked> 🎲 Кубик
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-bowling" checked> 🎳 Боулинг
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-football" checked> ⚽ Футбол
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-basketball" checked> 🏀 Баскетбол
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-darts" checked> 🎯 Дартс
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-slots" checked> 🎰 Слоты
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-rps" checked> 🪨 КНБ
+              </label>
+            </div>
+
+            <button class="btn primary" style="width: 100%;" onclick="saveForceSettings()">💾 Сохранить настройки</button>
+          </div>
+        </div>
+
+        <div class="balance-card">
+          <div class="balance-label">📊 Анализ прибыли</div>
+          <div style="margin-top: 12px;">
+            <div class="stat-row">
+              <span>Ставки сегодня:</span>
+              <span id="profit-bets-today">0 USDT</span>
+            </div>
+            <div class="stat-row">
+              <span>Выплаты сегодня:</span>
+              <span id="profit-wins-today">0 USDT</span>
+            </div>
+            <div class="stat-row" style="border-top: 1px solid var(--glass-border); padding-top: 8px; margin-top: 8px;">
+              <span style="font-weight: 600;">Прибыль казино:</span>
+              <span id="profit-total-today" style="font-weight: 600; color: var(--emerald);">0 USDT</span>
+            </div>
+          </div>
+          <button class="btn secondary" style="width: 100%; margin-top: 12px;" onclick="loadProfitStats()">🔄 Обновить</button>
         </div>
       </div>
 
