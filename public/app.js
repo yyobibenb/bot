@@ -1158,6 +1158,300 @@ function launchBowlingConfetti() {
   }, 5000);
 }
 
+// ========== FOOTBALL GAME ==========
+
+// Open Football Game
+function openFootballGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Update football screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('football-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const footballAvatar = document.getElementById('football-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      footballAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      footballAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('football-game-screen').classList.add('active');
+}
+
+// Open Football Play Screen
+function openFootballPlayScreen(mode, modeLabel, multiplier) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Store selected game mode
+  window.selectedFootballMode = mode;
+  window.selectedFootballMultiplier = multiplier;
+
+  // Update play screen title
+  const modeTitle = document.getElementById('football-play-mode-title');
+  modeTitle.textContent = `⚽ ${modeLabel} (x${multiplier})`;
+
+  // Update balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('football-play-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const playAvatar = document.getElementById('football-play-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      playAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      playAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Reset football emoji
+  document.getElementById('football-emoji').textContent = '⚽';
+
+  // Open play screen
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('football-play-screen').classList.add('active');
+}
+
+// Back to football modes
+function backToFootballModes() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('football-game-screen').classList.add('active');
+}
+
+// Play football game
+async function playFootballGame() {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  if (!window.selectedFootballMode) {
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: режим не выбран');
+    }
+    return;
+  }
+
+  const betAmount = parseFloat(document.getElementById('football-bet-input').value);
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const playBtn = document.getElementById('play-football-btn');
+  const footballEmoji = document.getElementById('football-emoji');
+
+  // Disable button and add spinning animation
+  playBtn.disabled = true;
+  playBtn.textContent = 'Бьём...';
+  footballEmoji.classList.add('spinning');
+
+  try {
+    let endpoint = '';
+    const body = {
+      user_id: window.currentUser.id,
+      bet_amount: betAmount
+    };
+
+    if (window.selectedFootballMode === 'goal') {
+      endpoint = '/api/games/football/goal';
+    } else if (window.selectedFootballMode === 'miss') {
+      endpoint = '/api/games/football/miss';
+    } else if (window.selectedFootballMode === 'duel') {
+      endpoint = '/api/games/football/duel';
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    setTimeout(() => {
+      footballEmoji.classList.remove('spinning');
+
+      if (data.success) {
+        // Show result with appropriate emoji/text
+        const resultNum = typeof data.result === 'number' ? data.result : parseInt(data.result);
+        if (resultNum >= 4) {
+          footballEmoji.textContent = '⚽🥅'; // Goal
+        } else if (resultNum === 3) {
+          footballEmoji.textContent = '🥅'; // Post
+        } else {
+          footballEmoji.textContent = '❌'; // Miss
+        }
+
+        // Update balance
+        if (data.newBalance !== undefined) {
+          document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          document.getElementById('football-balance-amount').textContent = data.newBalance.toFixed(2);
+          document.getElementById('football-play-balance-amount').textContent = data.newBalance.toFixed(2);
+        }
+
+        // Show result
+        if (data.isWin) {
+          // Win - show confetti and congratulations
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          launchFootballConfetti();
+
+          let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
+          if (window.selectedFootballMode === 'duel') {
+            resultMsg += `\n\nВаш удар: ${data.details?.userKick || ''}\nКазино: ${data.details?.casinoKick || ''}`;
+          } else if (window.selectedFootballMode === 'goal') {
+            resultMsg += `\n\n⚽ ГОЛ!`;
+          } else if (window.selectedFootballMode === 'miss') {
+            resultMsg += `\n\n❌ Мимо!`;
+          }
+
+          if (window.tg) {
+            window.tg.showAlert(resultMsg);
+          }
+
+          // Add to wins history
+          addFootballWinToHistory(data.winAmount, data.multiplier);
+        } else {
+          // Loss
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.impactOccurred('medium');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+
+      playBtn.disabled = false;
+      playBtn.textContent = 'ИГРАТЬ';
+    }, 1500);
+  } catch (error) {
+    footballEmoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = 'ИГРАТЬ';
+
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Football game error:', error);
+  }
+}
+
+// Add win to football history
+function addFootballWinToHistory(amount, multiplier) {
+  const winsList = document.getElementById('football-wins-list');
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+}
+
+// Football confetti animation
+function launchFootballConfetti() {
+  const canvas = document.getElementById('football-confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const particleCount = 150;
+  const colors = ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32', '#FF69B4'];
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 4 + 2,
+      d: Math.random() * particleCount,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0
+    });
+  }
+
+  let animationFrame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.lineWidth = p.r / 2;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+      ctx.stroke();
+
+      p.tiltAngle += p.tiltAngleIncremental;
+      p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+      p.x += Math.sin(p.d);
+      p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+      if (p.y > canvas.height) {
+        particles.splice(i, 1);
+      }
+    });
+
+    if (particles.length > 0) {
+      animationFrame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  draw();
+
+  setTimeout(() => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
+
 // ========== NEW GAMES ==========
 
 // Open Slots Game
@@ -1184,13 +1478,6 @@ function openDartsGame() {
   window.tg.showAlert('🎯 Дартс скоро будет доступен!\nИгра находится в разработке.');
 }
 
-// Open Football Game
-function openFootballGame() {
-  if (window.tg && window.tg.HapticFeedback) {
-    window.tg.HapticFeedback.impactOccurred('medium');
-  }
-  window.tg.showAlert('⚽ Футбол скоро будет доступен!\nИгра находится в разработке.');
-}
 
 // Open Basketball Game
 function openBasketballGame() {
