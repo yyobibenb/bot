@@ -145,12 +145,61 @@ window.loadUserData = async function() {
       debugLog('───────────────────────────────────────');
 
       const avatar = document.getElementById('avatar');
-      const photoUrl = window.currentUser.photo_url;
+
+      // ОПРЕДЕЛЯЕМ ИСТОЧНИК ФОТО
+      debugLog('🔍 Проверяю источники photo_url:');
+      debugLog('');
+
+      let photoUrl = null;
+      let photoSource = null;
+
+      // ПРИОРИТЕТ 1: Telegram SDK (может передавать photo_url!)
+      debugLog('1️⃣ Проверяю Telegram SDK...');
+      if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+        const sdkPhotoUrl = window.tg.initDataUnsafe.user.photo_url;
+        debugLog('   SDK user.photo_url: ' + (sdkPhotoUrl || 'НЕТ'));
+
+        if (sdkPhotoUrl) {
+          photoUrl = sdkPhotoUrl;
+          photoSource = 'Telegram SDK';
+          debugLog('   ✅ НАЙДЕН в SDK!', 'success');
+        } else {
+          debugLog('   ❌ В SDK нет photo_url');
+        }
+      } else {
+        debugLog('   ❌ SDK недоступен');
+      }
+
+      debugLog('');
+
+      // ПРИОРИТЕТ 2: База данных
+      debugLog('2️⃣ Проверяю БД...');
+      const dbPhotoUrl = window.currentUser.photo_url;
+      debugLog('   БД photo_url: ' + (dbPhotoUrl || 'NULL'));
+
+      if (!photoUrl && dbPhotoUrl) {
+        photoUrl = dbPhotoUrl;
+        photoSource = 'База данных';
+        debugLog('   ✅ Использую фото из БД', 'success');
+      } else if (!photoUrl && !dbPhotoUrl) {
+        debugLog('   ❌ В БД тоже NULL');
+      } else if (photoUrl && dbPhotoUrl) {
+        debugLog('   ℹ️ В БД есть, но использую SDK (приоритет)');
+      } else if (photoUrl && !dbPhotoUrl) {
+        debugLog('   ℹ️ В БД нет, но есть в SDK');
+      }
+
+      debugLog('');
+      debugLog('═══════════════════════════════════════');
+      debugLog('📷 ИТОГОВЫЙ РЕЗУЛЬТАТ:');
+      debugLog('═══════════════════════════════════════');
 
       if (photoUrl) {
-        debugLog('✅ Photo URL найден в БД!', 'success');
-        debugLog('📎 URL: ' + photoUrl.substring(0, 60) + '...');
-        debugLog('⏳ Пробую загрузить изображение...');
+        debugLog('✅ Photo URL НАЙДЕН!', 'success');
+        debugLog('📍 Источник: ' + photoSource, 'success');
+        debugLog('📎 URL: ' + photoUrl.substring(0, 80) + (photoUrl.length > 80 ? '...' : ''));
+        debugLog('⏳ Загружаю изображение...');
+        debugLog('');
 
         const img = new Image();
         img.onload = function() {
@@ -161,21 +210,26 @@ window.loadUserData = async function() {
         img.onerror = function() {
           debugLog('❌ ОШИБКА загрузки аватара!', 'error');
           debugLog('⚠️ Возможные причины:', 'error');
-          debugLog('  1. Неверный TELEGRAM_BOT_TOKEN', 'error');
-          debugLog('  2. Файл удалён из Telegram', 'error');
+          debugLog('  1. Неверный URL', 'error');
+          debugLog('  2. Файл удалён', 'error');
           debugLog('  3. Проблемы с сетью', 'error');
+          debugLog('  4. CORS блокировка', 'error');
           debugLog('💡 Показываю инициал вместо фото');
           avatar.textContent = fullName.charAt(0).toUpperCase();
         };
         img.src = photoUrl;
       } else {
-        debugLog('❌ Photo URL пустой или null!', 'warning');
-        debugLog('📌 Причины:', 'warning');
-        debugLog('  1. У тебя нет фото в Telegram', 'warning');
-        debugLog('  2. Бот не смог получить фото', 'warning');
-        debugLog('  3. Не настроены права бота', 'warning');
-        debugLog('💡 Решение: поставь аватарку в Telegram');
-        debugLog('💡 Затем отправь /start боту заново');
+        debugLog('❌ Photo URL НЕ НАЙДЕН ни в одном источнике!', 'error');
+        debugLog('');
+        debugLog('📌 Что проверили:', 'warning');
+        debugLog('  1. Telegram SDK → ' + (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user ? 'доступен, но photo_url пустой' : 'недоступен'));
+        debugLog('  2. База данных → photo_url = NULL');
+        debugLog('');
+        debugLog('💡 Решения:', 'warning');
+        debugLog('  1. Убедись что у тебя есть фото в Telegram');
+        debugLog('  2. Отправь /start боту чтобы бот получил фото');
+        debugLog('  3. Проверь права бота (getUserProfilePhotos)');
+        debugLog('');
         debugLog('🔤 Показываю инициал: ' + fullName.charAt(0).toUpperCase());
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
@@ -200,8 +254,14 @@ window.loadUserData = async function() {
       if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
         const tgUser = window.tg.initDataUnsafe.user;
         debugLog('📱 Данные из SDK: ' + JSON.stringify(tgUser));
-        debugLog('⚠️ SDK НЕ передаёт photo_url!', 'warning');
-        debugLog('📷 Бот получит фото при /start', 'info');
+        debugLog('🖼️ SDK photo_url: ' + (tgUser.photo_url || 'НЕТ'));
+
+        if (tgUser.photo_url) {
+          debugLog('✅ SDK ПЕРЕДАЁТ photo_url!', 'success');
+        } else {
+          debugLog('⚠️ В SDK нет photo_url', 'warning');
+          debugLog('📷 Бот получит фото при /start', 'info');
+        }
 
         userData = {
           telegram_id: telegramId,
@@ -209,7 +269,7 @@ window.loadUserData = async function() {
           first_name: tgUser.first_name || 'User',
           last_name: tgUser.last_name || '',
           language_code: tgUser.language_code || '',
-          photo_url: null, // SDK не передаёт photo_url
+          photo_url: tgUser.photo_url || null, // БЕРЁМ из SDK если есть!
           is_premium: tgUser.is_premium || false
         };
       } else {
@@ -241,25 +301,74 @@ window.loadUserData = async function() {
         debugLog('───────────────────────────────────────');
 
         const avatar = document.getElementById('avatar');
-        const photoUrl = window.currentUser.photo_url;
+
+        // ОПРЕДЕЛЯЕМ ИСТОЧНИК ФОТО (также как для существующего юзера)
+        debugLog('🔍 Проверяю источники photo_url:');
+        debugLog('');
+
+        let photoUrl = null;
+        let photoSource = null;
+
+        // ПРИОРИТЕТ 1: Telegram SDK
+        debugLog('1️⃣ Проверяю Telegram SDK...');
+        if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+          const sdkPhotoUrl = window.tg.initDataUnsafe.user.photo_url;
+          debugLog('   SDK user.photo_url: ' + (sdkPhotoUrl || 'НЕТ'));
+
+          if (sdkPhotoUrl) {
+            photoUrl = sdkPhotoUrl;
+            photoSource = 'Telegram SDK';
+            debugLog('   ✅ НАЙДЕН в SDK!', 'success');
+          } else {
+            debugLog('   ❌ В SDK нет photo_url');
+          }
+        } else {
+          debugLog('   ❌ SDK недоступен');
+        }
+
+        debugLog('');
+
+        // ПРИОРИТЕТ 2: База данных (только что созданный)
+        debugLog('2️⃣ Проверяю БД (только что создали)...');
+        const dbPhotoUrl = window.currentUser.photo_url;
+        debugLog('   БД photo_url: ' + (dbPhotoUrl || 'NULL'));
+
+        if (!photoUrl && dbPhotoUrl) {
+          photoUrl = dbPhotoUrl;
+          photoSource = 'База данных';
+          debugLog('   ✅ Использую из БД', 'success');
+        } else if (!photoUrl && !dbPhotoUrl) {
+          debugLog('   ❌ В БД тоже NULL');
+        } else if (photoUrl && !dbPhotoUrl) {
+          debugLog('   ℹ️ В БД нет, использую SDK');
+        }
+
+        debugLog('');
+        debugLog('═══════════════════════════════════════');
+        debugLog('📷 ИТОГОВЫЙ РЕЗУЛЬТАТ:');
+        debugLog('═══════════════════════════════════════');
 
         if (photoUrl) {
-          debugLog('✅ Photo URL найден!', 'success');
-          debugLog('📎 URL: ' + photoUrl.substring(0, 60) + '...');
-          debugLog('⏳ Загружаю аватар...');
+          debugLog('✅ Photo URL НАЙДЕН!', 'success');
+          debugLog('📍 Источник: ' + photoSource, 'success');
+          debugLog('📎 URL: ' + photoUrl.substring(0, 80) + (photoUrl.length > 80 ? '...' : ''));
+          debugLog('⏳ Загружаю изображение...');
+          debugLog('');
 
           const img = new Image();
           img.onload = function() {
             debugLog('✅ Аватар загружен!', 'success');
+            debugLog('🎨 Отображаю в профиле');
             avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
           };
           img.onerror = function() {
             debugLog('❌ Ошибка загрузки!', 'error');
+            debugLog('💡 Показываю инициал');
             avatar.textContent = fullName.charAt(0).toUpperCase();
           };
           img.src = photoUrl;
         } else {
-          debugLog('❌ Photo URL пустой!', 'warning');
+          debugLog('❌ Photo URL НЕ НАЙДЕН!', 'warning');
           debugLog('💡 Это нормально для нового юзера', 'info');
           debugLog('📷 Бот получит фото при следующем /start', 'info');
           debugLog('🔤 Показываю инициал: ' + fullName.charAt(0).toUpperCase());
