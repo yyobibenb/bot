@@ -700,6 +700,142 @@
       <canvas id="basketball-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
+    <!-- Darts Game Screen - Mode Selection -->
+    <div id="darts-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="darts-balance-amount">0.00</span> USDT
+          </div>
+          <div id="darts-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎯 Выбери режим</h2>
+
+      <!-- Game Modes List -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Red/Center -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>🎯 Красное/Центр</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🎯</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Попади в центр (результат 6)
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('red', 'Красное/Центр', 3.68)">
+            Играть
+          </button>
+        </div>
+
+        <!-- Mode: White -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>⚪ Белое</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🎯</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Попади в белое (результат 2-5)
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('white', 'Белое', 3.68)">
+            Играть
+          </button>
+        </div>
+
+        <!-- Mode: Center (alternative) -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>🔴 Середина</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🎯</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Попади в середину (результат 6)
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('center', 'Середина', 3.68)">
+            Играть
+          </button>
+        </div>
+
+        <!-- Mode: Miss -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>❌ Мимо</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🎯</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Промахнись (результат 1)
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('miss', 'Мимо', 3.68)">
+            Играть
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Darts Play Screen - Actual Game -->
+    <div id="darts-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToDartsModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="darts-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="darts-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="darts-play-mode-title" style="text-align: center; color: var(--gold); margin-bottom: 16px; font-size: 18px;">🎯 Красное/Центр (x3.68)</h3>
+
+        <!-- Darts Display with Emoji -->
+        <div class="dice-display-main">
+          <div class="dice-emoji" id="darts-emoji">🎯</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="darts-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-darts-btn" onclick="playDartsGame()">
+          ИГРАТЬ
+        </button>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="darts-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="darts-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
     <!-- Referral Screen -->
     <div id="referral-screen" class="screen">
       <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">👥 Рефералы</h2>

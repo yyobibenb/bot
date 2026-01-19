@@ -1740,6 +1740,302 @@ function launchBasketballConfetti() {
   }, 5000);
 }
 
+// ========== DARTS GAME ==========
+
+// Open Darts Game
+function openDartsGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Update darts screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('darts-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const dartsAvatar = document.getElementById('darts-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      dartsAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      dartsAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('darts-game-screen').classList.add('active');
+}
+
+// Open Darts Play Screen
+function openDartsPlayScreen(mode, modeLabel, multiplier) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Store selected game mode
+  window.selectedDartsMode = mode;
+  window.selectedDartsMultiplier = multiplier;
+
+  // Update play screen title
+  const modeTitle = document.getElementById('darts-play-mode-title');
+  modeTitle.textContent = `🎯 ${modeLabel} (x${multiplier})`;
+
+  // Update balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('darts-play-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const playAvatar = document.getElementById('darts-play-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      playAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      playAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Reset darts emoji
+  document.getElementById('darts-emoji').textContent = '🎯';
+
+  // Open play screen
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('darts-play-screen').classList.add('active');
+}
+
+// Back to darts modes
+function backToDartsModes() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('darts-game-screen').classList.add('active');
+}
+
+// Play darts game
+async function playDartsGame() {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  if (!window.selectedDartsMode) {
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: режим не выбран');
+    }
+    return;
+  }
+
+  const betAmount = parseFloat(document.getElementById('darts-bet-input').value);
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const playBtn = document.getElementById('play-darts-btn');
+  const dartsEmoji = document.getElementById('darts-emoji');
+
+  // Disable button and add spinning animation
+  playBtn.disabled = true;
+  playBtn.textContent = 'Бросаем...';
+  dartsEmoji.classList.add('spinning');
+
+  try {
+    let endpoint = '';
+    const body = {
+      user_id: window.currentUser.id,
+      bet_amount: betAmount
+    };
+
+    if (window.selectedDartsMode === 'red') {
+      endpoint = '/api/games/darts/red';
+    } else if (window.selectedDartsMode === 'white') {
+      endpoint = '/api/games/darts/white';
+    } else if (window.selectedDartsMode === 'center') {
+      endpoint = '/api/games/darts/center';
+    } else if (window.selectedDartsMode === 'miss') {
+      endpoint = '/api/games/darts/miss';
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    setTimeout(() => {
+      dartsEmoji.classList.remove('spinning');
+
+      if (data.success) {
+        // Show result with appropriate emoji
+        const resultNum = typeof data.result === 'number' ? data.result : parseInt(data.result);
+        if (resultNum === 6) {
+          dartsEmoji.textContent = '🎯🔴'; // Center/Red
+        } else if (resultNum >= 2 && resultNum <= 5) {
+          dartsEmoji.textContent = '🎯⚪'; // White
+        } else {
+          dartsEmoji.textContent = '❌'; // Miss
+        }
+
+        // Update balance
+        if (data.newBalance !== undefined) {
+          document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          document.getElementById('darts-balance-amount').textContent = data.newBalance.toFixed(2);
+          document.getElementById('darts-play-balance-amount').textContent = data.newBalance.toFixed(2);
+        }
+
+        // Show result
+        if (data.isWin) {
+          // Win - show confetti and congratulations
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          launchDartsConfetti();
+
+          let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
+          if (window.selectedDartsMode === 'red' || window.selectedDartsMode === 'center') {
+            resultMsg += `\n\n🎯 В центр!`;
+          } else if (window.selectedDartsMode === 'white') {
+            resultMsg += `\n\n⚪ В белое!`;
+          } else if (window.selectedDartsMode === 'miss') {
+            resultMsg += `\n\n❌ Мимо!`;
+          }
+
+          if (window.tg) {
+            window.tg.showAlert(resultMsg);
+          }
+
+          // Add to wins history
+          addDartsWinToHistory(data.winAmount, data.multiplier);
+        } else {
+          // Loss
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.impactOccurred('medium');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+
+      playBtn.disabled = false;
+      playBtn.textContent = 'ИГРАТЬ';
+    }, 1500);
+  } catch (error) {
+    dartsEmoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = 'ИГРАТЬ';
+
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Darts game error:', error);
+  }
+}
+
+// Add win to darts history
+function addDartsWinToHistory(amount, multiplier) {
+  const winsList = document.getElementById('darts-wins-list');
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+}
+
+// Darts confetti animation
+function launchDartsConfetti() {
+  const canvas = document.getElementById('darts-confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const particleCount = 150;
+  const colors = ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32', '#FF69B4'];
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 4 + 2,
+      d: Math.random() * particleCount,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0
+    });
+  }
+
+  let animationFrame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.lineWidth = p.r / 2;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+      ctx.stroke();
+
+      p.tiltAngle += p.tiltAngleIncremental;
+      p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+      p.x += Math.sin(p.d);
+      p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+      if (p.y > canvas.height) {
+        particles.splice(i, 1);
+      }
+    });
+
+    if (particles.length > 0) {
+      animationFrame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  draw();
+
+  setTimeout(() => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
+
 // ========== NEW GAMES ==========
 
 // Open Slots Game
@@ -1758,13 +2054,6 @@ function openRPSGame() {
   window.tg.showAlert('🪨 Камень-Ножницы-Бумага скоро будут доступны!\nИгра находится в разработке.');
 }
 
-// Open Darts Game
-function openDartsGame() {
-  if (window.tg && window.tg.HapticFeedback) {
-    window.tg.HapticFeedback.impactOccurred('medium');
-  }
-  window.tg.showAlert('🎯 Дартс скоро будет доступен!\nИгра находится в разработке.');
-}
 
 
 
