@@ -1033,3 +1033,92 @@ body {
   color: var(--text-primary);
   font-weight: 600;
 }
+
+/* Debug Logs */
+.debug-logs {
+  margin: 16px 0;
+  background: var(--glass-card);
+  backdrop-filter: var(--blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--glass-border);
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.debug-logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.debug-toggle {
+  background: rgba(24, 226, 154, 0.15);
+  color: var(--emerald);
+  border: 1px solid rgba(24, 226, 154, 0.3);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.debug-toggle:active {
+  transform: scale(0.95);
+  background: rgba(24, 226, 154, 0.25);
+}
+
+.debug-logs-content {
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.debug-log-entry {
+  padding: 4px 0;
+  color: var(--text-secondary);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.debug-log-entry.debug-log-success {
+  color: var(--emerald);
+  font-weight: 600;
+}
+
+.debug-log-entry.debug-log-error {
+  color: var(--accent-red);
+  font-weight: 600;
+}
+
+.debug-log-entry.debug-log-warning {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Scrollbar для логов */
+.debug-logs-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.debug-logs-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.debug-logs-content::-webkit-scrollbar-thumb {
+  background: rgba(24, 226, 154, 0.3);
+  border-radius: 3px;
+}
+
+.debug-logs-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(24, 226, 154, 0.5);
+}

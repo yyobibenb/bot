@@ -6,67 +6,96 @@ window.currentUser = null;
 window.selectedGameMode = null;
 window.userDataFromUrl = null;
 
+// Debug logging to screen
+let logsVisible = true;
+
+function debugLog(message, type = 'info') {
+  // Пишем в консоль
+  console.log(message);
+
+  // Пишем на экран
+  const logsContent = document.getElementById('debug-logs-content');
+  if (logsContent) {
+    const logEntry = document.createElement('div');
+    logEntry.className = `debug-log-entry debug-log-${type}`;
+    logEntry.textContent = message;
+    logsContent.appendChild(logEntry);
+
+    // Скроллим вниз
+    logsContent.scrollTop = logsContent.scrollHeight;
+  }
+}
+
+function toggleLogs() {
+  const logsContent = document.getElementById('debug-logs-content');
+  const toggleBtn = document.querySelector('.debug-toggle');
+
+  logsVisible = !logsVisible;
+
+  if (logsVisible) {
+    logsContent.style.display = 'block';
+    toggleBtn.textContent = 'Скрыть';
+  } else {
+    logsContent.style.display = 'none';
+    toggleBtn.textContent = 'Показать';
+  }
+}
+
+window.toggleLogs = toggleLogs;
+
 // Initialize Telegram WebApp
 if (window.Telegram && window.Telegram.WebApp) {
   window.tg = window.Telegram.WebApp;
   window.tg.ready();
   window.tg.expand();
-  console.log('✅ Telegram WebApp ready');
+  debugLog('✅ Telegram WebApp ready', 'success');
 } else {
-  console.error('❌ Telegram WebApp not found');
+  debugLog('❌ Telegram WebApp not found', 'error');
 }
 
 // Get telegram_id from Telegram SDK or URL
 function getTelegramId() {
-  console.log('');
-  console.log('═══════════════════════════════════════');
-  console.log('🔍 ДИАГНОСТИКА: Ищу telegram_id');
-  console.log('═══════════════════════════════════════');
+  debugLog('═══════════════════════════════════════');
+  debugLog('🔍 ДИАГНОСТИКА: Ищу telegram_id');
+  debugLog('═══════════════════════════════════════');
 
   // ПРИОРИТЕТ 1: Telegram SDK (ПРАВИЛЬНЫЙ способ для web_app кнопок)
-  console.log('1️⃣ Проверяю Telegram SDK...');
-  console.log('  window.tg существует:', !!window.tg);
+  debugLog('1️⃣ Проверяю Telegram SDK...');
+  debugLog('  window.tg существует: ' + (!!window.tg));
 
   if (window.tg) {
-    console.log('  window.tg.initDataUnsafe:', window.tg.initDataUnsafe);
-    console.log('  window.tg.initData:', window.tg.initData);
+    debugLog('  initDataUnsafe: ' + JSON.stringify(window.tg.initDataUnsafe));
 
     if (window.tg.initDataUnsafe) {
-      console.log('  window.tg.initDataUnsafe.user:', window.tg.initDataUnsafe.user);
+      debugLog('  user: ' + JSON.stringify(window.tg.initDataUnsafe.user));
 
       if (window.tg.initDataUnsafe.user) {
         const tgId = window.tg.initDataUnsafe.user.id;
-        console.log('✅ НАЙДЕН ID из Telegram SDK:', tgId);
-        console.log('═══════════════════════════════════════');
-        console.log('');
+        debugLog('✅ НАЙДЕН ID из SDK: ' + tgId, 'success');
+        debugLog('═══════════════════════════════════════');
         return tgId;
       }
     }
   }
 
-  console.log('❌ Telegram SDK не содержит данных пользователя');
+  debugLog('❌ SDK не содержит данных', 'error');
 
   // ПРИОРИТЕТ 2: URL параметры (fallback, если открыто напрямую)
-  console.log('');
-  console.log('2️⃣ Проверяю URL параметры...');
-  console.log('  URL:', window.location.href);
-  console.log('  Параметры:', window.location.search);
+  debugLog('2️⃣ Проверяю URL параметры...');
+  debugLog('  URL: ' + window.location.href);
 
   const params = new URLSearchParams(window.location.search);
   const tgIdFromUrl = params.get('tg_id');
 
   if (tgIdFromUrl) {
-    console.log('✅ НАЙДЕН ID из URL (fallback):', tgIdFromUrl);
-    console.log('═══════════════════════════════════════');
-    console.log('');
+    debugLog('✅ НАЙДЕН ID из URL: ' + tgIdFromUrl, 'success');
+    debugLog('═══════════════════════════════════════');
     return parseInt(tgIdFromUrl);
   }
 
-  console.log('❌ URL не содержит tg_id параметр');
-  console.log('');
-  console.error('🚨 ID НЕ НАЙДЕН ни в SDK, ни в URL!');
-  console.log('═══════════════════════════════════════');
-  console.log('');
+  debugLog('❌ URL не содержит tg_id', 'error');
+  debugLog('🚨 ID НЕ НАЙДЕН!', 'error');
+  debugLog('═══════════════════════════════════════');
   return null;
 }
 
