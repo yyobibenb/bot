@@ -65,25 +65,25 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('tg_id:', tgId || 'нет');
 });
 
-// Get telegram_id from URL or SDK
+// Get telegram_id from Telegram SDK or URL
 function getTelegramId() {
-  // ПРИОРИТЕТ 1: URL параметры (короткий tg_id)
+  // ПРИОРИТЕТ 1: Telegram SDK (ПРАВИЛЬНЫЙ способ для web_app кнопок)
+  if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
+    const tgId = window.tg.initDataUnsafe.user.id;
+    console.log('✅ ID из Telegram SDK:', tgId);
+    return tgId;
+  }
+
+  // ПРИОРИТЕТ 2: URL параметры (fallback, если открыто напрямую)
   const params = new URLSearchParams(window.location.search);
   const tgIdFromUrl = params.get('tg_id');
 
   if (tgIdFromUrl) {
-    console.log('✅ ID из URL:', tgIdFromUrl);
+    console.log('⚠️ ID из URL (fallback):', tgIdFromUrl);
     return parseInt(tgIdFromUrl);
   }
 
-  // ПРИОРИТЕТ 2: Telegram SDK (fallback)
-  if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
-    const tgId = window.tg.initDataUnsafe.user.id;
-    console.log('✅ ID из SDK:', tgId);
-    return tgId;
-  }
-
-  console.error('❌ ID не найден');
+  console.error('❌ ID не найден ни в SDK, ни в URL');
   return null;
 }
 

@@ -29,48 +29,19 @@ export class TelegramBotService {
   }
 
   private getWebAppUrl(): string {
-    return process.env.WEB_APP_URL || "https://your-app-url.com";
-  }
+    const url = process.env.WEB_APP_URL || "https://your-app-url.com";
 
-  private buildWebAppUrlWithParams(telegramId: number): string {
-    const baseUrl = this.getWebAppUrl();
-
-    console.log('');
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('🔗 ФОРМИРУЮ URL ДЛЯ MINI APP');
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('🌐 Базовый URL из .env (WEB_APP_URL):', baseUrl);
-    console.log('🆔 Telegram ID пользователя:', telegramId);
-
-    // Передаем только telegram_id - все остальные данные фронтенд загрузит из API
-    const finalUrl = `${baseUrl}?tg_id=${telegramId}`;
-
-    console.log('✅ Сформирован итоговый URL:', finalUrl);
-    console.log('');
-    console.log('💡 Что происходит:');
-    console.log('   1. Через URL передается ТОЛЬКО telegram_id');
-    console.log('   2. Все остальные данные (имя, фото, баланс) загрузятся из API');
-    console.log('   3. Это надежнее чем передавать всё через URL');
-    console.log('');
-    console.log('🔍 Проверка: URL должен содержать "?tg_id=' + telegramId + '"');
-
-    if (!baseUrl || baseUrl === 'https://your-app-url.com') {
-      console.log('');
-      console.log('⚠️  ВНИМАНИЕ! WEB_APP_URL не установлен или использует дефолтное значение!');
-      console.log('⚠️  Установи правильный WEB_APP_URL в .env файле!');
-      console.log('');
+    if (!url || url === 'https://your-app-url.com') {
+      console.error('⚠️ WEB_APP_URL не установлен в .env файле!');
     }
 
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('');
-
-    return finalUrl;
+    return url;
   }
 
   private async handleStart(msg: TelegramBot.Message, referralCode?: string) {
     const chatId = msg.chat.id;
     const telegramId = msg.from?.id;
-    const baseWebAppUrl = this.getWebAppUrl();
+    const webAppUrl = this.getWebAppUrl();
 
     if (!telegramId) {
       await this.bot.sendMessage(chatId, "❌ Ошибка: не удалось определить пользователя");
@@ -154,25 +125,27 @@ export class TelegramBotService {
         });
       }
 
-      // Строим URL с telegram_id (остальные данные загрузятся из API)
-      const webAppUrlWithParams = this.buildWebAppUrlWithParams(telegramId);
-
+      // Отправляем кнопку с Mini App
+      // ВАЖНО: Telegram НЕ передаёт URL параметры через web_app кнопки!
+      // Данные пользователя получаются через Telegram.WebApp.initDataUnsafe на фронтенде
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
           keyboard: [
-            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrlWithParams } }]
+            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
           ],
           resize_keyboard: true,
         },
       });
+
+      console.log(`✅ Mini App отправлен пользователю ${telegramId}`);
     } catch (error: any) {
       console.error("Error handling start:", error);
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
           keyboard: [
-            [{ text: "🚀 Открыть Mini App", web_app: { url: baseWebAppUrl } }]
+            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
           ],
           resize_keyboard: true,
         },
@@ -310,7 +283,6 @@ ${stats.referrals.length > 0 ? `\n👥 **Ваши рефералы:**\n${stats.r
     const telegramId = msg.from?.id;
 
     const webAppUrl = this.getWebAppUrl();
-    const testUrl = telegramId ? this.buildWebAppUrlWithParams(telegramId) : 'нет ID';
 
     const message = `
 🔍 **Проверка настроек**
@@ -321,13 +293,15 @@ ${stats.referrals.length > 0 ? `\n👥 **Ваши рефералы:**\n${stats.r
 **Твой Telegram ID:**
 \`${telegramId}\`
 
-**Тестовый URL (с твоим ID):**
-\`${testUrl}\`
-
 **Проверка:**
 ${webAppUrl === 'https://your-app-url.com' ? '❌ WEB_APP_URL НЕ УСТАНОВЛЕН!' : '✅ WEB_APP_URL установлен'}
 
 ${webAppUrl.includes('bot-rl59.onrender.com') ? '✅ Правильный домен' : '⚠️ Проверь домен'}
+
+**💡 Важно:**
+• Telegram НЕ передаёт URL параметры через web_app кнопки
+• Данные получаются через Telegram.WebApp.initDataUnsafe
+• Никакие параметры в URL добавлять не нужно
     `;
 
     await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
