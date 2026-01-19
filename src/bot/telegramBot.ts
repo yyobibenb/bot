@@ -126,15 +126,14 @@ export class TelegramBotService {
       }
 
       // Отправляем кнопку с Mini App
-      // ВАЖНО: Telegram НЕ передаёт URL параметры через web_app кнопки!
-      // Данные пользователя получаются через Telegram.WebApp.initDataUnsafe на фронтенде
+      // ВАЖНО: Используем inline_keyboard, а не keyboard!
+      // Только inline кнопки передают initDataUnsafe с данными пользователя
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
-          keyboard: [
+          inline_keyboard: [
             [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
           ],
-          resize_keyboard: true,
         },
       });
 
@@ -144,10 +143,9 @@ export class TelegramBotService {
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
-          keyboard: [
+          inline_keyboard: [
             [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
           ],
-          resize_keyboard: true,
         },
       });
     }
