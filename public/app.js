@@ -2594,6 +2594,8 @@ function showAdminSection(section) {
     loadAdminStats();
   } else if (section === 'broadcast') {
     loadBroadcasts();
+  } else if (section === 'control') {
+    loadProfitStats();
   }
 }
 
@@ -3023,3 +3025,120 @@ window.checkMyStatus = function() {
     console.log(`🔐 Админ: ${window.isAdmin ? 'ДА ✅' : 'НЕТ ❌'}`);
   }
 };
+
+// ========== GAME CONTROL FUNCTIONS ==========
+
+// Toggle force results
+function toggleForceResults() {
+  const enabled = document.getElementById('force-results-enabled').checked;
+  const settingsDiv = document.getElementById('force-settings');
+
+  if (enabled) {
+    settingsDiv.style.display = 'block';
+    if (window.tg && window.tg.HapticFeedback) {
+      window.tg.HapticFeedback.notificationOccurred('success');
+    }
+  } else {
+    settingsDiv.style.display = 'none';
+    if (window.tg && window.tg.HapticFeedback) {
+      window.tg.HapticFeedback.notificationOccurred('warning');
+    }
+  }
+}
+
+// Update force loss display
+function updateForceLossDisplay(value) {
+  document.getElementById('force-loss-display').textContent = value;
+}
+
+// Save force settings
+async function saveForceSettings() {
+  if (!window.currentUser || !window.isAdmin) {
+    if (window.tg) {
+      window.tg.showAlert('❌ Нет прав администратора');
+    }
+    return;
+  }
+
+  const enabled = document.getElementById('force-results-enabled').checked;
+  const lossRate = document.getElementById('force-loss-rate').value;
+
+  const games = {
+    dice: document.getElementById('force-dice').checked,
+    bowling: document.getElementById('force-bowling').checked,
+    football: document.getElementById('force-football').checked,
+    basketball: document.getElementById('force-basketball').checked,
+    darts: document.getElementById('force-darts').checked,
+    slots: document.getElementById('force-slots').checked,
+    rps: document.getElementById('force-rps').checked
+  };
+
+  try {
+    // Save to settings
+    await fetch('/api/admin/settings/force_results_enabled', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        admin_id: window.currentUser.id,
+        value: enabled ? '1' : '0'
+      })
+    });
+
+    await fetch('/api/admin/settings/force_loss_rate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        admin_id: window.currentUser.id,
+        value: lossRate
+      })
+    });
+
+    await fetch('/api/admin/settings/force_games', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        admin_id: window.currentUser.id,
+        value: JSON.stringify(games)
+      })
+    });
+
+    if (window.tg) {
+      window.tg.showAlert(`✅ Настройки сохранены!\n\nФорсирование: ${enabled ? 'Включено' : 'Выключено'}\nПроцент проигрышей: ${lossRate}%`);
+    }
+
+    if (window.tg && window.tg.HapticFeedback) {
+      window.tg.HapticFeedback.notificationOccurred('success');
+    }
+  } catch (error) {
+    console.error('Error saving force settings:', error);
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка сохранения настроек');
+    }
+  }
+}
+
+// Load profit stats
+async function loadProfitStats() {
+  if (!window.currentUser || !window.isAdmin) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
+    const data = await response.json();
+
+    if (data.success) {
+      // Calculate profit
+      const totalBets = data.stats.total_game_revenue || 0;
+      const totalWins = data.stats.total_game_payouts || 0;
+      const profit = totalBets - totalWins;
+
+      document.getElementById('profit-bets-today').textContent = `${totalBets.toFixed(2)} USDT`;
+      document.getElementById('profit-wins-today').textContent = `${totalWins.toFixed(2)} USDT`;
+      document.getElementById('profit-total-today').textContent = `${profit.toFixed(2)} USDT`;
+      document.getElementById('profit-total-today').style.color = profit >= 0 ? 'var(--emerald)' : 'var(--accent-red)';
+    }
+  } catch (error) {
+    console.error('Error loading profit stats:', error);
+  }
+}
