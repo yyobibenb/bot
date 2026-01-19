@@ -820,6 +820,499 @@ async function playDiceGame() {
   }
 }
 
+// ========== NEW UI: ALL-IN-ONE CARD FUNCTIONS ==========
+
+// Глобальная переменная для хранения выборов пользователя по каждому режиму
+window.diceChoices = {};
+
+// Функция для выбора кнопки в карточке (подсветка активной кнопки)
+function selectDiceChoice(button, mode, choice) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+
+  // Сохраняем выбор для этого режима
+  window.diceChoices[mode] = choice;
+
+  // Убираем класс active со всех кнопок в этой карточке
+  const card = button.closest('.dice-mode-card-full');
+  const allButtons = card.querySelectorAll('.dice-choice-btn, .dice-number-btn');
+  allButtons.forEach(btn => btn.classList.remove('active'));
+
+  // Добавляем класс active к нажатой кнопке
+  button.classList.add('active');
+}
+
+// Функция для игры прямо из карточки
+async function playDiceFromCard(mode, multiplier) {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  // Проверяем что пользователь выбрал вариант (кроме режимов sequence и duel)
+  if (mode !== 'sequence' && mode !== 'duel' && !window.diceChoices[mode]) {
+    if (window.tg) {
+      window.tg.showAlert('Выберите вариант перед игрой!');
+    } else {
+      alert('Выберите вариант перед игрой!');
+    }
+    return;
+  }
+
+  // Находим input для ставки в этой карточке
+  const betInput = document.querySelector(`input[data-mode="${mode}"]`);
+  const betAmount = parseFloat(betInput.value);
+
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  // Находим элементы в карточке
+  const card = betInput.closest('.dice-mode-card-full');
+  const playBtn = card.querySelector('.dice-play-btn');
+  const diceEmoji = card.querySelector('.dice-emoji-small');
+
+  // Disable button
+  playBtn.disabled = true;
+  const originalText = playBtn.textContent;
+  playBtn.textContent = 'Бросаем...';
+  diceEmoji.classList.add('spinning');
+
+  try {
+    let endpoint = '';
+    let body = {
+      user_id: window.currentUser.id,
+      bet_amount: betAmount
+    };
+
+    const choice = window.diceChoices[mode];
+
+    if (mode === 'higher-lower') {
+      endpoint = '/api/games/dice/higher-lower';
+      body.choice = choice;
+    } else if (mode === 'even-odd') {
+      endpoint = '/api/games/dice/even-odd';
+      body.choice = choice;
+    } else if (mode === 'exact') {
+      endpoint = '/api/games/dice/exact-number';
+      body.choice = parseInt(choice);
+    } else if (mode === '2x2') {
+      endpoint = '/api/games/dice/2x2';
+      body.choice = choice;
+    } else if (mode === '3x3') {
+      endpoint = '/api/games/dice/3x3';
+      body.choice = choice;
+    } else if (mode === 'sector') {
+      endpoint = '/api/games/dice/sector';
+      body.choice = parseInt(choice);
+    } else if (mode === 'sequence') {
+      endpoint = '/api/games/dice/sequence';
+    } else if (mode === 'duel') {
+      endpoint = '/api/games/dice/duel';
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    // ПОКАЗЫВАЕМ TELEGRAM-STYLE АНИМАЦИЮ с результатом с backend!
+    playTelegramStyleDiceAnimation(data.result, diceEmoji, () => {
+      if (data.success) {
+        // Обновляем баланс
+        const newBalance = parseFloat(data.new_balance || data.balance || 0);
+        document.getElementById('balance').textContent = newBalance.toFixed(2);
+        document.getElementById('dice-balance-amount').textContent = newBalance.toFixed(2);
+
+        if (data.won) {
+          // Выигрыш!
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          // Показываем сообщение о выигрыше
+          if (window.tg) {
+            window.tg.showAlert(`🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`);
+          } else {
+            alert(`🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`);
+          }
+        } else {
+          // Проигрыш
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('error');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+
+      playBtn.disabled = false;
+      playBtn.textContent = originalText;
+    });
+  } catch (error) {
+    diceEmoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = originalText;
+
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Dice game error:', error);
+  }
+}
+
+// ========== BOWLING GAME FROM CARD ==========
+async function playBowlingFromCard(mode, multiplier) {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  const betInput = document.querySelector(`input[data-mode="bowling-${mode}"]`);
+  const betAmount = parseFloat(betInput.value);
+
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const card = betInput.closest('.dice-mode-card-full');
+  const playBtn = card.querySelector('.dice-play-btn');
+  const emoji = card.querySelector('.dice-emoji-small');
+
+  playBtn.disabled = true;
+  const originalText = playBtn.textContent;
+  playBtn.textContent = 'Бросаем...';
+  emoji.classList.add('spinning');
+
+  try {
+    const endpoint = mode === 'strike' ? '/api/games/bowling/strike' : '/api/games/bowling/duel';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        bet_amount: betAmount
+      })
+    });
+
+    const data = await response.json();
+
+    playTelegramStyleDiceAnimation(data.result, emoji, () => {
+      if (data.success) {
+        const newBalance = parseFloat(data.new_balance || data.balance || 0);
+        document.getElementById('balance').textContent = newBalance.toFixed(2);
+        document.getElementById('bowling-balance-amount').textContent = newBalance.toFixed(2);
+
+        if (data.won) {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+          if (window.tg) {
+            window.tg.showAlert(`🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`);
+          }
+        } else {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('error');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+      playBtn.disabled = false;
+      playBtn.textContent = originalText;
+    });
+  } catch (error) {
+    emoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = originalText;
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Bowling game error:', error);
+  }
+}
+
+// ========== FOOTBALL GAME FROM CARD ==========
+async function playFootballFromCard(mode, multiplier) {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  const betInput = document.querySelector(`input[data-mode="football-${mode}"]`);
+  const betAmount = parseFloat(betInput.value);
+
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const card = betInput.closest('.dice-mode-card-full');
+  const playBtn = card.querySelector('.dice-play-btn');
+  const emoji = card.querySelector('.dice-emoji-small');
+
+  playBtn.disabled = true;
+  const originalText = playBtn.textContent;
+  playBtn.textContent = 'Бьём...';
+  emoji.classList.add('spinning');
+
+  try {
+    let endpoint = '';
+    if (mode === 'goal') endpoint = '/api/games/football/goal';
+    else if (mode === 'miss') endpoint = '/api/games/football/miss';
+    else if (mode === 'duel') endpoint = '/api/games/football/duel';
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        bet_amount: betAmount
+      })
+    });
+
+    const data = await response.json();
+
+    playTelegramStyleDiceAnimation(data.result, emoji, () => {
+      if (data.success) {
+        const newBalance = parseFloat(data.new_balance || data.balance || 0);
+        document.getElementById('balance').textContent = newBalance.toFixed(2);
+        document.getElementById('football-balance-amount').textContent = newBalance.toFixed(2);
+
+        if (data.won) {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+          if (window.tg) {
+            window.tg.showAlert(`⚽ Гол! +${data.win_amount.toFixed(2)}$`);
+          }
+        } else {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('error');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+      playBtn.disabled = false;
+      playBtn.textContent = originalText;
+    });
+  } catch (error) {
+    emoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = originalText;
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Football game error:', error);
+  }
+}
+
+// ========== BASKETBALL GAME FROM CARD ==========
+async function playBasketballFromCard(mode, multiplier) {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  const betInput = document.querySelector(`input[data-mode="basketball-${mode}"]`);
+  const betAmount = parseFloat(betInput.value);
+
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const card = betInput.closest('.dice-mode-card-full');
+  const playBtn = card.querySelector('.dice-play-btn');
+  const emoji = card.querySelector('.dice-emoji-small');
+
+  playBtn.disabled = true;
+  const originalText = playBtn.textContent;
+  playBtn.textContent = 'Бросаем...';
+  emoji.classList.add('spinning');
+
+  try {
+    const endpoint = mode === 'goal' ? '/api/games/basketball/goal' : '/api/games/basketball/miss';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        bet_amount: betAmount
+      })
+    });
+
+    const data = await response.json();
+
+    playTelegramStyleDiceAnimation(data.result, emoji, () => {
+      if (data.success) {
+        const newBalance = parseFloat(data.new_balance || data.balance || 0);
+        document.getElementById('balance').textContent = newBalance.toFixed(2);
+        document.getElementById('basketball-balance-amount').textContent = newBalance.toFixed(2);
+
+        if (data.won) {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+          if (window.tg) {
+            window.tg.showAlert(`🏀 Попал! +${data.win_amount.toFixed(2)}$`);
+          }
+        } else {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('error');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+      playBtn.disabled = false;
+      playBtn.textContent = originalText;
+    });
+  } catch (error) {
+    emoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = originalText;
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Basketball game error:', error);
+  }
+}
+
+// ========== DARTS GAME FROM CARD ==========
+async function playDartsFromCard(mode, multiplier) {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  const betInput = document.querySelector(`input[data-mode="darts-${mode}"]`);
+  const betAmount = parseFloat(betInput.value);
+
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const card = betInput.closest('.dice-mode-card-full');
+  const playBtn = card.querySelector('.dice-play-btn');
+  const emoji = card.querySelector('.dice-emoji-small');
+
+  playBtn.disabled = true;
+  const originalText = playBtn.textContent;
+  playBtn.textContent = 'Бросаем...';
+  emoji.classList.add('spinning');
+
+  try {
+    let endpoint = '';
+    if (mode === 'red') endpoint = '/api/games/darts/red';
+    else if (mode === 'white') endpoint = '/api/games/darts/white';
+    else if (mode === 'center') endpoint = '/api/games/darts/center';
+    else if (mode === 'miss') endpoint = '/api/games/darts/miss';
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        bet_amount: betAmount
+      })
+    });
+
+    const data = await response.json();
+
+    playTelegramStyleDiceAnimation(data.result, emoji, () => {
+      if (data.success) {
+        const newBalance = parseFloat(data.new_balance || data.balance || 0);
+        document.getElementById('balance').textContent = newBalance.toFixed(2);
+        document.getElementById('darts-balance-amount').textContent = newBalance.toFixed(2);
+
+        if (data.won) {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+          if (window.tg) {
+            window.tg.showAlert(`🎯 Попал! +${data.win_amount.toFixed(2)}$`);
+          }
+        } else {
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('error');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+      playBtn.disabled = false;
+      playBtn.textContent = originalText;
+    });
+  } catch (error) {
+    emoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = originalText;
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Darts game error:', error);
+  }
+}
+
 // Add win to history
 function addWinToHistory(amount, multiplier) {
   const winsList = document.getElementById('wins-list');

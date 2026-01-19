@@ -146,7 +146,7 @@
       </div>
     </div>
 
-    <!-- Dice Game Screen - Mode Selection -->
+    <!-- Dice Game Screen - All-in-One Cards -->
     <div id="dice-game-screen" class="screen">
       <!-- Header with Balance and Avatar -->
       <div class="dice-header">
@@ -159,172 +159,220 @@
         </div>
       </div>
 
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎲 Выбери режим</h2>
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎲 Кости</h2>
 
-      <!-- Game Modes List (Scrollable) -->
+      <!-- Game Modes List (Scrollable) - каждая карточка содержит всё: выбор + ставка + кнопка играть -->
       <div class="dice-modes-scroll">
 
         <!-- Mode: Higher/Lower -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🎲 Больше / Меньше</h3>
             <span class="dice-mode-coef">x1.89</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-higher-lower">🎲</div>
           </div>
           <div class="dice-mode-buttons">
-            <button class="dice-choice-btn" onclick="openPlayScreen('higher', 'higher-lower', 'Больше 3', 1.89)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, 'higher-lower', 'higher')">
               Больше 3
             </button>
-            <button class="dice-choice-btn" onclick="openPlayScreen('lower', 'higher-lower', 'Меньше 4', 1.89)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, 'higher-lower', 'lower')">
               Меньше 4
             </button>
           </div>
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="higher-lower">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('higher-lower', 1.89)">
+            ИГРАТЬ
+          </button>
         </div>
 
         <!-- Mode: Even/Odd -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🎯 Четное / Нечетное</h3>
             <span class="dice-mode-coef">x1.9</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-even-odd">🎲</div>
           </div>
           <div class="dice-mode-buttons">
-            <button class="dice-choice-btn" onclick="openPlayScreen('even', 'even-odd', 'Четное', 1.9)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, 'even-odd', 'even')">
               Четное
             </button>
-            <button class="dice-choice-btn" onclick="openPlayScreen('odd', 'even-odd', 'Нечетное', 1.9)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, 'even-odd', 'odd')">
               Нечетное
             </button>
           </div>
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="even-odd">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('even-odd', 1.9)">
+            ИГРАТЬ
+          </button>
         </div>
 
         <!-- Mode: Exact Number -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🎰 Точное число</h3>
             <span class="dice-mode-coef">x5.5</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-exact">🎲</div>
           </div>
           <div class="dice-mode-buttons-grid">
-            <button class="dice-number-btn" onclick="openPlayScreen(1, 'exact', 'Число 1', 5.5)">1</button>
-            <button class="dice-number-btn" onclick="openPlayScreen(2, 'exact', 'Число 2', 5.5)">2</button>
-            <button class="dice-number-btn" onclick="openPlayScreen(3, 'exact', 'Число 3', 5.5)">3</button>
-            <button class="dice-number-btn" onclick="openPlayScreen(4, 'exact', 'Число 4', 5.5)">4</button>
-            <button class="dice-number-btn" onclick="openPlayScreen(5, 'exact', 'Число 5', 5.5)">5</button>
-            <button class="dice-number-btn" onclick="openPlayScreen(6, 'exact', 'Число 6', 5.5)">6</button>
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'exact', 1)">1</button>
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'exact', 2)">2</button>
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'exact', 3)">3</button>
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'exact', 4)">4</button>
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'exact', 5)">5</button>
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'exact', 6)">6</button>
           </div>
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="exact">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('exact', 5.5)">
+            ИГРАТЬ
+          </button>
         </div>
 
         <!-- Mode: 2x2 -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🎯 Больше/Меньше 2X2</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-2x2">🎲</div>
           </div>
           <div class="dice-mode-buttons">
-            <button class="dice-choice-btn" onclick="openPlayScreen('higher', '2x2', 'Больше 2 раза', 3.68)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, '2x2', 'higher')">
               Больше 2X
             </button>
-            <button class="dice-choice-btn" onclick="openPlayScreen('lower', '2x2', 'Меньше 2 раза', 3.68)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, '2x2', 'lower')">
               Меньше 2X
             </button>
           </div>
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="2x2">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('2x2', 3.68)">
+            ИГРАТЬ
+          </button>
         </div>
 
         <!-- Mode: 3x3 -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🔥 Больше/Меньше 3X3</h3>
             <span class="dice-mode-coef">x5.52</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-3x3">🎲</div>
           </div>
           <div class="dice-mode-buttons">
-            <button class="dice-choice-btn" onclick="openPlayScreen('higher', '3x3', 'Больше 3 раза', 5.52)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, '3x3', 'higher')">
               Больше 3X
             </button>
-            <button class="dice-choice-btn" onclick="openPlayScreen('lower', '3x3', 'Меньше 3 раза', 5.52)">
+            <button class="dice-choice-btn" onclick="selectDiceChoice(this, '3x3', 'lower')">
               Меньше 3X
             </button>
           </div>
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="3x3">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('3x3', 5.52)">
+            ИГРАТЬ
+          </button>
         </div>
 
         <!-- Mode: Sector -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🎪 Сектор</h3>
             <span class="dice-mode-coef">x2.76</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-sector">🎲</div>
           </div>
           <div class="dice-mode-buttons-grid">
-            <button class="dice-number-btn" onclick="openPlayScreen(1, 'sector', 'Сектор 1 (1-2)', 2.76)">
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'sector', 1)">
               1-2
             </button>
-            <button class="dice-number-btn" onclick="openPlayScreen(2, 'sector', 'Сектор 2 (3-4)', 2.76)">
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'sector', 2)">
               3-4
             </button>
-            <button class="dice-number-btn" onclick="openPlayScreen(3, 'sector', 'Сектор 3 (5-6)', 2.76)">
+            <button class="dice-number-btn" onclick="selectDiceChoice(this, 'sector', 3)">
               5-6
             </button>
           </div>
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="sector">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('sector', 2.76)">
+            ИГРАТЬ
+          </button>
         </div>
 
         <!-- Mode: Sequence -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>📊 Подряд</h3>
             <span class="dice-mode-coef">x5.52</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-sequence">🎲</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Угадай 3 числа подряд
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openPlayScreen('sequence', 'sequence', 'Подряд 3 числа', 5.52)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="sequence">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('sequence', 5.52)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: Duel -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>⚔️ Дуэль</h3>
             <span class="dice-mode-coef">x1.84</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎲</div>
+            <div class="dice-emoji-small" id="dice-emoji-duel">🎲</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Дуэль кубиков с казино
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openPlayScreen('duel', 'duel', 'Дуэль', 1.84)">
-            Начать дуэль
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="duel">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDiceFromCard('duel', 1.84)">
+            НАЧАТЬ ДУЭЛЬ
           </button>
         </div>
 
         <!-- Placeholder for more modes -->
-        <div class="dice-mode-card disabled-mode">
+        <div class="dice-mode-card-full disabled-mode" style="pointer-events: none; opacity: 0.6;">
           <div class="dice-mode-header">
             <h3>⭐ Дополнительные режимы</h3>
             <span class="dice-mode-coef">Скоро</span>
           </div>
-          <div class="dice-display-area">
-            <div style="font-size: 14px; color: var(--text-secondary); text-align: center;">
-              Ещё больше режимов игры появятся совсем скоро!
-            </div>
+          <div style="font-size: 14px; color: var(--text-secondary); text-align: center; padding: 20px 0;">
+            Ещё больше режимов игры появятся совсем скоро!
           </div>
         </div>
 
@@ -381,7 +429,7 @@
       <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
-    <!-- Bowling Game Screen - Mode Selection -->
+    <!-- Bowling Game Screen - All-in-One Cards -->
     <div id="bowling-game-screen" class="screen">
       <!-- Header with Balance and Avatar -->
       <div class="dice-header">
@@ -394,42 +442,50 @@
         </div>
       </div>
 
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎳 Выбери режим</h2>
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎳 Боулинг</h2>
 
       <!-- Game Modes List -->
       <div class="dice-modes-scroll">
 
         <!-- Mode: Strike -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🎳 Страйк</h3>
             <span class="dice-mode-coef">x1.84</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎳</div>
+            <div class="dice-emoji-small" id="bowling-emoji-strike">🎳</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Сбей все 6 кеглей
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openBowlingPlayScreen('strike', 'Страйк', 1.84)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="bowling-strike">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playBowlingFromCard('strike', 1.84)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: Duel -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>⚔️ Дуэль</h3>
             <span class="dice-mode-coef">x1.84</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎳</div>
+            <div class="dice-emoji-small" id="bowling-emoji-duel">🎳</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Дуэль боулинга с казино
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openBowlingPlayScreen('duel', 'Дуэль', 1.84)">
-            Начать дуэль
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="bowling-duel">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playBowlingFromCard('duel', 1.84)">
+            НАЧАТЬ ДУЭЛЬ
           </button>
         </div>
 
@@ -483,7 +539,7 @@
       <canvas id="bowling-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
-    <!-- Football Game Screen - Mode Selection -->
+    <!-- Football Game Screen - All-in-One Cards -->
     <div id="football-game-screen" class="screen">
       <!-- Header with Balance and Avatar -->
       <div class="dice-header">
@@ -496,59 +552,71 @@
         </div>
       </div>
 
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">⚽ Выбери режим</h2>
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">⚽ Футбол</h2>
 
       <!-- Game Modes List -->
       <div class="dice-modes-scroll">
 
         <!-- Mode: Goal -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>⚽ Гол</h3>
             <span class="dice-mode-coef">x1.33</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">⚽</div>
+            <div class="dice-emoji-small" id="football-emoji-goal">⚽</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Забей гол (результат 4 или 5)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openFootballPlayScreen('goal', 'Гол', 1.33)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="football-goal">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playFootballFromCard('goal', 1.33)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: Miss -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>❌ Мимо</h3>
             <span class="dice-mode-coef">x1.84</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">⚽</div>
+            <div class="dice-emoji-small" id="football-emoji-miss">⚽</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Промахнись (результат 1 или 2)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openFootballPlayScreen('miss', 'Мимо', 1.84)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="football-miss">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playFootballFromCard('miss', 1.84)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: Duel -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>⚔️ Дуэль</h3>
             <span class="dice-mode-coef">x1.84</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">⚽</div>
+            <div class="dice-emoji-small" id="football-emoji-duel">⚽</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Дуэль футбола с казино
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openFootballPlayScreen('duel', 'Дуэль', 1.84)">
-            Начать дуэль
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="football-duel">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playFootballFromCard('duel', 1.84)">
+            НАЧАТЬ ДУЭЛЬ
           </button>
         </div>
 
@@ -602,7 +670,7 @@
       <canvas id="football-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
-    <!-- Basketball Game Screen - Mode Selection -->
+    <!-- Basketball Game Screen - All-in-One Cards -->
     <div id="basketball-game-screen" class="screen">
       <!-- Header with Balance and Avatar -->
       <div class="dice-header">
@@ -615,42 +683,50 @@
         </div>
       </div>
 
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🏀 Выбери режим</h2>
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🏀 Баскетбол</h2>
 
       <!-- Game Modes List -->
       <div class="dice-modes-scroll">
 
         <!-- Mode: Goal -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🏀 Попадание</h3>
             <span class="dice-mode-coef">x1.84</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🏀</div>
+            <div class="dice-emoji-small" id="basketball-emoji-goal">🏀</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Попади в кольцо (результат 4 или 5)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openBasketballPlayScreen('goal', 'Попадание', 1.84)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="basketball-goal">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playBasketballFromCard('goal', 1.84)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: Miss -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>❌ Промах</h3>
             <span class="dice-mode-coef">x1.33</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🏀</div>
+            <div class="dice-emoji-small" id="basketball-emoji-miss">🏀</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Промахнись (результат 1, 2 или 3)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openBasketballPlayScreen('miss', 'Промах', 1.33)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="basketball-miss">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playBasketballFromCard('miss', 1.33)">
+            ИГРАТЬ
           </button>
         </div>
 
@@ -704,7 +780,7 @@
       <canvas id="basketball-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
-    <!-- Darts Game Screen - Mode Selection -->
+    <!-- Darts Game Screen - All-in-One Cards -->
     <div id="darts-game-screen" class="screen">
       <!-- Header with Balance and Avatar -->
       <div class="dice-header">
@@ -717,76 +793,92 @@
         </div>
       </div>
 
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎯 Выбери режим</h2>
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎯 Дартс</h2>
 
       <!-- Game Modes List -->
       <div class="dice-modes-scroll">
 
         <!-- Mode: Red/Center -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🎯 Красное/Центр</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎯</div>
+            <div class="dice-emoji-small" id="darts-emoji-red">🎯</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Попади в центр (результат 6)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('red', 'Красное/Центр', 3.68)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-red">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDartsFromCard('red', 3.68)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: White -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>⚪ Белое</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎯</div>
+            <div class="dice-emoji-small" id="darts-emoji-white">🎯</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Попади в белое (результат 2-5)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('white', 'Белое', 3.68)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-white">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDartsFromCard('white', 3.68)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: Center (alternative) -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>🔴 Середина</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎯</div>
+            <div class="dice-emoji-small" id="darts-emoji-center">🎯</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Попади в середину (результат 6)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('center', 'Середина', 3.68)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-center">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDartsFromCard('center', 3.68)">
+            ИГРАТЬ
           </button>
         </div>
 
         <!-- Mode: Miss -->
-        <div class="dice-mode-card">
+        <div class="dice-mode-card-full">
           <div class="dice-mode-header">
             <h3>❌ Мимо</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
           <div class="dice-display-area">
-            <div class="dice-result">🎯</div>
+            <div class="dice-emoji-small" id="darts-emoji-miss">🎯</div>
           </div>
           <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
             Промахнись (результат 1)
           </div>
-          <button class="dice-choice-btn" style="width: 100%;" onclick="openDartsPlayScreen('miss', 'Мимо', 3.68)">
-            Играть
+          <div class="dice-bet-input-section">
+            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-miss">
+            <span class="dice-bet-currency">$</span>
+          </div>
+          <button class="dice-play-btn" onclick="playDartsFromCard('miss', 3.68)">
+            ИГРАТЬ
           </button>
         </div>
 
