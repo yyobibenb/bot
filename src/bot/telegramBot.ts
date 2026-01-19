@@ -27,10 +27,8 @@ export class TelegramBotService {
     this.bot.onText(/\/ref/, (msg) => this.handleReferral(msg));
     this.bot.onText(/\/debug/, (msg) => this.handleDebug(msg));
 
-    // Обработчики keyboard кнопок
+    // Обработчик keyboard кнопки
     this.bot.onText(/🚀 Открыть Casino/, (msg) => this.handleOpenMiniApp(msg));
-    this.bot.onText(/💰 Баланс/, (msg) => this.handleBalance(msg));
-    this.bot.onText(/👥 Рефералы/, (msg) => this.handleReferral(msg));
   }
 
   private getWebAppUrl(): string {
@@ -199,8 +197,7 @@ export class TelegramBotService {
         parse_mode: "Markdown",
         reply_markup: {
           keyboard: [
-            [{ text: "🚀 Открыть Casino" }],
-            [{ text: "💰 Баланс" }, { text: "👥 Рефералы" }]
+            [{ text: "🚀 Открыть Casino" }]
           ],
           resize_keyboard: true,
         },
@@ -213,8 +210,7 @@ export class TelegramBotService {
         parse_mode: "Markdown",
         reply_markup: {
           keyboard: [
-            [{ text: "🚀 Открыть Casino" }],
-            [{ text: "💰 Баланс" }, { text: "👥 Рефералы" }]
+            [{ text: "🚀 Открыть Casino" }]
           ],
           resize_keyboard: true,
         },
