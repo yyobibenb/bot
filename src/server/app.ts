@@ -110,11 +110,21 @@ app.post("/api/user", async (req, res) => {
 app.get("/api/user/telegram/:telegram_id", async (req, res) => {
   try {
     const telegram_id = parseInt(req.params.telegram_id);
+    console.log(`📡 API: Запрос пользователя telegram_id=${telegram_id}`);
+
     const user = await UserModel.findByTelegramId(telegram_id);
 
     if (!user) {
+      console.log(`❌ Пользователь ${telegram_id} не найден в БД`);
       return res.status(404).json({ success: false, error: "User not found" });
     }
+
+    console.log(`✅ Пользователь найден:`, {
+      id: user.id,
+      telegram_id: user.telegram_id,
+      first_name: user.first_name,
+      photo_url: user.photo_url || 'NULL'
+    });
 
     const balance = await BalanceModel.getByUserId(user.id);
 

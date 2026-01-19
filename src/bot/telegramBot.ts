@@ -52,20 +52,44 @@ export class TelegramBotService {
       // Получаем фото профиля пользователя
       let photoUrl = null;
       try {
-        console.log(`📷 Получаю фото профиля для пользователя ${telegramId}...`);
-        const photos = await this.bot.getUserProfilePhotos(telegramId, { limit: 1 });
-        console.log(`📊 Фото найдено: ${photos.total_count}`);
+        console.log('');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log(`📷 ПОЛУЧЕНИЕ ФОТО для пользователя ${telegramId}`);
+        console.log('═══════════════════════════════════════════════════════');
 
-        if (photos.total_count > 0 && photos.photos[0] && photos.photos[0][0]) {
+        const photos = await this.bot.getUserProfilePhotos(telegramId, { limit: 1 });
+        console.log(`📊 Количество фото: ${photos.total_count}`);
+
+        if (photos.total_count === 0) {
+          console.log('⚠️ У ПОЛЬЗОВАТЕЛЯ НЕТ ФОТО ПРОФИЛЯ В TELEGRAM!');
+          console.log('💡 Решение: пользователь должен установить аватарку в настройках Telegram');
+          console.log('═══════════════════════════════════════════════════════');
+          console.log('');
+        } else if (photos.photos[0] && photos.photos[0][0]) {
           const fileId = photos.photos[0][0].file_id;
+          console.log(`✅ File ID получен: ${fileId}`);
+
           const file = await this.bot.getFile(fileId);
+          console.log(`✅ File path получен: ${file.file_path}`);
+
           photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
-          console.log(`✅ Photo URL сформирован: ${photoUrl}`);
-        } else {
-          console.log('⚠️ У пользователя нет фото профиля');
+          console.log(`✅ PHOTO URL СФОРМИРОВАН:`);
+          console.log(`   ${photoUrl}`);
+          console.log('═══════════════════════════════════════════════════════');
+          console.log('');
         }
-      } catch (err) {
-        console.log("❌ Не удалось получить фото профиля:", err);
+      } catch (err: any) {
+        console.log('');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('❌ ОШИБКА ПОЛУЧЕНИЯ ФОТО!');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('Ошибка:', err.message);
+        console.log('Возможные причины:');
+        console.log('  1. Неверный TELEGRAM_BOT_TOKEN в .env');
+        console.log('  2. Бот не имеет прав получать фото');
+        console.log('  3. Проблемы с API Telegram');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('');
       }
 
       // Создаем или обновляем пользователя
@@ -90,7 +114,16 @@ export class TelegramBotService {
           }
         }
 
-        console.log(`💾 Создаю пользователя с photo_url: ${photoUrl || 'null'}`);
+        console.log('');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('💾 СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log(`Telegram ID: ${telegramId}`);
+        console.log(`Имя: ${msg.from?.first_name}`);
+        console.log(`Photo URL: ${photoUrl || 'NULL (нет фото)'}`);
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('');
+
         user = await UserModel.create({
           telegram_id: telegramId,
           first_name: msg.from?.first_name || "User",
@@ -124,7 +157,29 @@ export class TelegramBotService {
       } else {
         // Обновляем данные пользователя
         const newPhotoUrl = photoUrl || user.photo_url;
-        console.log(`🔄 Обновляю пользователя, photo_url: ${newPhotoUrl || 'null'}`);
+
+        console.log('');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('🔄 ОБНОВЛЕНИЕ ПОЛЬЗОВАТЕЛЯ');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log(`Telegram ID: ${telegramId}`);
+        console.log(`Имя: ${msg.from?.first_name}`);
+        console.log(`СТАРЫЙ Photo URL: ${user.photo_url || 'NULL'}`);
+        console.log(`НОВЫЙ Photo URL: ${photoUrl || 'не получен'}`);
+        console.log(`ИТОГОВЫЙ Photo URL: ${newPhotoUrl || 'NULL (останется без фото)'}`);
+
+        if (!photoUrl && !user.photo_url) {
+          console.log('⚠️ ВНИМАНИЕ: У пользователя НЕТ фото и бот НЕ СМОГ получить!');
+          console.log('💡 Пользователь должен установить аватарку в Telegram');
+        } else if (!photoUrl && user.photo_url) {
+          console.log('✅ Использую старое фото (новое не получено)');
+        } else if (photoUrl) {
+          console.log('✅ Обновляю на новое фото!');
+        }
+
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('');
+
         await UserModel.updateUser(user.id, {
           first_name: msg.from?.first_name || user.first_name,
           username: msg.from?.username,
