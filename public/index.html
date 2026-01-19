@@ -836,6 +836,124 @@
       <canvas id="darts-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
+    <!-- Slots Game Screen -->
+    <div id="slots-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="slots-balance-amount">0.00</span> USDT
+          </div>
+          <div id="slots-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 style="text-align: center; color: var(--gold); margin-bottom: 16px; font-size: 18px;">🎰 Слоты (до x70)</h3>
+
+        <!-- Slots Display -->
+        <div class="dice-display-main">
+          <div style="display: flex; justify-content: center; gap: 10px; font-size: 48px;">
+            <span id="slot-1">🍋</span>
+            <span id="slot-2">🍇</span>
+            <span id="slot-3">🍋</span>
+          </div>
+          <div style="text-align: center; margin-top: 12px; font-size: 13px; color: var(--text-secondary);">
+            🍋 x5 | 🍇 x10 | BAR x30 | 7️⃣ x70
+          </div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="slots-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-slots-btn" onclick="playSlotsGame()">
+          КРУТИТЬ
+        </button>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="slots-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="slots-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- RPS Game Screen -->
+    <div id="rps-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="rps-balance-amount">0.00</span> USDT
+          </div>
+          <div id="rps-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 style="text-align: center; color: var(--gold); margin-bottom: 16px; font-size: 18px;">🪨📄✂️ Камень-Ножницы-Бумага (x2.76)</h3>
+
+        <!-- RPS Display -->
+        <div class="dice-display-main">
+          <div style="display: flex; justify-content: space-around; font-size: 48px; margin-bottom: 16px;">
+            <div id="rps-user-choice">❓</div>
+            <div style="font-size: 24px; align-self: center;">VS</div>
+            <div id="rps-bot-choice">❓</div>
+          </div>
+        </div>
+
+        <!-- Choice Buttons -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+          <button class="dice-choice-btn" onclick="selectRPSChoice('rock')" id="rps-btn-rock">
+            🪨 Камень
+          </button>
+          <button class="dice-choice-btn" onclick="selectRPSChoice('paper')" id="rps-btn-paper">
+            📄 Бумага
+          </button>
+          <button class="dice-choice-btn" onclick="selectRPSChoice('scissors')" id="rps-btn-scissors">
+            ✂️ Ножницы
+          </button>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="rps-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-rps-btn" onclick="playRPSGame()">
+          ИГРАТЬ
+        </button>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="rps-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="rps-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
     <!-- Referral Screen -->
     <div id="referral-screen" class="screen">
       <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">👥 Рефералы</h2>

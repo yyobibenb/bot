@@ -2036,26 +2036,508 @@ function launchDartsConfetti() {
   }, 5000);
 }
 
-// ========== NEW GAMES ==========
+// ========== SLOTS GAME ==========
 
 // Open Slots Game
 function openSlotsGame() {
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('medium');
   }
-  window.tg.showAlert('🎰 Слоты скоро будут доступны!\nИгра находится в разработке.');
+
+  // Update slots screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('slots-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const slotsAvatar = document.getElementById('slots-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      slotsAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      slotsAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Reset slots
+  document.getElementById('slot-1').textContent = '🍋';
+  document.getElementById('slot-2').textContent = '🍇';
+  document.getElementById('slot-3').textContent = '🍋';
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('slots-game-screen').classList.add('active');
 }
 
-// Open Rock-Paper-Scissors Game
+// Play slots game
+async function playSlotsGame() {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  const betAmount = parseFloat(document.getElementById('slots-bet-input').value);
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const playBtn = document.getElementById('play-slots-btn');
+  const slot1 = document.getElementById('slot-1');
+  const slot2 = document.getElementById('slot-2');
+  const slot3 = document.getElementById('slot-3');
+
+  // Disable button
+  playBtn.disabled = true;
+  playBtn.textContent = 'Крутим...';
+
+  // Spinning animation
+  const symbols = ['🍋', '🍇', 'BAR', '7️⃣'];
+  let spinCount = 0;
+  const spinInterval = setInterval(() => {
+    slot1.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    slot2.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    slot3.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    spinCount++;
+    if (spinCount > 15) {
+      clearInterval(spinInterval);
+    }
+  }, 100);
+
+  try {
+    const response = await fetch('/api/games/slots/play', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        bet_amount: betAmount
+      })
+    });
+
+    const data = await response.json();
+
+    setTimeout(() => {
+      if (data.success) {
+        // Show result
+        slot1.textContent = data.result[0];
+        slot2.textContent = data.result[1];
+        slot3.textContent = data.result[2];
+
+        // Update balance
+        if (data.newBalance !== undefined) {
+          document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          document.getElementById('slots-balance-amount').textContent = data.newBalance.toFixed(2);
+        }
+
+        // Show result
+        if (data.win) {
+          // Win - show confetti and congratulations
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          launchSlotsConfetti();
+
+          const resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\n${data.result[0]} ${data.result[1]} ${data.result[2]}\nx${data.multiplier}`;
+
+          if (window.tg) {
+            window.tg.showAlert(resultMsg);
+          }
+
+          // Add to wins history
+          addSlotsWinToHistory(data.winAmount, data.multiplier);
+        } else {
+          // Loss
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.impactOccurred('medium');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+
+      playBtn.disabled = false;
+      playBtn.textContent = 'КРУТИТЬ';
+    }, 2000);
+  } catch (error) {
+    clearInterval(spinInterval);
+    playBtn.disabled = false;
+    playBtn.textContent = 'КРУТИТЬ';
+
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Slots game error:', error);
+  }
+}
+
+// Add win to slots history
+function addSlotsWinToHistory(amount, multiplier) {
+  const winsList = document.getElementById('slots-wins-list');
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+}
+
+// Slots confetti animation
+function launchSlotsConfetti() {
+  const canvas = document.getElementById('slots-confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const particleCount = 150;
+  const colors = ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32', '#FF69B4'];
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 4 + 2,
+      d: Math.random() * particleCount,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0
+    });
+  }
+
+  let animationFrame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.lineWidth = p.r / 2;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+      ctx.stroke();
+
+      p.tiltAngle += p.tiltAngleIncremental;
+      p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+      p.x += Math.sin(p.d);
+      p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+      if (p.y > canvas.height) {
+        particles.splice(i, 1);
+      }
+    });
+
+    if (particles.length > 0) {
+      animationFrame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  draw();
+
+  setTimeout(() => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
+
+// ========== RPS GAME ==========
+
+// Open RPS Game
 function openRPSGame() {
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('medium');
   }
-  window.tg.showAlert('🪨 Камень-Ножницы-Бумага скоро будут доступны!\nИгра находится в разработке.');
+
+  // Update rps screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('rps-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const rpsAvatar = document.getElementById('rps-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      rpsAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      rpsAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Reset choices
+  window.selectedRPSChoice = null;
+  document.getElementById('rps-user-choice').textContent = '❓';
+  document.getElementById('rps-bot-choice').textContent = '❓';
+
+  // Reset button states
+  document.querySelectorAll('[id^="rps-btn-"]').forEach(btn => {
+    btn.style.opacity = '1';
+    btn.style.border = '1px solid var(--glass-border)';
+  });
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('rps-game-screen').classList.add('active');
 }
 
+// Select RPS choice
+function selectRPSChoice(choice) {
+  window.selectedRPSChoice = choice;
 
+  // Update UI
+  const choiceEmojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+  document.getElementById('rps-user-choice').textContent = choiceEmojis[choice];
 
+  // Highlight selected button
+  document.querySelectorAll('[id^="rps-btn-"]').forEach(btn => {
+    btn.style.opacity = '0.5';
+    btn.style.border = '1px solid var(--glass-border)';
+  });
+  document.getElementById(`rps-btn-${choice}`).style.opacity = '1';
+  document.getElementById(`rps-btn-${choice}`).style.border = '2px solid var(--gold)';
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+}
+
+// Play RPS game
+async function playRPSGame() {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  if (!window.selectedRPSChoice) {
+    if (window.tg) {
+      window.tg.showAlert('Выберите: камень, бумагу или ножницы!');
+    }
+    return;
+  }
+
+  const betAmount = parseFloat(document.getElementById('rps-bet-input').value);
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const playBtn = document.getElementById('play-rps-btn');
+  const botChoiceEl = document.getElementById('rps-bot-choice');
+
+  // Disable button
+  playBtn.disabled = true;
+  playBtn.textContent = 'Играем...';
+
+  // Animate bot choice
+  const choiceEmojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+  let animCount = 0;
+  const animInterval = setInterval(() => {
+    const randomChoice = ['rock', 'paper', 'scissors'][Math.floor(Math.random() * 3)];
+    botChoiceEl.textContent = choiceEmojis[randomChoice];
+    animCount++;
+    if (animCount > 10) {
+      clearInterval(animInterval);
+    }
+  }, 100);
+
+  try {
+    const response = await fetch('/api/games/rps/play', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        bet_amount: betAmount,
+        choice: window.selectedRPSChoice
+      })
+    });
+
+    const data = await response.json();
+
+    setTimeout(() => {
+      if (data.success) {
+        // Show bot choice
+        botChoiceEl.textContent = choiceEmojis[data.botChoice];
+
+        // Update balance
+        if (data.newBalance !== undefined) {
+          document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          document.getElementById('rps-balance-amount').textContent = data.newBalance.toFixed(2);
+        }
+
+        // Show result
+        if (data.win) {
+          // Win
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          launchRPSConfetti();
+
+          const resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`;
+
+          if (window.tg) {
+            window.tg.showAlert(resultMsg);
+          }
+
+          // Add to wins history
+          addRPSWinToHistory(data.winAmount, 2.76);
+        } else if (data.draw) {
+          // Draw
+          if (window.tg) {
+            window.tg.showAlert(`Ничья! Ставка возвращена.\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`);
+          }
+        } else {
+          // Loss
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.impactOccurred('medium');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+
+      playBtn.disabled = false;
+      playBtn.textContent = 'ИГРАТЬ';
+    }, 1500);
+  } catch (error) {
+    clearInterval(animInterval);
+    playBtn.disabled = false;
+    playBtn.textContent = 'ИГРАТЬ';
+
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('RPS game error:', error);
+  }
+}
+
+// Add win to RPS history
+function addRPSWinToHistory(amount, multiplier) {
+  const winsList = document.getElementById('rps-wins-list');
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+}
+
+// RPS confetti animation
+function launchRPSConfetti() {
+  const canvas = document.getElementById('rps-confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const particleCount = 150;
+  const colors = ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32', '#FF69B4'];
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 4 + 2,
+      d: Math.random() * particleCount,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0
+    });
+  }
+
+  let animationFrame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.lineWidth = p.r / 2;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+      ctx.stroke();
+
+      p.tiltAngle += p.tiltAngleIncremental;
+      p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+      p.x += Math.sin(p.d);
+      p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+      if (p.y > canvas.height) {
+        particles.splice(i, 1);
+      }
+    });
+
+    if (particles.length > 0) {
+      animationFrame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  draw();
+
+  setTimeout(() => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
 
 // ========== ADMIN PANEL ==========
 
