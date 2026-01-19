@@ -101,24 +101,24 @@ function getTelegramId() {
 
 // Load user data from API
 window.loadUserData = async function() {
-  console.log('═══════════════════════════════════════');
-  console.log('🚀 Начинаю загрузку профиля...');
-  console.log('📍 Полный URL:', window.location.href);
-  console.log('🔗 URL параметры:', window.location.search);
-  console.log('═══════════════════════════════════════');
+  debugLog('═══════════════════════════════════════');
+  debugLog('🚀 ЗАГРУЗКА ПРОФИЛЯ');
+  debugLog('═══════════════════════════════════════');
+  debugLog('📍 URL: ' + window.location.href.substring(0, 60) + '...');
 
   // Получаем telegram_id из URL или SDK
   const telegramId = getTelegramId();
 
   if (!telegramId) {
-    console.error('❌ Не могу загрузить профиль: нет telegram_id');
+    debugLog('❌ НЕ МОГУ ЗАГРУЗИТЬ: нет telegram_id!', 'error');
+    debugLog('💡 Проверь настройки бота и BotFather', 'error');
     document.getElementById('username').textContent = 'Ошибка загрузки';
     document.getElementById('handle').textContent = 'Нет telegram_id';
     return;
   }
 
-  console.log('🆔 Telegram ID:', telegramId);
-  console.log('📡 Загружаю все данные пользователя из API...');
+  debugLog('═══════════════════════════════════════');
+  debugLog('📡 Загружаю данные из БД...');
 
   try {
     // Загружаем пользователя из БД по telegram_id
@@ -140,31 +140,51 @@ window.loadUserData = async function() {
       document.getElementById('balance').textContent = (data.balance || 0).toFixed(2);
 
       // Обновляем аватар
+      debugLog('───────────────────────────────────────');
+      debugLog('🖼️ ОБРАБОТКА АВАТАРА');
+      debugLog('───────────────────────────────────────');
+
       const avatar = document.getElementById('avatar');
       const photoUrl = window.currentUser.photo_url;
 
-      debugLog('📷 Photo URL из БД: ' + (photoUrl || 'НЕТ'));
-
       if (photoUrl) {
-        debugLog('🖼️ Загружаю аватар...', 'info');
+        debugLog('✅ Photo URL найден в БД!', 'success');
+        debugLog('📎 URL: ' + photoUrl.substring(0, 60) + '...');
+        debugLog('⏳ Пробую загрузить изображение...');
+
         const img = new Image();
         img.onload = function() {
-          debugLog('✅ Аватар загружен', 'success');
+          debugLog('✅ Аватар успешно загружен!', 'success');
+          debugLog('🎨 Отображаю аватар в профиле');
           avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
         };
         img.onerror = function() {
-          debugLog('❌ Ошибка загрузки аватара', 'error');
+          debugLog('❌ ОШИБКА загрузки аватара!', 'error');
+          debugLog('⚠️ Возможные причины:', 'error');
+          debugLog('  1. Неверный TELEGRAM_BOT_TOKEN', 'error');
+          debugLog('  2. Файл удалён из Telegram', 'error');
+          debugLog('  3. Проблемы с сетью', 'error');
+          debugLog('💡 Показываю инициал вместо фото');
           avatar.textContent = fullName.charAt(0).toUpperCase();
         };
         img.src = photoUrl;
       } else {
-        debugLog('⚠️ Photo URL пустой, показываю инициал', 'warning');
+        debugLog('❌ Photo URL пустой или null!', 'warning');
+        debugLog('📌 Причины:', 'warning');
+        debugLog('  1. У тебя нет фото в Telegram', 'warning');
+        debugLog('  2. Бот не смог получить фото', 'warning');
+        debugLog('  3. Не настроены права бота', 'warning');
+        debugLog('💡 Решение: поставь аватарку в Telegram');
+        debugLog('💡 Затем отправь /start боту заново');
+        debugLog('🔤 Показываю инициал: ' + fullName.charAt(0).toUpperCase());
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
+      debugLog('───────────────────────────────────────');
       debugLog('✅ Профиль отображён в UI', 'success');
     } else if (response.status === 404) {
-      console.log('⚠️ Пользователь не найден в БД, создаю нового...');
+      debugLog('⚠️ Пользователь НЕ найден в БД!', 'warning');
+      debugLog('🆕 Создаю нового пользователя...');
 
       // Берем данные из Telegram SDK для создания пользователя
       let userData = {
@@ -180,8 +200,8 @@ window.loadUserData = async function() {
       if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
         const tgUser = window.tg.initDataUnsafe.user;
         debugLog('📱 Данные из SDK: ' + JSON.stringify(tgUser));
-        debugLog('⚠️ ВНИМАНИЕ: Telegram SDK НЕ передаёт photo_url!', 'warning');
-        debugLog('📷 Фото получит бот через Bot API при /start', 'info');
+        debugLog('⚠️ SDK НЕ передаёт photo_url!', 'warning');
+        debugLog('📷 Бот получит фото при /start', 'info');
 
         userData = {
           telegram_id: telegramId,
@@ -205,7 +225,7 @@ window.loadUserData = async function() {
       const createData = await createResponse.json();
       if (createData.success && createData.user) {
         window.currentUser = createData.user;
-        console.log('✅ Новый пользователь создан:', window.currentUser);
+        debugLog('✅ Новый пользователь создан в БД!', 'success');
 
         // Формируем полное имя
         const fullName = window.currentUser.first_name + (window.currentUser.last_name ? ' ' + window.currentUser.last_name : '');
@@ -216,58 +236,54 @@ window.loadUserData = async function() {
         document.getElementById('balance').textContent = (createData.balance || 0).toFixed(2);
 
         // Обновляем аватар
+        debugLog('───────────────────────────────────────');
+        debugLog('🖼️ ОБРАБОТКА АВАТАРА (новый юзер)');
+        debugLog('───────────────────────────────────────');
+
         const avatar = document.getElementById('avatar');
         const photoUrl = window.currentUser.photo_url;
+
         if (photoUrl) {
-          avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+          debugLog('✅ Photo URL найден!', 'success');
+          debugLog('📎 URL: ' + photoUrl.substring(0, 60) + '...');
+          debugLog('⏳ Загружаю аватар...');
+
+          const img = new Image();
+          img.onload = function() {
+            debugLog('✅ Аватар загружен!', 'success');
+            avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+          };
+          img.onerror = function() {
+            debugLog('❌ Ошибка загрузки!', 'error');
+            avatar.textContent = fullName.charAt(0).toUpperCase();
+          };
+          img.src = photoUrl;
         } else {
+          debugLog('❌ Photo URL пустой!', 'warning');
+          debugLog('💡 Это нормально для нового юзера', 'info');
+          debugLog('📷 Бот получит фото при следующем /start', 'info');
+          debugLog('🔤 Показываю инициал: ' + fullName.charAt(0).toUpperCase());
           avatar.textContent = fullName.charAt(0).toUpperCase();
         }
 
-        // Обновляем debug карточку
-        try {
-          const urlHasTgId = window.location.search.includes('tg_id=');
-
-          const debugTelegramId = document.getElementById('debug-telegram-id');
-          const debugDataSource = document.getElementById('debug-data-source');
-          const debugPhotoStatus = document.getElementById('debug-photo-status');
-          const debugLoadingStatus = document.getElementById('debug-loading-status');
-
-          if (debugTelegramId) debugTelegramId.textContent = telegramId;
-          if (debugDataSource) {
-            debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
-            debugDataSource.style.color = urlHasTgId ? '#00ff00' : '#ffaa00';
-          }
-          if (debugPhotoStatus) {
-            debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
-            debugPhotoStatus.style.color = photoUrl ? '#00ff00' : '#ff5555';
-          }
-
-          // Обновляем статус загрузки
-          if (debugLoadingStatus) {
-            debugLoadingStatus.textContent = '✅ Новый пользователь создан!';
-            debugLoadingStatus.style.background = 'rgba(0, 255, 0, 0.2)';
-            debugLoadingStatus.style.color = '#00ff00';
-          }
-
-          console.log('✅ Debug карточка обновлена для нового пользователя');
-        } catch (debugError) {
-          console.error('⚠️ Ошибка при обновлении debug карточки:', debugError);
-        }
-
-        console.log('✅ Профиль нового пользователя отображен в UI');
+        debugLog('───────────────────────────────────────');
+        debugLog('✅ Профиль нового юзера готов!', 'success');
       }
     }
   } catch (error) {
-    console.error('❌ Ошибка загрузки:', error);
+    debugLog('═══════════════════════════════════════');
+    debugLog('❌ КРИТИЧЕСКАЯ ОШИБКА!', 'error');
+    debugLog('═══════════════════════════════════════');
+    debugLog('📛 Ошибка: ' + error.message, 'error');
+    debugLog('🔍 Стек: ' + (error.stack || 'нет').substring(0, 100), 'error');
+    debugLog('💡 Проверь:', 'error');
+    debugLog('  1. Работает ли сервер?', 'error');
+    debugLog('  2. Правильный ли API endpoint?', 'error');
+    debugLog('  3. Есть ли интернет?', 'error');
+    debugLog('═══════════════════════════════════════');
 
-    // Показываем ошибку в статусе
-    const statusEl = document.getElementById('debug-loading-status');
-    if (statusEl) {
-      statusEl.textContent = '❌ Ошибка загрузки: ' + error.message;
-      statusEl.style.background = 'rgba(255, 0, 0, 0.2)';
-      statusEl.style.color = '#ff5555';
-    }
+    document.getElementById('username').textContent = 'Ошибка загрузки';
+    document.getElementById('handle').textContent = error.message;
   }
 };
 
