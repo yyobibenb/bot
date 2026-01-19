@@ -598,6 +598,108 @@
       <canvas id="football-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
+    <!-- Basketball Game Screen - Mode Selection -->
+    <div id="basketball-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="basketball-balance-amount">0.00</span> USDT
+          </div>
+          <div id="basketball-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🏀 Выбери режим</h2>
+
+      <!-- Game Modes List -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Goal -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>🏀 Попадание</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🏀</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Попади в кольцо (результат 4 или 5)
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openBasketballPlayScreen('goal', 'Попадание', 1.84)">
+            Играть
+          </button>
+        </div>
+
+        <!-- Mode: Miss -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>❌ Промах</h3>
+            <span class="dice-mode-coef">x1.33</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🏀</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Промахнись (результат 1, 2 или 3)
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openBasketballPlayScreen('miss', 'Промах', 1.33)">
+            Играть
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Basketball Play Screen - Actual Game -->
+    <div id="basketball-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToBasketballModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="basketball-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="basketball-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="basketball-play-mode-title" style="text-align: center; color: var(--gold); margin-bottom: 16px; font-size: 18px;">🏀 Попадание (x1.84)</h3>
+
+        <!-- Basketball Display with Emoji -->
+        <div class="dice-display-main">
+          <div class="dice-emoji" id="basketball-emoji">🏀</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="basketball-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-basketball-btn" onclick="playBasketballGame()">
+          ИГРАТЬ
+        </button>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="basketball-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="basketball-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
     <!-- Referral Screen -->
     <div id="referral-screen" class="screen">
       <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">👥 Рефералы</h2>

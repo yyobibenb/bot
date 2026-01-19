@@ -1452,6 +1452,294 @@ function launchFootballConfetti() {
   }, 5000);
 }
 
+// ========== BASKETBALL GAME ==========
+
+// Open Basketball Game
+function openBasketballGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Update basketball screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('basketball-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const basketballAvatar = document.getElementById('basketball-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      basketballAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      basketballAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('basketball-game-screen').classList.add('active');
+}
+
+// Open Basketball Play Screen
+function openBasketballPlayScreen(mode, modeLabel, multiplier) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Store selected game mode
+  window.selectedBasketballMode = mode;
+  window.selectedBasketballMultiplier = multiplier;
+
+  // Update play screen title
+  const modeTitle = document.getElementById('basketball-play-mode-title');
+  modeTitle.textContent = `🏀 ${modeLabel} (x${multiplier})`;
+
+  // Update balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('basketball-play-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const playAvatar = document.getElementById('basketball-play-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      playAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      playAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Reset basketball emoji
+  document.getElementById('basketball-emoji').textContent = '🏀';
+
+  // Open play screen
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('basketball-play-screen').classList.add('active');
+}
+
+// Back to basketball modes
+function backToBasketballModes() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('basketball-game-screen').classList.add('active');
+}
+
+// Play basketball game
+async function playBasketballGame() {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  if (!window.selectedBasketballMode) {
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: режим не выбран');
+    }
+    return;
+  }
+
+  const betAmount = parseFloat(document.getElementById('basketball-bet-input').value);
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const playBtn = document.getElementById('play-basketball-btn');
+  const basketballEmoji = document.getElementById('basketball-emoji');
+
+  // Disable button and add spinning animation
+  playBtn.disabled = true;
+  playBtn.textContent = 'Бросаем...';
+  basketballEmoji.classList.add('spinning');
+
+  try {
+    let endpoint = '';
+    const body = {
+      user_id: window.currentUser.id,
+      bet_amount: betAmount
+    };
+
+    if (window.selectedBasketballMode === 'goal') {
+      endpoint = '/api/games/basketball/goal';
+    } else if (window.selectedBasketballMode === 'miss') {
+      endpoint = '/api/games/basketball/miss';
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    setTimeout(() => {
+      basketballEmoji.classList.remove('spinning');
+
+      if (data.success) {
+        // Show result with appropriate emoji
+        const resultNum = typeof data.result === 'number' ? data.result : parseInt(data.result);
+        if (resultNum >= 4) {
+          basketballEmoji.textContent = '🏀✨'; // Made it
+        } else {
+          basketballEmoji.textContent = '❌'; // Miss
+        }
+
+        // Update balance
+        if (data.newBalance !== undefined) {
+          document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          document.getElementById('basketball-balance-amount').textContent = data.newBalance.toFixed(2);
+          document.getElementById('basketball-play-balance-amount').textContent = data.newBalance.toFixed(2);
+        }
+
+        // Show result
+        if (data.isWin) {
+          // Win - show confetti and congratulations
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          launchBasketballConfetti();
+
+          let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
+          if (window.selectedBasketballMode === 'goal') {
+            resultMsg += `\n\n🏀 Попал!`;
+          } else if (window.selectedBasketballMode === 'miss') {
+            resultMsg += `\n\n❌ Промах!`;
+          }
+
+          if (window.tg) {
+            window.tg.showAlert(resultMsg);
+          }
+
+          // Add to wins history
+          addBasketballWinToHistory(data.winAmount, data.multiplier);
+        } else {
+          // Loss
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.impactOccurred('medium');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+
+      playBtn.disabled = false;
+      playBtn.textContent = 'ИГРАТЬ';
+    }, 1500);
+  } catch (error) {
+    basketballEmoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = 'ИГРАТЬ';
+
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Basketball game error:', error);
+  }
+}
+
+// Add win to basketball history
+function addBasketballWinToHistory(amount, multiplier) {
+  const winsList = document.getElementById('basketball-wins-list');
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+}
+
+// Basketball confetti animation
+function launchBasketballConfetti() {
+  const canvas = document.getElementById('basketball-confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const particleCount = 150;
+  const colors = ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32', '#FF69B4'];
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 4 + 2,
+      d: Math.random() * particleCount,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0
+    });
+  }
+
+  let animationFrame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.lineWidth = p.r / 2;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+      ctx.stroke();
+
+      p.tiltAngle += p.tiltAngleIncremental;
+      p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+      p.x += Math.sin(p.d);
+      p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+      if (p.y > canvas.height) {
+        particles.splice(i, 1);
+      }
+    });
+
+    if (particles.length > 0) {
+      animationFrame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  draw();
+
+  setTimeout(() => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
+
 // ========== NEW GAMES ==========
 
 // Open Slots Game
@@ -1479,13 +1767,6 @@ function openDartsGame() {
 }
 
 
-// Open Basketball Game
-function openBasketballGame() {
-  if (window.tg && window.tg.HapticFeedback) {
-    window.tg.HapticFeedback.impactOccurred('medium');
-  }
-  window.tg.showAlert('🏀 Баскетбол скоро будет доступен!\nИгра находится в разработке.');
-}
 
 // ========== ADMIN PANEL ==========
 
