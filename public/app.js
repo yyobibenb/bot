@@ -870,6 +870,294 @@ function shareReferralLink() {
   }
 }
 
+// ========== BOWLING GAME ==========
+
+// Open Bowling Game
+function openBowlingGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Update bowling screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('bowling-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const bowlingAvatar = document.getElementById('bowling-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      bowlingAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      bowlingAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('bowling-game-screen').classList.add('active');
+}
+
+// Open Bowling Play Screen
+function openBowlingPlayScreen(mode, modeLabel, multiplier) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Store selected game mode
+  window.selectedBowlingMode = mode;
+  window.selectedBowlingMultiplier = multiplier;
+
+  // Update play screen title
+  const modeTitle = document.getElementById('bowling-play-mode-title');
+  modeTitle.textContent = `🎳 ${modeLabel} (x${multiplier})`;
+
+  // Update balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('bowling-play-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const playAvatar = document.getElementById('bowling-play-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      playAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      playAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Reset bowling emoji
+  document.getElementById('bowling-emoji').textContent = '🎳';
+
+  // Open play screen
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('bowling-play-screen').classList.add('active');
+}
+
+// Back to bowling modes
+function backToBowlingModes() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('bowling-game-screen').classList.add('active');
+}
+
+// Play bowling game
+async function playBowlingGame() {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  if (!window.selectedBowlingMode) {
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: режим не выбран');
+    }
+    return;
+  }
+
+  const betAmount = parseFloat(document.getElementById('bowling-bet-input').value);
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  const playBtn = document.getElementById('play-bowling-btn');
+  const bowlingEmoji = document.getElementById('bowling-emoji');
+
+  // Disable button and add spinning animation
+  playBtn.disabled = true;
+  playBtn.textContent = 'Бросаем...';
+  bowlingEmoji.classList.add('spinning');
+
+  try {
+    let endpoint = '';
+    const body = {
+      user_id: window.currentUser.id,
+      bet_amount: betAmount
+    };
+
+    if (window.selectedBowlingMode === 'strike') {
+      endpoint = '/api/games/bowling/strike';
+    } else if (window.selectedBowlingMode === 'duel') {
+      endpoint = '/api/games/bowling/duel';
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+
+    setTimeout(() => {
+      bowlingEmoji.classList.remove('spinning');
+
+      if (data.success) {
+        // Show result with appropriate emoji
+        if (window.selectedBowlingMode === 'strike') {
+          const pins = data.details?.pins || data.result;
+          bowlingEmoji.textContent = pins === 6 ? '🎉' : '🎳';
+        } else {
+          bowlingEmoji.textContent = '🎳';
+        }
+
+        // Update balance
+        if (data.newBalance !== undefined) {
+          document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+          document.getElementById('bowling-balance-amount').textContent = data.newBalance.toFixed(2);
+          document.getElementById('bowling-play-balance-amount').textContent = data.newBalance.toFixed(2);
+        }
+
+        // Show result
+        if (data.isWin) {
+          // Win - show confetti and congratulations
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+
+          launchBowlingConfetti();
+
+          let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
+          if (window.selectedBowlingMode === 'duel') {
+            resultMsg += `\n\nВаш результат: ${data.details?.userPins || ''} кеглей\nКазино: ${data.details?.casinoPins || ''} кеглей`;
+          } else if (window.selectedBowlingMode === 'strike') {
+            resultMsg += `\n\n🎳 Страйк! Сбито все 6 кеглей!`;
+          }
+
+          if (window.tg) {
+            window.tg.showAlert(resultMsg);
+          }
+
+          // Add to wins history
+          addBowlingWinToHistory(data.winAmount, data.multiplier);
+        } else {
+          // Loss
+          if (window.tg && window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.impactOccurred('medium');
+          }
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+        }
+      }
+
+      playBtn.disabled = false;
+      playBtn.textContent = 'ИГРАТЬ';
+    }, 1500);
+  } catch (error) {
+    bowlingEmoji.classList.remove('spinning');
+    playBtn.disabled = false;
+    playBtn.textContent = 'ИГРАТЬ';
+
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+    console.error('Bowling game error:', error);
+  }
+}
+
+// Add win to bowling history
+function addBowlingWinToHistory(amount, multiplier) {
+  const winsList = document.getElementById('bowling-wins-list');
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+}
+
+// Bowling confetti animation
+function launchBowlingConfetti() {
+  const canvas = document.getElementById('bowling-confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const particleCount = 150;
+  const colors = ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32', '#FF69B4'];
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 4 + 2,
+      d: Math.random() * particleCount,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+      tiltAngle: 0
+    });
+  }
+
+  let animationFrame;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.lineWidth = p.r / 2;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+      ctx.stroke();
+
+      p.tiltAngle += p.tiltAngleIncremental;
+      p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+      p.x += Math.sin(p.d);
+      p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+      if (p.y > canvas.height) {
+        particles.splice(i, 1);
+      }
+    });
+
+    if (particles.length > 0) {
+      animationFrame = requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  draw();
+
+  setTimeout(() => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
+
 // ========== NEW GAMES ==========
 
 // Open Slots Game

@@ -99,6 +99,11 @@
       <div class="games-section">
         <h3 class="section-title">✨ Новинки</h3>
         <div class="games-scroll">
+          <button class="game-card" onclick="openBowlingGame()">
+            <div class="game-card-icon">🎳</div>
+            <div class="game-card-name">Боулинг</div>
+            <div class="game-card-info">x1.84</div>
+          </button>
           <button class="game-card" onclick="openDartsGame()">
             <div class="game-card-icon">🎯</div>
             <div class="game-card-name">Дартс</div>
@@ -370,6 +375,108 @@
 
       <!-- Confetti Canvas for Win Animation -->
       <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Bowling Game Screen - Mode Selection -->
+    <div id="bowling-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="bowling-balance-amount">0.00</span> USDT
+          </div>
+          <div id="bowling-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎳 Выбери режим</h2>
+
+      <!-- Game Modes List -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Strike -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>🎳 Страйк</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🎳</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Сбей все 6 кеглей
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openBowlingPlayScreen('strike', 'Страйк', 1.84)">
+            Играть
+          </button>
+        </div>
+
+        <!-- Mode: Duel -->
+        <div class="dice-mode-card">
+          <div class="dice-mode-header">
+            <h3>⚔️ Дуэль</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-display-area">
+            <div class="dice-result">🎳</div>
+          </div>
+          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
+            Дуэль боулинга с казино
+          </div>
+          <button class="dice-choice-btn" style="width: 100%;" onclick="openBowlingPlayScreen('duel', 'Дуэль', 1.84)">
+            Начать дуэль
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bowling Play Screen - Actual Game -->
+    <div id="bowling-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToBowlingModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="bowling-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="bowling-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="bowling-play-mode-title" style="text-align: center; color: var(--gold); margin-bottom: 16px; font-size: 18px;">🎳 Страйк (x1.84)</h3>
+
+        <!-- Bowling Display with Emoji -->
+        <div class="dice-display-main">
+          <div class="dice-emoji" id="bowling-emoji">🎳</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="bowling-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-bowling-btn" onclick="playBowlingGame()">
+          ИГРАТЬ
+        </button>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="bowling-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="bowling-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
     <!-- Referral Screen -->
