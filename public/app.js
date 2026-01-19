@@ -16,74 +16,57 @@ if (window.Telegram && window.Telegram.WebApp) {
   console.error('❌ Telegram WebApp not found');
 }
 
-// Показать URL информацию СРАЗУ при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('📍 Показываю URL сразу...');
-
-  const fullUrl = window.location.href;
-  const urlParamsString = window.location.search;
-
-  // Показываем полный URL
-  const debugFullUrl = document.getElementById('debug-full-url');
-  if (debugFullUrl) {
-    debugFullUrl.textContent = fullUrl;
-    console.log('✅ URL показан:', fullUrl);
-  } else {
-    console.error('❌ Элемент debug-full-url не найден!');
-  }
-
-  // Проверяем наличие tg_id
-  const params = new URLSearchParams(urlParamsString);
-  const tgId = params.get('tg_id');
-
-  const debugUrlParams = document.getElementById('debug-url-params');
-  if (debugUrlParams) {
-    if (tgId) {
-      debugUrlParams.textContent = '✅ Да (tg_id=' + tgId + ')';
-      debugUrlParams.style.color = '#00ff00';
-    } else {
-      debugUrlParams.textContent = '❌ Нет';
-      debugUrlParams.style.color = '#ff5555';
-    }
-  }
-
-  // Обновляем статус
-  const statusEl = document.getElementById('debug-loading-status');
-  if (statusEl) {
-    if (tgId) {
-      statusEl.textContent = '✅ URL содержит tg_id, загружаю...';
-      statusEl.style.background = 'rgba(0, 255, 0, 0.2)';
-      statusEl.style.color = '#00ff00';
-    } else {
-      statusEl.textContent = '⚠️ URL не содержит tg_id';
-      statusEl.style.background = 'rgba(255, 165, 0, 0.2)';
-      statusEl.style.color = '#ffaa00';
-    }
-  }
-
-  console.log('URL:', fullUrl);
-  console.log('tg_id:', tgId || 'нет');
-});
-
 // Get telegram_id from Telegram SDK or URL
 function getTelegramId() {
+  console.log('');
+  console.log('═══════════════════════════════════════');
+  console.log('🔍 ДИАГНОСТИКА: Ищу telegram_id');
+  console.log('═══════════════════════════════════════');
+
   // ПРИОРИТЕТ 1: Telegram SDK (ПРАВИЛЬНЫЙ способ для web_app кнопок)
-  if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
-    const tgId = window.tg.initDataUnsafe.user.id;
-    console.log('✅ ID из Telegram SDK:', tgId);
-    return tgId;
+  console.log('1️⃣ Проверяю Telegram SDK...');
+  console.log('  window.tg существует:', !!window.tg);
+
+  if (window.tg) {
+    console.log('  window.tg.initDataUnsafe:', window.tg.initDataUnsafe);
+    console.log('  window.tg.initData:', window.tg.initData);
+
+    if (window.tg.initDataUnsafe) {
+      console.log('  window.tg.initDataUnsafe.user:', window.tg.initDataUnsafe.user);
+
+      if (window.tg.initDataUnsafe.user) {
+        const tgId = window.tg.initDataUnsafe.user.id;
+        console.log('✅ НАЙДЕН ID из Telegram SDK:', tgId);
+        console.log('═══════════════════════════════════════');
+        console.log('');
+        return tgId;
+      }
+    }
   }
 
+  console.log('❌ Telegram SDK не содержит данных пользователя');
+
   // ПРИОРИТЕТ 2: URL параметры (fallback, если открыто напрямую)
+  console.log('');
+  console.log('2️⃣ Проверяю URL параметры...');
+  console.log('  URL:', window.location.href);
+  console.log('  Параметры:', window.location.search);
+
   const params = new URLSearchParams(window.location.search);
   const tgIdFromUrl = params.get('tg_id');
 
   if (tgIdFromUrl) {
-    console.log('⚠️ ID из URL (fallback):', tgIdFromUrl);
+    console.log('✅ НАЙДЕН ID из URL (fallback):', tgIdFromUrl);
+    console.log('═══════════════════════════════════════');
+    console.log('');
     return parseInt(tgIdFromUrl);
   }
 
-  console.error('❌ ID не найден ни в SDK, ни в URL');
+  console.log('❌ URL не содержит tg_id параметр');
+  console.log('');
+  console.error('🚨 ID НЕ НАЙДЕН ни в SDK, ни в URL!');
+  console.log('═══════════════════════════════════════');
+  console.log('');
   return null;
 }
 
@@ -107,14 +90,6 @@ window.loadUserData = async function() {
 
   console.log('🆔 Telegram ID:', telegramId);
   console.log('📡 Загружаю все данные пользователя из API...');
-
-  // Обновляем статус загрузки
-  const statusEl = document.getElementById('debug-loading-status');
-  if (statusEl) {
-    statusEl.textContent = '📡 Загружаю профиль из базы данных...';
-    statusEl.style.background = 'rgba(0, 150, 255, 0.3)';
-    statusEl.style.color = '#87CEEB';
-  }
 
   try {
     // Загружаем пользователя из БД по telegram_id
@@ -142,41 +117,6 @@ window.loadUserData = async function() {
         avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
       } else {
         avatar.textContent = fullName.charAt(0).toUpperCase();
-      }
-
-      // Обновляем debug карточку
-      try {
-        console.log('🔧 Обновляю debug карточку...');
-        const urlHasTgId = window.location.search.includes('tg_id=');
-
-        const debugTelegramId = document.getElementById('debug-telegram-id');
-        const debugDataSource = document.getElementById('debug-data-source');
-        const debugPhotoStatus = document.getElementById('debug-photo-status');
-        const debugLoadingStatus = document.getElementById('debug-loading-status');
-
-        if (debugTelegramId) debugTelegramId.textContent = telegramId;
-        if (debugDataSource) {
-          debugDataSource.textContent = urlHasTgId ? '✅ URL (tg_id)' : '📱 Telegram SDK';
-          debugDataSource.style.color = urlHasTgId ? '#00ff00' : '#ffaa00';
-        }
-        if (debugPhotoStatus) {
-          debugPhotoStatus.textContent = photoUrl ? '✅ Есть' : '❌ Нет';
-          debugPhotoStatus.style.color = photoUrl ? '#00ff00' : '#ff5555';
-        }
-
-        // Обновляем статус загрузки
-        if (debugLoadingStatus) {
-          debugLoadingStatus.textContent = '✅ Профиль загружен успешно!';
-          debugLoadingStatus.style.background = 'rgba(0, 255, 0, 0.2)';
-          debugLoadingStatus.style.color = '#00ff00';
-        }
-
-        console.log('✅ Debug карточка обновлена');
-        console.log('  - Telegram ID:', telegramId);
-        console.log('  - Источник:', urlHasTgId ? 'URL (tg_id)' : 'Telegram SDK');
-        console.log('  - URL:', window.location.href);
-      } catch (debugError) {
-        console.error('⚠️ Ошибка при обновлении debug карточки:', debugError);
       }
 
       console.log('✅ Профиль загружен и отображен в UI');
