@@ -8,7 +8,7 @@ const WELCOME_MESSAGE = `
 🎰 Играй в игры и зарабатывай!
 💰 Пополнение и вывод прямо в приложении
 
-Нажмите кнопку ниже, чтобы открыть Mini App:
+Используй кнопки внизу для навигации:
 `;
 
 export class TelegramBotService {
@@ -26,6 +26,11 @@ export class TelegramBotService {
     this.bot.onText(/\/help/, (msg) => this.handleHelp(msg));
     this.bot.onText(/\/ref/, (msg) => this.handleReferral(msg));
     this.bot.onText(/\/debug/, (msg) => this.handleDebug(msg));
+
+    // Обработчики keyboard кнопок
+    this.bot.onText(/🚀 Открыть Casino/, (msg) => this.handleOpenMiniApp(msg));
+    this.bot.onText(/💰 Баланс/, (msg) => this.handleBalance(msg));
+    this.bot.onText(/👥 Рефералы/, (msg) => this.handleReferral(msg));
   }
 
   private getWebAppUrl(): string {
@@ -189,30 +194,51 @@ export class TelegramBotService {
         });
       }
 
-      // Отправляем кнопку с Mini App
-      // ВАЖНО: Используем inline_keyboard, а не keyboard!
-      // Только inline кнопки передают initDataUnsafe с данными пользователя
+      // Отправляем приветствие с KEYBOARD кнопкой (внизу)
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
-          inline_keyboard: [
-            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
+          keyboard: [
+            [{ text: "🚀 Открыть Casino" }],
+            [{ text: "💰 Баланс" }, { text: "👥 Рефералы" }]
           ],
+          resize_keyboard: true,
         },
       });
 
-      console.log(`✅ Mini App отправлен пользователю ${telegramId}`);
+      console.log(`✅ Приветствие отправлено пользователю ${telegramId}`);
     } catch (error: any) {
       console.error("Error handling start:", error);
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
-          inline_keyboard: [
-            [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
+          keyboard: [
+            [{ text: "🚀 Открыть Casino" }],
+            [{ text: "💰 Баланс" }, { text: "👥 Рефералы" }]
           ],
+          resize_keyboard: true,
         },
       });
     }
+  }
+
+  private async handleOpenMiniApp(msg: TelegramBot.Message) {
+    const chatId = msg.chat.id;
+    const webAppUrl = this.getWebAppUrl();
+
+    console.log(`🎮 Пользователь ${msg.from?.id} нажал "🚀 Открыть Casino"`);
+
+    // Отправляем сообщение с INLINE кнопкой (только inline передаёт initDataUnsafe!)
+    await this.bot.sendMessage(chatId, `🎰 **Добро пожаловать в Casino!**\n\nНажми кнопку ниже чтобы открыть приложение:`, {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "🚀 Открыть Mini App", web_app: { url: webAppUrl } }]
+        ],
+      },
+    });
+
+    console.log(`✅ Inline кнопка Mini App отправлена`);
   }
 
   private async handleBalance(msg: TelegramBot.Message) {
