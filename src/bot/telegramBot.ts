@@ -52,14 +52,20 @@ export class TelegramBotService {
       // Получаем фото профиля пользователя
       let photoUrl = null;
       try {
+        console.log(`📷 Получаю фото профиля для пользователя ${telegramId}...`);
         const photos = await this.bot.getUserProfilePhotos(telegramId, { limit: 1 });
+        console.log(`📊 Фото найдено: ${photos.total_count}`);
+
         if (photos.total_count > 0 && photos.photos[0] && photos.photos[0][0]) {
           const fileId = photos.photos[0][0].file_id;
           const file = await this.bot.getFile(fileId);
           photoUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+          console.log(`✅ Photo URL сформирован: ${photoUrl}`);
+        } else {
+          console.log('⚠️ У пользователя нет фото профиля');
         }
       } catch (err) {
-        console.log("Не удалось получить фото профиля:", err);
+        console.log("❌ Не удалось получить фото профиля:", err);
       }
 
       // Создаем или обновляем пользователя
@@ -84,6 +90,7 @@ export class TelegramBotService {
           }
         }
 
+        console.log(`💾 Создаю пользователя с photo_url: ${photoUrl || 'null'}`);
         user = await UserModel.create({
           telegram_id: telegramId,
           first_name: msg.from?.first_name || "User",
@@ -116,11 +123,13 @@ export class TelegramBotService {
         console.log(`✅ Новый пользователь создан: ${telegramId} (${user.first_name})`);
       } else {
         // Обновляем данные пользователя
+        const newPhotoUrl = photoUrl || user.photo_url;
+        console.log(`🔄 Обновляю пользователя, photo_url: ${newPhotoUrl || 'null'}`);
         await UserModel.updateUser(user.id, {
           first_name: msg.from?.first_name || user.first_name,
           username: msg.from?.username,
           last_name: msg.from?.last_name,
-          photo_url: photoUrl || user.photo_url,
+          photo_url: newPhotoUrl,
           is_premium: (msg.from as any)?.is_premium || false,
         });
       }

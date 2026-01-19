@@ -127,7 +127,8 @@ window.loadUserData = async function() {
     if (response.ok) {
       const data = await response.json();
       window.currentUser = data.user;
-      console.log('✅ Пользователь загружен из БД:', window.currentUser);
+      debugLog('✅ Пользователь загружен из БД');
+      debugLog('📊 Данные пользователя: ' + JSON.stringify(data.user));
       console.log('💰 Баланс:', data.balance);
 
       // Формируем полное имя
@@ -141,14 +142,27 @@ window.loadUserData = async function() {
       // Обновляем аватар
       const avatar = document.getElementById('avatar');
       const photoUrl = window.currentUser.photo_url;
-      console.log('📷 Аватар URL:', photoUrl);
+
+      debugLog('📷 Photo URL из БД: ' + (photoUrl || 'НЕТ'));
+
       if (photoUrl) {
-        avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        debugLog('🖼️ Загружаю аватар...', 'info');
+        const img = new Image();
+        img.onload = function() {
+          debugLog('✅ Аватар загружен', 'success');
+          avatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        };
+        img.onerror = function() {
+          debugLog('❌ Ошибка загрузки аватара', 'error');
+          avatar.textContent = fullName.charAt(0).toUpperCase();
+        };
+        img.src = photoUrl;
       } else {
+        debugLog('⚠️ Photo URL пустой, показываю инициал', 'warning');
         avatar.textContent = fullName.charAt(0).toUpperCase();
       }
 
-      console.log('✅ Профиль загружен и отображен в UI');
+      debugLog('✅ Профиль отображён в UI', 'success');
     } else if (response.status === 404) {
       console.log('⚠️ Пользователь не найден в БД, создаю нового...');
 
@@ -165,18 +179,21 @@ window.loadUserData = async function() {
 
       if (window.tg && window.tg.initDataUnsafe && window.tg.initDataUnsafe.user) {
         const tgUser = window.tg.initDataUnsafe.user;
+        debugLog('📱 Данные из SDK: ' + JSON.stringify(tgUser));
+        debugLog('⚠️ ВНИМАНИЕ: Telegram SDK НЕ передаёт photo_url!', 'warning');
+        debugLog('📷 Фото получит бот через Bot API при /start', 'info');
+
         userData = {
           telegram_id: telegramId,
           username: tgUser.username || '',
           first_name: tgUser.first_name || 'User',
           last_name: tgUser.last_name || '',
           language_code: tgUser.language_code || '',
-          photo_url: tgUser.photo_url || null,
+          photo_url: null, // SDK не передаёт photo_url
           is_premium: tgUser.is_premium || false
         };
-        console.log('📱 Данные пользователя из Telegram SDK:', tgUser);
       } else {
-        console.log('⚠️ Telegram SDK недоступен, создаю с минимальными данными');
+        debugLog('⚠️ SDK недоступен, минимальные данные', 'warning');
       }
 
       const createResponse = await fetch('/api/user', {
