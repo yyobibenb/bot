@@ -649,6 +649,60 @@ function backToDiceModes() {
   document.getElementById('dice-game-screen').classList.add('active');
 }
 
+// ========== TELEGRAM-STYLE DICE ANIMATION ==========
+
+// Анимация кубика как в Telegram - красиво крутится и останавливается СРАЗУ на нужном результате
+function playTelegramStyleDiceAnimation(resultNumber, diceEmojiElement, onComplete) {
+  const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  let frameCount = 0;
+  const totalFrames = 25; // Количество кадров прокрутки
+  let currentSpeed = 40; // Скорость прокрутки (мс)
+
+  // Быстрая прокрутка
+  const fastInterval = setInterval(() => {
+    frameCount++;
+
+    // Показываем случайные грани (эффект прокрутки)
+    const randomDice = Math.floor(Math.random() * 6);
+    diceEmojiElement.textContent = diceEmojis[randomDice];
+
+    // Когда приближаемся к концу - замедляемся
+    if (frameCount >= totalFrames * 0.6) {
+      clearInterval(fastInterval);
+
+      // Замедленная прокрутка перед финалом
+      let slowFrames = 0;
+      const maxSlowFrames = 8;
+      const slowInterval = setInterval(() => {
+        slowFrames++;
+
+        // Показываем грани близкие к результату (для реалистичности)
+        let nearResult = resultNumber + (Math.random() > 0.5 ? 1 : -1);
+        if (nearResult < 1) nearResult = 6;
+        if (nearResult > 6) nearResult = 1;
+        diceEmojiElement.textContent = diceEmojis[nearResult - 1];
+
+        if (slowFrames >= maxSlowFrames) {
+          clearInterval(slowInterval);
+
+          // ФИНАЛЬНАЯ ОСТАНОВКА на нужном результате
+          setTimeout(() => {
+            diceEmojiElement.textContent = diceEmojis[resultNumber - 1];
+            diceEmojiElement.classList.remove('spinning');
+
+            // Эффект "выскакивания" финального результата
+            diceEmojiElement.style.transform = 'scale(1.3)';
+            setTimeout(() => {
+              diceEmojiElement.style.transform = 'scale(1)';
+              if (onComplete) onComplete();
+            }, 150);
+          }, 100);
+        }
+      }, 100); // Медленнее в конце
+    }
+  }, currentSpeed);
+}
+
 // Play dice game
 async function playDiceGame() {
   if (!window.currentUser) {
@@ -680,7 +734,7 @@ async function playDiceGame() {
   const playBtn = document.getElementById('play-dice-btn');
   const diceEmoji = document.getElementById('dice-emoji');
 
-  // Disable button and add spinning animation
+  // Disable button
   playBtn.disabled = true;
   playBtn.textContent = 'Бросаем...';
   diceEmoji.classList.add('spinning');
@@ -711,12 +765,11 @@ async function playDiceGame() {
 
     const data = await response.json();
 
-    setTimeout(() => {
-      diceEmoji.classList.remove('spinning');
-
+    // ПОКАЗЫВАЕМ TELEGRAM-STYLE АНИМАЦИЮ с результатом с backend!
+    playTelegramStyleDiceAnimation(data.result, diceEmoji, () => {
       if (data.success) {
-        const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-        diceEmoji.textContent = diceEmojis[data.result - 1] || '🎲';
+        // const diceEmojis = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        // diceEmoji.textContent = diceEmojis[data.result - 1] || '🎲'; // Уже установлено в анимации
 
         // Update balance
         if (data.newBalance !== undefined) {

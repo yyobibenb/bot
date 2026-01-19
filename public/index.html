@@ -6,6 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
   <title>Casino App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -348,9 +349,12 @@
         <!-- Mode Title -->
         <h3 id="play-mode-title" style="text-align: center; color: var(--gold); margin-bottom: 16px; font-size: 18px;">🎲 Больше 3 (x1.89)</h3>
 
-        <!-- Dice Display with Emoji -->
+        <!-- Dice Display with Telegram Animated Sticker -->
         <div class="dice-display-main">
-          <div class="dice-emoji" id="dice-emoji">🎲</div>
+          <!-- Lottie animation контейнер -->
+          <div id="dice-lottie-container" style="width: 200px; height: 200px; margin: 0 auto; display: none;"></div>
+          <!-- Fallback emoji -->
+          <div class="dice-emoji" id="dice-emoji" style="display: block;">🎲</div>
         </div>
 
         <!-- Bet Amount -->
