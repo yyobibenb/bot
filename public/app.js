@@ -3181,12 +3181,20 @@ async function loadUserInfo() {
   const userId = document.getElementById('user-id-input').value;
 
   if (!userId) {
-    window.tg.showAlert('Введите ID пользователя');
+    if (window.tg) {
+      window.tg.showAlert('Введите ID пользователя');
+    } else {
+      alert('Введите ID пользователя');
+    }
     return;
   }
 
   if (!window.currentUser) {
-    window.tg.showAlert('Ошибка: пользователь не загружен');
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: пользователь не загружен');
+    } else {
+      alert('Ошибка: пользователь не загружен');
+    }
     return;
   }
 
@@ -3200,11 +3208,44 @@ async function loadUserInfo() {
       // Show user info block
       document.getElementById('user-info-block').style.display = 'block';
 
-      // Fill data
+      // Fill basic data
       document.getElementById('user-info-id').textContent = data.user.id;
+      document.getElementById('user-info-telegram-id').textContent = data.user.telegram_id || '-';
       document.getElementById('user-info-name').textContent = data.user.first_name + (data.user.last_name ? ' ' + data.user.last_name : '');
+      document.getElementById('user-info-username').textContent = data.user.username ? '@' + data.user.username : '-';
       document.getElementById('user-info-balance').textContent = (data.balance || 0).toFixed(2) + ' USDT';
       document.getElementById('user-info-blocked').textContent = data.user.is_blocked ? '🚫 Заблокирован' : '✅ Активен';
+
+      // Format dates
+      if (data.user.created_at) {
+        const createdDate = new Date(data.user.created_at);
+        document.getElementById('user-info-created').textContent = createdDate.toLocaleDateString('ru-RU') + ' ' + createdDate.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+      } else {
+        document.getElementById('user-info-created').textContent = '-';
+      }
+
+      if (data.user.last_active) {
+        const lastActiveDate = new Date(data.user.last_active);
+        document.getElementById('user-info-last-active').textContent = lastActiveDate.toLocaleDateString('ru-RU') + ' ' + lastActiveDate.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+      } else {
+        document.getElementById('user-info-last-active').textContent = '-';
+      }
+
+      // Fill game stats
+      const gamesCount = data.stats?.games_count || 0;
+      const winsCount = data.stats?.wins_count || 0;
+      const totalBets = data.stats?.total_bets || 0;
+      const totalWins = data.stats?.total_wins || 0;
+      const profit = totalWins - totalBets;
+
+      document.getElementById('user-info-games-count').textContent = gamesCount;
+      document.getElementById('user-info-wins-count').textContent = winsCount;
+      document.getElementById('user-info-total-bets').textContent = totalBets.toFixed(2) + ' USDT';
+      document.getElementById('user-info-total-wins').textContent = totalWins.toFixed(2) + ' USDT';
+
+      const profitEl = document.getElementById('user-info-profit');
+      profitEl.textContent = (profit >= 0 ? '+' : '') + profit.toFixed(2) + ' USDT';
+      profitEl.style.color = profit >= 0 ? 'var(--emerald)' : 'var(--error)';
 
       // Update block button
       const blockBtn = document.getElementById('block-user-btn');
@@ -3218,11 +3259,19 @@ async function loadUserInfo() {
         window.tg.HapticFeedback.notificationOccurred('success');
       }
     } else {
-      window.tg.showAlert('❌ Пользователь не найден');
+      if (window.tg) {
+        window.tg.showAlert('❌ Пользователь не найден');
+      } else {
+        alert('❌ Пользователь не найден');
+      }
     }
   } catch (error) {
     console.error('Ошибка загрузки пользователя:', error);
-    window.tg.showAlert('❌ Ошибка загрузки');
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка загрузки');
+    } else {
+      alert('❌ Ошибка загрузки: ' + error.message);
+    }
   }
 }
 

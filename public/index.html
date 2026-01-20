@@ -1124,15 +1124,23 @@
 
         <div id="user-info-block" style="display: none;">
           <div class="balance-card" style="margin-bottom: 16px;">
-            <div class="balance-label">Информация</div>
+            <div class="balance-label">Информация о пользователе</div>
             <div style="margin-top: 12px;">
               <div class="stat-row">
                 <span>ID:</span>
                 <span id="user-info-id">-</span>
               </div>
               <div class="stat-row">
+                <span>Telegram ID:</span>
+                <span id="user-info-telegram-id">-</span>
+              </div>
+              <div class="stat-row">
                 <span>Имя:</span>
                 <span id="user-info-name">-</span>
+              </div>
+              <div class="stat-row">
+                <span>Username:</span>
+                <span id="user-info-username">-</span>
               </div>
               <div class="stat-row">
                 <span>Баланс:</span>
@@ -1142,10 +1150,45 @@
                 <span>Статус:</span>
                 <span id="user-info-blocked">Активен</span>
               </div>
+              <div class="stat-row">
+                <span>Регистрация:</span>
+                <span id="user-info-created">-</span>
+              </div>
+              <div class="stat-row">
+                <span>Последняя активность:</span>
+                <span id="user-info-last-active">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="balance-card" style="margin-bottom: 16px;">
+            <div class="balance-label">Статистика игр</div>
+            <div style="margin-top: 12px;">
+              <div class="stat-row">
+                <span>Всего игр:</span>
+                <span id="user-info-games-count">0</span>
+              </div>
+              <div class="stat-row">
+                <span>Выигрышей:</span>
+                <span id="user-info-wins-count">0</span>
+              </div>
+              <div class="stat-row">
+                <span>Общая сумма ставок:</span>
+                <span id="user-info-total-bets">0 USDT</span>
+              </div>
+              <div class="stat-row">
+                <span>Общая сумма выигрышей:</span>
+                <span id="user-info-total-wins">0 USDT</span>
+              </div>
+              <div class="stat-row" style="border-top: 1px solid var(--glass-border); padding-top: 8px; margin-top: 8px;">
+                <span style="font-weight: 600;">Profit/Loss:</span>
+                <span id="user-info-profit" style="font-weight: 600;">0 USDT</span>
+              </div>
             </div>
           </div>
 
           <div style="margin-bottom: 16px;">
+            <div class="balance-label" style="margin-bottom: 12px;">Управление балансом</div>
             <input type="number" id="balance-amount-input" class="input" placeholder="Сумма" style="width: 100%; margin-bottom: 8px;">
             <div style="display: flex; gap: 8px;">
               <button class="btn secondary" style="flex: 1;" onclick="editUserBalance('add')">➕ Добавить</button>

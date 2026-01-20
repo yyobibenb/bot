@@ -1017,6 +1017,12 @@ app.get("/api/admin/user/:user_id", async (req, res) => {
     // История игр
     const gamesHistory = await GameModel.getUserGameHistory(parseInt(user_id));
 
+    // Подсчёт статистики игр
+    const gamesCount = gamesHistory.length;
+    const winsCount = gamesHistory.filter((game: any) => game.is_win).length;
+    const totalBets = gamesHistory.reduce((sum: number, game: any) => sum + parseFloat(game.bet_amount || 0), 0);
+    const totalWins = gamesHistory.reduce((sum: number, game: any) => sum + parseFloat(game.win_amount || 0), 0);
+
     res.json({
       success: true,
       user: {
@@ -1025,8 +1031,15 @@ app.get("/api/admin/user/:user_id", async (req, res) => {
         total_deposited: balance ? parseFloat(balance.total_deposited.toString()) : 0,
         total_withdrawn: balance ? parseFloat(balance.total_withdrawn.toString()) : 0,
       },
+      balance: balance ? parseFloat(balance.balance.toString()) : 0,
       transactions,
       gamesHistory,
+      stats: {
+        games_count: gamesCount,
+        wins_count: winsCount,
+        total_bets: totalBets,
+        total_wins: totalWins
+      }
     });
   } catch (error: any) {
     console.error("Error getting user details:", error);
