@@ -467,9 +467,8 @@ async function handleDeposit() {
     }
 
     if (data.success && data.invoice_url) {
-      // Открываем страницу оплаты CryptoBot
-      window.tg.openLink(data.invoice_url);
-      window.tg.showAlert('✅ Счет создан!\n\nСумма: ' + depositAmount + ' USDT\n\nПосле оплаты баланс пополнится автоматически.');
+      // Открываем страницу оплаты CryptoBot внутри Telegram
+      window.tg.openTelegramLink(data.invoice_url);
     } else {
       window.tg.showAlert('❌ Ошибка создания счета:\n\n' + (data.error || 'Не удалось создать счет'));
       console.error('Create invoice error:', data);
