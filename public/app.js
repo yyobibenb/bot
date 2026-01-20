@@ -4033,12 +4033,6 @@ async function playFromFullscreen() {
   playBtn.disabled = true;
   playBtn.textContent = 'ИГРАЕМ...';
 
-  // Запустить анимацию (loop)
-  if (window.fullscreenState.lottieAnimation) {
-    window.fullscreenState.lottieAnimation.loop = true;
-    window.fullscreenState.lottieAnimation.play();
-  }
-
   try {
     // Маппинг режимов на API endpoints
     const apiEndpoints = {
@@ -4222,7 +4216,7 @@ function initLottieAnimation(game) {
     window.fullscreenState.lottieAnimation = lottie.loadAnimation({
       container: container,
       renderer: 'svg',
-      loop: true,
+      loop: false, // Прокручивается 1 раз при входе
       autoplay: true,
       path: animationUrl
     });

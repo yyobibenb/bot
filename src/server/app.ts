@@ -1027,19 +1027,26 @@ app.get("/api/admin/user/:user_id", async (req, res) => {
       return res.status(403).json({ success: false, error: "Access denied" });
     }
 
-    const user = await UserModel.getUserById(parseInt(user_id));
+    // Пробуем найти пользователя по database ID
+    let user = await UserModel.getUserById(parseInt(user_id));
+
+    // Если не найден, пробуем найти по telegram_id
+    if (!user) {
+      user = await UserModel.findByTelegramId(parseInt(user_id));
+    }
+
     if (!user) {
       return res.status(404).json({ success: false, error: "User not found" });
     }
 
     // Баланс
-    const balance = await BalanceModel.getBalance(parseInt(user_id));
+    const balance = await BalanceModel.getBalance(user.id);
 
     // Транзакции
-    const transactions = await TransactionModel.getUserTransactions(parseInt(user_id), 100);
+    const transactions = await TransactionModel.getUserTransactions(user.id, 100);
 
     // История игр
-    const gamesHistory = await GameModel.getUserGameHistory(parseInt(user_id));
+    const gamesHistory = await GameModel.getUserGameHistory(user.id);
 
     // Подсчёт статистики игр
     const gamesCount = gamesHistory.length;
