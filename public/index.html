@@ -27,6 +27,34 @@
         <div class="balance-amount"><span id="balance">0.00</span> USDT</div>
       </div>
 
+      <!-- User Stats Card -->
+      <div class="balance-card" style="margin-top: 16px;">
+        <div class="balance-label">👥 Профиль игрока</div>
+        <div style="margin-top: 8px; font-size: 14px; color: var(--text-secondary);">
+          <span id="days-with-bot">Ты с Jokery уже 0 дней</span>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <div class="balance-label" style="font-size: 14px; margin-bottom: 8px;">🎰 Итоги за всё время</div>
+          <div class="stat-row">
+            <span>Топ-игра:</span>
+            <span id="top-game">-</span>
+          </div>
+          <div class="stat-row">
+            <span>Сыграно раундов:</span>
+            <span id="total-games">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Сумма всех ставок:</span>
+            <span id="total-bets">0.00$</span>
+          </div>
+          <div class="stat-row">
+            <span>Самый крупный занос:</span>
+            <span id="biggest-win" style="color: var(--emerald);">0.00$</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Debug Logs -->
       <div id="debug-logs" class="debug-logs">
         <div class="debug-logs-header">
@@ -34,12 +62,6 @@
           <button onclick="toggleLogs()" class="debug-toggle">Скрыть</button>
         </div>
         <div id="debug-logs-content" class="debug-logs-content"></div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats">
-        <div class="stat">🎯 Игр: 12</div>
-        <div class="stat">🏆 Побед: 5</div>
       </div>
 
       <!-- Action Buttons -->
@@ -912,16 +934,27 @@
 
     <!-- Referral Screen -->
     <div id="referral-screen" class="screen">
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">👥 Рефералы</h2>
-      <div class="balance-card">
-        <div class="balance-label">Приглашено друзей</div>
-        <div class="balance-amount"><span id="referral-count">0</span></div>
-        <div style="margin-top: 12px; font-size: 14px; color: var(--text-secondary);">
-          Получай 10% от депозитов рефералов
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">👥 Партнёрская программа</h2>
+
+      <!-- Stats Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div class="balance-card">
+          <div class="balance-label" style="font-size: 12px;">Приглашено</div>
+          <div class="balance-amount" style="font-size: 24px;"><span id="referral-count">0</span></div>
+        </div>
+        <div class="balance-card">
+          <div class="balance-label" style="font-size: 12px;">Заработано</div>
+          <div class="balance-amount" style="font-size: 24px; color: var(--emerald);"><span id="referral-earned">0.00</span>$</div>
         </div>
       </div>
 
-      <div style="margin-top: 20px;">
+      <div class="balance-card" style="margin-bottom: 16px;">
+        <div style="font-size: 14px; color: var(--text-secondary); text-align: center;">
+          💰 Получай <span style="color: var(--gold); font-weight: 600;">5%</span> от каждого депозита реферала!
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
         <div style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary);">Твоя реферальная ссылка:</div>
         <div id="referral-link" class="input" style="cursor: pointer; word-break: break-all; user-select: all;" onclick="copyReferralLink()">
           Загрузка...
@@ -929,6 +962,16 @@
         <button class="btn secondary" style="width: 100%; margin-top: 12px;" onclick="shareReferralLink()">
           <span>📤 Поделиться ссылкой</span>
         </button>
+      </div>
+
+      <!-- Referrals List -->
+      <div class="balance-card">
+        <div class="balance-label">📋 Твои рефералы</div>
+        <div id="referrals-list" style="margin-top: 12px;">
+          <div style="text-align: center; color: var(--text-secondary); padding: 20px 0;">
+            Пока никого не пригласил
+          </div>
+        </div>
       </div>
     </div>
 

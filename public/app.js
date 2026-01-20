@@ -236,6 +236,12 @@ window.loadUserData = async function() {
 
       debugLog('───────────────────────────────────────');
       debugLog('✅ Профиль отображён в UI', 'success');
+
+      // Load user stats and referral data
+      debugLog('📊 Загружаю статистику пользователя...');
+      loadUserStats();
+      debugLog('👥 Загружаю реферальные данные...');
+      loadReferralStats();
     } else if (response.status === 404) {
       debugLog('⚠️ Пользователь НЕ найден в БД!', 'warning');
       debugLog('🆕 Создаю нового пользователя...');
@@ -377,6 +383,12 @@ window.loadUserData = async function() {
 
         debugLog('───────────────────────────────────────');
         debugLog('✅ Профиль нового юзера готов!', 'success');
+
+        // Load user stats and referral data for new user
+        debugLog('📊 Загружаю статистику пользователя...');
+        loadUserStats();
+        debugLog('👥 Загружаю реферальные данные...');
+        loadReferralStats();
       }
     }
   } catch (error) {
@@ -579,6 +591,15 @@ function handleNav(event, section) {
   // Update screens
   document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
   document.getElementById(section + '-screen').classList.add('active');
+
+  // Reload data when switching to specific screens
+  if (section === 'referral') {
+    console.log('👥 Opening referral screen, reloading data...');
+    loadReferralStats();
+  } else if (section === 'profile') {
+    console.log('📊 Opening profile screen, reloading stats...');
+    loadUserStats();
+  }
 }
 
 // Open dice game
@@ -4270,8 +4291,194 @@ function initLottieAnimation(game) {
   }
 }
 
+// ============================================
+// USER STATS FUNCTIONS
+// ============================================
+
+// Load user statistics
+async function loadUserStats() {
+  if (!window.currentUser) {
+    console.error('❌ Cannot load stats: currentUser not loaded');
+    return;
+  }
+
+  try {
+    console.log('📊 Loading user stats...');
+    const response = await fetch(`/api/user/${window.currentUser.id}/stats`);
+    const data = await response.json();
+
+    if (data.success) {
+      console.log('✅ User stats loaded:', data);
+
+      // Days with bot
+      const daysText = data.daysWithBot === 1
+        ? 'Ты с Jokery уже 1 день'
+        : `Ты с Jokery уже ${data.daysWithBot} ${getDaysWord(data.daysWithBot)}`;
+      document.getElementById('days-with-bot').textContent = daysText;
+
+      // Top game
+      const topGame = data.stats.favorite_game_name
+        ? `${data.stats.favorite_game_name} [${data.stats.total_games}]`
+        : '-';
+      document.getElementById('top-game').textContent = topGame;
+
+      // Total games
+      document.getElementById('total-games').textContent = data.stats.total_games || 0;
+
+      // Total bets
+      document.getElementById('total-bets').textContent = (data.stats.total_bet_amount || 0).toFixed(2) + '$';
+
+      // Biggest win
+      const biggestWin = (data.stats.biggest_win || 0).toFixed(2) + '$';
+      document.getElementById('biggest-win').textContent = biggestWin;
+    } else {
+      console.error('Failed to load user stats:', data.error);
+    }
+  } catch (error) {
+    console.error('Error loading user stats:', error);
+  }
+}
+
+// Helper function to get correct word form for days
+function getDaysWord(days) {
+  const lastDigit = days % 10;
+  const lastTwoDigits = days % 100;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+    return 'дней';
+  }
+
+  if (lastDigit === 1) {
+    return 'день';
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return 'дня';
+  }
+
+  return 'дней';
+}
+
+// ============================================
+// REFERRAL FUNCTIONS
+// ============================================
+
+// Load referral stats
+async function loadReferralStats() {
+  if (!window.currentUser) {
+    console.error('❌ Cannot load referrals: currentUser not loaded');
+    return;
+  }
+
+  try {
+    console.log('👥 Loading referral stats...');
+    const response = await fetch(`/api/referrals/${window.currentUser.id}`);
+    const data = await response.json();
+
+    if (data.success) {
+      console.log('✅ Referral stats loaded:', data);
+
+      // Update referral link
+      document.getElementById('referral-link').textContent = data.referralLink;
+
+      // Update stats
+      document.getElementById('referral-count').textContent = data.stats.total_referrals || 0;
+      document.getElementById('referral-earned').textContent = (data.stats.total_earned || 0).toFixed(2);
+
+      // Update referrals list
+      const listElement = document.getElementById('referrals-list');
+      if (data.stats.referrals && data.stats.referrals.length > 0) {
+        let html = '';
+        data.stats.referrals.forEach(ref => {
+          html += `
+            <div class="stat-row" style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <div>
+                <div style="font-weight: 500;">${ref.first_name}</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                  ${ref.username ? '@' + ref.username : 'ID: ' + ref.user_id}
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: var(--emerald); font-weight: 500;">${ref.total_deposited.toFixed(2)}$</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                  ${new Date(ref.created_at).toLocaleDateString('ru-RU')}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        listElement.innerHTML = html;
+      } else {
+        listElement.innerHTML = `
+          <div style="text-align: center; color: var(--text-secondary); padding: 20px 0;">
+            Пока никого не пригласил
+          </div>
+        `;
+      }
+    } else {
+      console.error('Failed to load referral stats:', data.error);
+    }
+  } catch (error) {
+    console.error('Error loading referral stats:', error);
+  }
+}
+
+// Copy referral link to clipboard
+function copyReferralLink() {
+  const link = document.getElementById('referral-link').textContent;
+
+  if (link && link !== 'Загрузка...') {
+    // Try to copy to clipboard
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link).then(() => {
+        if (window.tg) {
+          window.tg.showAlert('✅ Ссылка скопирована!');
+          if (window.tg.HapticFeedback) {
+            window.tg.HapticFeedback.notificationOccurred('success');
+          }
+        } else {
+          alert('✅ Ссылка скопирована!');
+        }
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        if (window.tg) {
+          window.tg.showAlert('❌ Не удалось скопировать');
+        }
+      });
+    } else {
+      // Fallback for older browsers
+      if (window.tg) {
+        window.tg.showAlert('Ссылка: ' + link);
+      } else {
+        alert('Ссылка: ' + link);
+      }
+    }
+  }
+}
+
+// Share referral link
+function shareReferralLink() {
+  const link = document.getElementById('referral-link').textContent;
+
+  if (link && link !== 'Загрузка...') {
+    const text = `🎰 Присоединяйся к Jokery Casino!\n\n💰 Играй и выигрывай реальные деньги\n🎁 Бонусы для новых игроков\n\n${link}`;
+
+    if (window.tg && window.tg.openTelegramLink) {
+      // Open Telegram share dialog
+      window.tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('🎰 Присоединяйся к Jokery Casino!')}`);
+    } else {
+      // Fallback - copy to clipboard
+      copyReferralLink();
+    }
+  }
+}
+
 // Экспортировать функции в глобальную область
 window.openFullscreenMode = openFullscreenMode;
 window.closeFullscreenMode = closeFullscreenMode;
 window.selectFullscreenChoice = selectFullscreenChoice;
+window.loadUserStats = loadUserStats;
+window.loadReferralStats = loadReferralStats;
+window.copyReferralLink = copyReferralLink;
+window.shareReferralLink = shareReferralLink;
 window.playFromFullscreen = playFromFullscreen;
