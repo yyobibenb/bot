@@ -3830,7 +3830,18 @@ const gameModeConfig = {
 
 // Lottie анимации URLs (локальные файлы из TGS)
 const lottieAnimations = {
-  dice: '/animations/dice.json',
+  dice: {
+    default: '/animations/Rectangular_1.json', // Для показа перед броском
+    faces: [
+      null, // индекс 0 не используется
+      '/animations/Rectangular_1.json', // грань 1
+      '/animations/Rectangular_2.json', // грань 2
+      '/animations/Rectangular_3.json', // грань 3
+      '/animations/Rectangular_4.json', // грань 4
+      '/animations/Rectangular_5.json', // грань 5
+      '/animations/Rectangular_6.json'  // грань 6
+    ]
+  },
   bowling: '/animations/bowling.json',
   football: '/animations/football.json',
   basketball: '/animations/basketball.json',
@@ -4094,45 +4105,66 @@ async function playFromFullscreen() {
 // Показать результат кубика в анимации
 async function showDiceResult(result, isWin) {
   return new Promise((resolve) => {
-    // Если анимация есть
+    const container = document.getElementById('fullscreen-lottie');
+
+    // Уничтожаем текущую анимацию
     if (window.fullscreenState.lottieAnimation) {
-      const anim = window.fullscreenState.lottieAnimation;
+      window.fullscreenState.lottieAnimation.destroy();
+      window.fullscreenState.lottieAnimation = null;
+    }
 
-      // Останавливаем loop
-      anim.loop = false;
+    // Загружаем анимацию нужной грани
+    const game = window.fullscreenState.game;
+    const animationConfig = lottieAnimations[game];
 
-      // Для TGS анимации кубика обычно каждая грань это диапазон кадров
-      // Нужно остановить на нужном кадре
-      // Пример: если в анимации 60 кадров на 6 граней = по 10 кадров на грань
-      const totalFrames = anim.totalFrames;
-      const framePerFace = totalFrames / 6;
-      const targetFrame = Math.floor((result - 1) * framePerFace + framePerFace / 2);
+    if (animationConfig && animationConfig.faces && animationConfig.faces[result]) {
+      const faceAnimationUrl = animationConfig.faces[result];
+      console.log(`🎬 Загружаем анимацию грани ${result}: ${faceAnimationUrl}`);
 
-      console.log(`🎬 Показываем результат: грань ${result}, кадр ${targetFrame}/${totalFrames}`);
+      // Очистить контейнер
+      container.innerHTML = '';
 
-      // Переходим на нужный кадр
-      anim.goToAndStop(targetFrame, true);
+      // Загрузить и показать анимацию нужной грани
+      if (typeof lottie !== 'undefined') {
+        const anim = lottie.loadAnimation({
+          container: container,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: faceAnimationUrl
+        });
 
-      // Добавляем эффект (увеличение для выигрыша)
-      const container = document.getElementById('fullscreen-lottie');
-      if (isWin) {
-        container.style.transform = 'scale(1.2)';
-        container.style.transition = 'transform 0.3s ease';
-        setTimeout(() => {
-          container.style.transform = 'scale(1)';
-        }, 300);
+        window.fullscreenState.lottieAnimation = anim;
+
+        // Добавляем эффект (увеличение для выигрыша)
+        if (isWin) {
+          container.style.transform = 'scale(1.2)';
+          container.style.transition = 'transform 0.3s ease';
+          setTimeout(() => {
+            container.style.transform = 'scale(1)';
+          }, 300);
+        }
+
+        console.log(`✅ Анимация грани ${result} загружена и запущена`);
+        setTimeout(resolve, 2000);
+      } else {
+        // Fallback если lottie не загружен
+        showDiceFallback(result, container);
+        setTimeout(resolve, 1500);
       }
-
-      setTimeout(resolve, 1500);
     } else {
       // Fallback - показываем эмодзи с числом
-      const container = document.getElementById('fullscreen-lottie');
-      const diceEmojis = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-      container.innerHTML = `<div style="font-size: 120px; animation: bounce 0.5s ease;">${diceEmojis[result] || '🎲'}</div>`;
-
+      showDiceFallback(result, container);
       setTimeout(resolve, 1500);
     }
   });
+}
+
+// Fallback отображение кубика эмодзи
+function showDiceFallback(result, container) {
+  const diceEmojis = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  container.innerHTML = `<div style="font-size: 120px; animation: bounce 0.5s ease;">${diceEmojis[result] || '🎲'}</div>`;
+  console.log(`📦 Fallback: показываем эмодзи для грани ${result}`);
 }
 
 // Инициализировать Lottie анимацию
@@ -4145,10 +4177,19 @@ function initLottieAnimation(game) {
     window.fullscreenState.lottieAnimation.destroy();
   }
 
-  // Загрузить новую анимацию
-  const animationUrl = lottieAnimations[game];
+  // Получить URL анимации
+  const animationConfig = lottieAnimations[game];
+  let animationUrl;
+
+  // Для кубиков используем анимацию по умолчанию (крутящийся кубик)
+  if (animationConfig && animationConfig.default) {
+    animationUrl = animationConfig.default;
+  } else if (typeof animationConfig === 'string') {
+    animationUrl = animationConfig;
+  }
 
   if (animationUrl && typeof lottie !== 'undefined') {
+    console.log(`🎬 Загружаем начальную анимацию: ${animationUrl}`);
     window.fullscreenState.lottieAnimation = lottie.loadAnimation({
       container: container,
       renderer: 'svg',
