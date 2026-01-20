@@ -1027,17 +1027,31 @@ app.get("/api/admin/user/:user_id", async (req, res) => {
       return res.status(403).json({ success: false, error: "Access denied" });
     }
 
+    const searchId = parseInt(user_id);
+
+    if (isNaN(searchId) || searchId <= 0) {
+      console.log(`❌ Некорректный ID: ${user_id}`);
+      return res.status(400).json({ success: false, error: "Invalid user ID" });
+    }
+
+    console.log(`🔍 Поиск пользователя по ID: ${searchId}`);
+
     // Пробуем найти пользователя по database ID
-    let user = await UserModel.getUserById(parseInt(user_id));
+    let user = await UserModel.getUserById(searchId);
+    console.log(`📊 Поиск по database ID ${searchId}:`, user ? 'найден' : 'не найден');
 
     // Если не найден, пробуем найти по telegram_id
     if (!user) {
-      user = await UserModel.findByTelegramId(parseInt(user_id));
+      user = await UserModel.findByTelegramId(searchId);
+      console.log(`📊 Поиск по telegram_id ${searchId}:`, user ? 'найден' : 'не найден');
     }
 
     if (!user) {
+      console.log(`❌ Пользователь ${searchId} не найден ни по database ID, ни по telegram_id`);
       return res.status(404).json({ success: false, error: "User not found" });
     }
+
+    console.log(`✅ Пользователь найден: ID=${user.id}, telegram_id=${user.telegram_id}, имя=${user.first_name}`);
 
     // Баланс
     const balance = await BalanceModel.getBalance(user.id);
