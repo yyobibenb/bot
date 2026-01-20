@@ -197,8 +197,8 @@ export class DiceGameService {
     const gameMode = await GameModel.getGameModeById(3); // Больше/меньше 2X2
     if (!gameMode) throw new Error("Game mode not found");
 
-    const roll1 = this.rollDice();
-    const roll2 = this.rollDice();
+    const roll1 = await this.rollDice();
+    const roll2 = await this.rollDice();
 
     let isWin = false;
     if (choice === "higher") {
@@ -237,9 +237,9 @@ export class DiceGameService {
     const gameMode = await GameModel.getGameModeById(4); // Больше/меньше 3X3
     if (!gameMode) throw new Error("Game mode not found");
 
-    const roll1 = this.rollDice();
-    const roll2 = this.rollDice();
-    const roll3 = this.rollDice();
+    const roll1 = await this.rollDice();
+    const roll2 = await this.rollDice();
+    const roll3 = await this.rollDice();
 
     let isWin = false;
     if (choice === "higher") {
@@ -282,9 +282,9 @@ export class DiceGameService {
     const gameMode = await GameModel.getGameModeById(7); // Подряд
     if (!gameMode) throw new Error("Game mode not found");
 
-    const roll1 = this.rollDice();
-    const roll2 = this.rollDice();
-    const roll3 = this.rollDice();
+    const roll1 = await this.rollDice();
+    const roll2 = await this.rollDice();
+    const roll3 = await this.rollDice();
 
     const isWin = roll1 === choices[0] && roll2 === choices[1] && roll3 === choices[2];
     const multiplier = gameMode.multiplier;
