@@ -3222,6 +3222,9 @@ async function loadAdminStats() {
 async function loadUserInfo() {
   const userId = document.getElementById('user-id-input').value;
 
+  console.log('🔍 loadUserInfo вызван, userId:', userId);
+  console.log('👤 window.currentUser:', window.currentUser);
+
   if (!userId) {
     if (window.tg) {
       window.tg.showAlert('Введите ID пользователя');
@@ -3232,6 +3235,7 @@ async function loadUserInfo() {
   }
 
   if (!window.currentUser) {
+    console.error('❌ window.currentUser не загружен!');
     if (window.tg) {
       window.tg.showAlert('Ошибка: пользователь не загружен');
     } else {
@@ -3241,8 +3245,14 @@ async function loadUserInfo() {
   }
 
   try {
-    const response = await fetch(`/api/admin/user/${userId}?admin_id=${window.currentUser.id}`);
+    const url = `/api/admin/user/${userId}?admin_id=${window.currentUser.id}`;
+    console.log('📡 Отправка запроса:', url);
+
+    const response = await fetch(url);
+    console.log('📥 Получен ответ, status:', response.status);
+
     const data = await response.json();
+    console.log('📦 Данные ответа:', data);
 
     if (data.success) {
       window.currentUserForEdit = data.user;
@@ -3301,16 +3311,18 @@ async function loadUserInfo() {
         window.tg.HapticFeedback.notificationOccurred('success');
       }
     } else {
+      const errorMsg = data.error || 'Пользователь не найден';
+      console.error('❌ Ошибка от API:', errorMsg);
       if (window.tg) {
-        window.tg.showAlert('❌ Пользователь не найден');
+        window.tg.showAlert('❌ ' + errorMsg);
       } else {
-        alert('❌ Пользователь не найден');
+        alert('❌ ' + errorMsg);
       }
     }
   } catch (error) {
-    console.error('Ошибка загрузки пользователя:', error);
+    console.error('❌ Ошибка загрузки пользователя:', error);
     if (window.tg) {
-      window.tg.showAlert('❌ Ошибка загрузки');
+      window.tg.showAlert('❌ Ошибка загрузки: ' + error.message);
     } else {
       alert('❌ Ошибка загрузки: ' + error.message);
     }
@@ -3319,31 +3331,46 @@ async function loadUserInfo() {
 
 // Edit user balance
 async function editUserBalance(operation) {
+  console.log('💰 editUserBalance вызван, operation:', operation);
+
   if (!window.currentUserForEdit) {
+    console.error('❌ window.currentUserForEdit не загружен');
     window.tg.showAlert('Сначала загрузите пользователя');
     return;
   }
 
   if (!window.currentUser) {
+    console.error('❌ window.currentUser не загружен');
     window.tg.showAlert('Ошибка: пользователь не загружен');
     return;
   }
 
   const amount = parseFloat(document.getElementById('balance-amount-input').value);
+  console.log('💵 Сумма:', amount);
 
   if (isNaN(amount) || amount <= 0) {
+    console.error('❌ Некорректная сумма:', amount);
     window.tg.showAlert('Введите корректную сумму');
     return;
   }
 
   try {
-    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/edit-balance?admin_id=${window.currentUser.id}`, {
+    const payload = {
+      admin_id: window.currentUser.id,
+      operation,
+      amount
+    };
+    console.log('📤 Отправка запроса edit-balance:', payload);
+
+    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/edit-balance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ operation, amount })
+      body: JSON.stringify(payload)
     });
 
+    console.log('📥 Ответ получен, status:', response.status);
     const data = await response.json();
+    console.log('📦 Данные ответа:', data);
 
     if (data.success) {
       // Update balance display
@@ -3356,36 +3383,51 @@ async function editUserBalance(operation) {
         window.tg.HapticFeedback.notificationOccurred('success');
       }
     } else {
-      window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+      const errorMsg = data.error || 'Ошибка';
+      console.error('❌ Ошибка от API:', errorMsg);
+      window.tg.showAlert('❌ ' + errorMsg);
     }
   } catch (error) {
-    console.error('Ошибка изменения баланса:', error);
-    window.tg.showAlert('❌ Ошибка');
+    console.error('❌ Ошибка изменения баланса:', error);
+    window.tg.showAlert('❌ Ошибка: ' + error.message);
   }
 }
 
 // Toggle block user
 async function toggleBlockUser() {
+  console.log('🚫 toggleBlockUser вызван');
+
   if (!window.currentUserForEdit) {
+    console.error('❌ window.currentUserForEdit не загружен');
     window.tg.showAlert('Сначала загрузите пользователя');
     return;
   }
 
   if (!window.currentUser) {
+    console.error('❌ window.currentUser не загружен');
     window.tg.showAlert('Ошибка: пользователь не загружен');
     return;
   }
 
   const isCurrentlyBlocked = window.currentUserForEdit.is_blocked;
+  console.log('📊 Текущий статус блокировки:', isCurrentlyBlocked);
 
   try {
-    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/block?admin_id=${window.currentUser.id}`, {
+    const payload = {
+      admin_id: window.currentUser.id,
+      is_blocked: !isCurrentlyBlocked
+    };
+    console.log('📤 Отправка запроса block:', payload);
+
+    const response = await fetch(`/api/admin/user/${window.currentUserForEdit.id}/block`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ block: !isCurrentlyBlocked })
+      body: JSON.stringify(payload)
     });
 
+    console.log('📥 Ответ получен, status:', response.status);
     const data = await response.json();
+    console.log('📦 Данные ответа:', data);
 
     if (data.success) {
       window.currentUserForEdit.is_blocked = !isCurrentlyBlocked;
@@ -3406,11 +3448,13 @@ async function toggleBlockUser() {
         window.tg.HapticFeedback.notificationOccurred('success');
       }
     } else {
-      window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
+      const errorMsg = data.error || 'Ошибка';
+      console.error('❌ Ошибка от API:', errorMsg);
+      window.tg.showAlert('❌ ' + errorMsg);
     }
   } catch (error) {
-    console.error('Ошибка блокировки:', error);
-    window.tg.showAlert('❌ Ошибка');
+    console.error('❌ Ошибка блокировки:', error);
+    window.tg.showAlert('❌ Ошибка: ' + error.message);
   }
 }
 
