@@ -280,9 +280,53 @@ export async function runMigrations() {
 
     // Добавляем админа если не существует
     await addDefaultAdmin();
+
+    // Автоматическое исправление типа telegram_id
+    await fixTelegramIdType();
   } catch (error) {
     console.error("❌ Ошибка при выполнении миграций:", error);
     throw error;
+  }
+}
+
+/**
+ * Автоматически исправляет тип telegram_id с INTEGER на BIGINT
+ * Необходимо для поддержки больших Telegram ID (> 2147483647)
+ */
+async function fixTelegramIdType(): Promise<void> {
+  try {
+    console.log('🔄 Проверка типа telegram_id...');
+
+    // Проверяем текущий тип
+    const checkResult = await pool.query(`
+      SELECT data_type
+      FROM information_schema.columns
+      WHERE table_name = 'users'
+      AND column_name = 'telegram_id'
+    `);
+
+    if (checkResult.rows.length === 0) {
+      console.log('⚠️ Таблица users или колонка telegram_id не найдена');
+      return;
+    }
+
+    const currentType = checkResult.rows[0].data_type;
+
+    if (currentType !== 'bigint') {
+      console.log(`📝 Изменение типа telegram_id: ${currentType} → bigint`);
+
+      await pool.query(`
+        ALTER TABLE users
+        ALTER COLUMN telegram_id TYPE BIGINT
+      `);
+
+      console.log('✅ Тип telegram_id успешно изменен на BIGINT');
+    } else {
+      console.log('✅ Тип telegram_id уже BIGINT');
+    }
+  } catch (error: any) {
+    console.error('❌ Ошибка при миграции telegram_id:', error.message);
+    // Не бросаем ошибку, чтобы не сломать старт приложения
   }
 }
 
