@@ -3737,3 +3737,306 @@ async function loadProfitStats() {
     console.error('Error loading profit stats:', error);
   }
 }
+
+// ============================================
+// FULLSCREEN GAME OVERLAY
+// ============================================
+
+// Состояние fullscreen overlay
+window.fullscreenState = {
+  game: null,
+  mode: null,
+  title: null,
+  multiplier: null,
+  selectedChoice: null,
+  lottieAnimation: null
+};
+
+// Конфигурация режимов игры
+const gameModeConfig = {
+  dice: {
+    'higher-lower': {
+      choices: [
+        { value: 'higher', label: 'Больше 3', coef: 'x1.89' },
+        { value: 'lower', label: 'Меньше 4', coef: 'x1.89' }
+      ],
+      layout: 'list'
+    },
+    'even-odd': {
+      choices: [
+        { value: 'even', label: 'Четное', coef: 'x1.9' },
+        { value: 'odd', label: 'Нечетное', coef: 'x1.9' }
+      ],
+      layout: 'list'
+    },
+    'exact': {
+      choices: [
+        { value: 1, label: '1', coef: 'x5.5' },
+        { value: 2, label: '2', coef: 'x5.5' },
+        { value: 3, label: '3', coef: 'x5.5' },
+        { value: 4, label: '4', coef: 'x5.5' },
+        { value: 5, label: '5', coef: 'x5.5' },
+        { value: 6, label: '6', coef: 'x5.5' }
+      ],
+      layout: 'grid'
+    },
+    '2x2': {
+      choices: [
+        { value: 'higher', label: 'Больше 2X', coef: 'x3.68' },
+        { value: 'lower', label: 'Меньше 2X', coef: 'x3.68' }
+      ],
+      layout: 'list'
+    },
+    '3x3': {
+      choices: [
+        { value: 'higher', label: 'Больше 3X', coef: 'x5.52' },
+        { value: 'lower', label: 'Меньше 3X', coef: 'x5.52' }
+      ],
+      layout: 'list'
+    },
+    'sector': {
+      choices: [
+        { value: 1, label: '1-2', coef: 'x2.76' },
+        { value: 2, label: '3-4', coef: 'x2.76' },
+        { value: 3, label: '5-6', coef: 'x2.76' }
+      ],
+      layout: 'grid'
+    },
+    'sequence': {
+      choices: [], // Нет выбора для sequence
+      layout: 'none',
+      description: 'Угадай 3 числа подряд'
+    },
+    'duel': {
+      choices: [], // Нет выбора для duel
+      layout: 'none',
+      description: 'Дуэль кубиков с казино'
+    }
+  }
+};
+
+// Lottie анимации URLs (пока используем плейсхолдеры)
+const lottieAnimations = {
+  dice: 'https://assets10.lottiefiles.com/packages/lf20_8jjq8tfj.json', // Dice animation
+  bowling: 'https://assets10.lottiefiles.com/packages/lf20_u4yrau.json',
+  football: 'https://assets10.lottiefiles.com/packages/lf20_puciaact.json',
+  basketball: 'https://assets10.lottiefiles.com/packages/lf20_6rkxiyjx.json',
+  darts: 'https://assets10.lottiefiles.com/packages/lf20_qqsnhodk.json'
+};
+
+// Открыть fullscreen режим
+function openFullscreenMode(game, mode, title, multiplier) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Сохранить состояние
+  window.fullscreenState.game = game;
+  window.fullscreenState.mode = mode;
+  window.fullscreenState.title = title;
+  window.fullscreenState.multiplier = multiplier;
+  window.fullscreenState.selectedChoice = null;
+
+  // Установить заголовок и multiplier
+  document.getElementById('fullscreen-title').textContent = title;
+  document.getElementById('fullscreen-multiplier').textContent = `x${multiplier}`;
+
+  // Получить конфигурацию режима
+  const config = gameModeConfig[game][mode];
+
+  // Создать кнопки выбора
+  const choicesContainer = document.getElementById('fullscreen-choices');
+  choicesContainer.innerHTML = '';
+
+  if (config.layout === 'list') {
+    choicesContainer.classList.remove('grid');
+    config.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'fullscreen-choice-btn';
+      btn.onclick = () => selectFullscreenChoice(choice.value);
+      btn.innerHTML = `
+        <span class="fullscreen-choice-btn-label">${choice.label}</span>
+        <span class="fullscreen-choice-btn-coef">${choice.coef}</span>
+      `;
+      choicesContainer.appendChild(btn);
+    });
+  } else if (config.layout === 'grid') {
+    choicesContainer.classList.add('grid');
+    config.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'fullscreen-choice-btn';
+      btn.onclick = () => selectFullscreenChoice(choice.value);
+      btn.textContent = choice.label;
+      choicesContainer.appendChild(btn);
+    });
+  } else if (config.layout === 'none') {
+    // Показать описание если есть
+    if (config.description) {
+      const desc = document.createElement('div');
+      desc.style.textAlign = 'center';
+      desc.style.fontSize = '16px';
+      desc.style.color = 'var(--text-secondary)';
+      desc.style.marginBottom = '20px';
+      desc.textContent = config.description;
+      choicesContainer.appendChild(desc);
+    }
+  }
+
+  // Инициализировать Lottie анимацию
+  initLottieAnimation(game);
+
+  // Показать overlay
+  const overlay = document.getElementById('fullscreen-overlay');
+  overlay.style.display = 'flex';
+  setTimeout(() => {
+    overlay.classList.add('active');
+  }, 10);
+}
+
+// Закрыть fullscreen режим
+function closeFullscreenMode() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+
+  const overlay = document.getElementById('fullscreen-overlay');
+  overlay.classList.remove('active');
+
+  setTimeout(() => {
+    overlay.style.display = 'none';
+
+    // Очистить Lottie анимацию
+    if (window.fullscreenState.lottieAnimation) {
+      window.fullscreenState.lottieAnimation.destroy();
+      window.fullscreenState.lottieAnimation = null;
+    }
+
+    // Сбросить состояние
+    window.fullscreenState = {
+      game: null,
+      mode: null,
+      title: null,
+      multiplier: null,
+      selectedChoice: null,
+      lottieAnimation: null
+    };
+  }, 300);
+}
+
+// Выбрать опцию
+function selectFullscreenChoice(value) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+
+  window.fullscreenState.selectedChoice = value;
+
+  // Обновить визуально активную кнопку
+  const buttons = document.querySelectorAll('.fullscreen-choice-btn');
+  buttons.forEach((btn, index) => {
+    btn.classList.remove('active');
+  });
+
+  // Найти и активировать выбранную кнопку
+  const config = gameModeConfig[window.fullscreenState.game][window.fullscreenState.mode];
+  const choiceIndex = config.choices.findIndex(c => c.value === value);
+  if (choiceIndex !== -1 && buttons[choiceIndex]) {
+    buttons[choiceIndex].classList.add('active');
+  }
+}
+
+// Начать игру из fullscreen
+async function playFromFullscreen() {
+  const { game, mode, multiplier, selectedChoice } = window.fullscreenState;
+  const betAmount = parseFloat(document.getElementById('fullscreen-bet-input').value);
+
+  // Валидация
+  if (!betAmount || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    } else {
+      alert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  // Проверка выбора (если требуется)
+  const config = gameModeConfig[game][mode];
+  if (config.layout !== 'none' && !selectedChoice) {
+    if (window.tg) {
+      window.tg.showAlert('Выберите вариант!');
+    } else {
+      alert('Выберите вариант!');
+    }
+    return;
+  }
+
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('heavy');
+  }
+
+  // Отключить кнопку
+  const playBtn = document.getElementById('fullscreen-play-btn');
+  playBtn.disabled = true;
+  playBtn.textContent = 'ИГРАЕМ...';
+
+  // Запустить анимацию
+  if (window.fullscreenState.lottieAnimation) {
+    window.fullscreenState.lottieAnimation.play();
+  }
+
+  try {
+    // Здесь будет вызов API для игры
+    // Пока просто симуляция
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // После завершения игры - закрыть overlay и обновить баланс
+    closeFullscreenMode();
+
+    // Показать результат через alert (потом заменим на красивое уведомление)
+    if (window.tg) {
+      window.tg.showAlert('Игра завершена! (функционал в разработке)');
+    }
+  } catch (error) {
+    console.error('Error playing game:', error);
+    if (window.tg) {
+      window.tg.showAlert('Ошибка при игре');
+    }
+  } finally {
+    playBtn.disabled = false;
+    playBtn.textContent = 'ИГРАТЬ';
+  }
+}
+
+// Инициализировать Lottie анимацию
+function initLottieAnimation(game) {
+  const container = document.getElementById('fullscreen-lottie');
+  container.innerHTML = ''; // Очистить контейнер
+
+  // Уничтожить предыдущую анимацию если есть
+  if (window.fullscreenState.lottieAnimation) {
+    window.fullscreenState.lottieAnimation.destroy();
+  }
+
+  // Загрузить новую анимацию
+  const animationUrl = lottieAnimations[game];
+
+  if (animationUrl && typeof lottie !== 'undefined') {
+    window.fullscreenState.lottieAnimation = lottie.loadAnimation({
+      container: container,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: animationUrl
+    });
+  } else {
+    // Fallback - показать эмодзи
+    container.innerHTML = '<div style="font-size: 120px;">🎲</div>';
+  }
+}
+
+// Экспортировать функции в глобальную область
+window.openFullscreenMode = openFullscreenMode;
+window.closeFullscreenMode = closeFullscreenMode;
+window.selectFullscreenChoice = selectFullscreenChoice;
+window.playFromFullscreen = playFromFullscreen;
