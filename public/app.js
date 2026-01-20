@@ -602,8 +602,37 @@ function openDiceGame() {
     }
   }
 
+  // Инициализировать превью кубиков на карточках
+  initDicePreviews();
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('dice-game-screen').classList.add('active');
+}
+
+// Инициализировать превью кубиков на карточках режимов
+function initDicePreviews() {
+  const previews = document.querySelectorAll('.dice-mode-preview');
+
+  previews.forEach(preview => {
+    // Очистить контейнер
+    preview.innerHTML = '';
+
+    // Загрузить анимацию кубика грани "1" для красоты
+    if (typeof lottie !== 'undefined') {
+      const anim = lottie.loadAnimation({
+        container: preview,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: '/animations/Rectangular_1.json'
+      });
+
+      console.log('🎲 Превью кубика загружено для', preview.dataset.mode);
+    } else {
+      // Fallback - эмодзи
+      preview.innerHTML = '<div style="font-size: 40px;">🎲</div>';
+    }
+  });
 }
 
 // Back to games
