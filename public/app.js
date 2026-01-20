@@ -3828,13 +3828,13 @@ const gameModeConfig = {
   }
 };
 
-// Lottie анимации URLs (пока используем плейсхолдеры)
+// Lottie анимации URLs (локальные файлы из TGS)
 const lottieAnimations = {
-  dice: 'https://assets10.lottiefiles.com/packages/lf20_8jjq8tfj.json', // Dice animation
-  bowling: 'https://assets10.lottiefiles.com/packages/lf20_u4yrau.json',
-  football: 'https://assets10.lottiefiles.com/packages/lf20_puciaact.json',
-  basketball: 'https://assets10.lottiefiles.com/packages/lf20_6rkxiyjx.json',
-  darts: 'https://assets10.lottiefiles.com/packages/lf20_qqsnhodk.json'
+  dice: '/animations/dice.json',
+  bowling: '/animations/bowling.json',
+  football: '/animations/football.json',
+  basketball: '/animations/basketball.json',
+  darts: '/animations/darts.json'
 };
 
 // Открыть fullscreen режим
