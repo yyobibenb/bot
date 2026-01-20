@@ -414,67 +414,64 @@ async function handleDeposit() {
     return;
   }
 
-  // Показываем popup с вводом суммы
-  const amount = window.tg.showPopup({
-    title: 'Пополнение баланса',
-    message: 'Введите сумму в USDT:',
-    buttons: [
-      { id: '10', type: 'default', text: '10 USDT' },
-      { id: '50', type: 'default', text: '50 USDT' },
-      { id: '100', type: 'default', text: '100 USDT' },
-      { id: 'custom', type: 'default', text: 'Другая сумма' },
-      { type: 'cancel' }
-    ]
-  }, async (buttonId) => {
-    if (!buttonId || buttonId === 'cancel') return;
+  // Запрашиваем сумму пополнения
+  const depositAmountStr = prompt('💰 Введите сумму пополнения в USDT (минимум 1):\n\n💳 Оплата через CryptoBot');
 
-    let depositAmount = 0;
+  if (!depositAmountStr) return;
 
-    if (buttonId === 'custom') {
-      // Запрашиваем произвольную сумму
-      const customAmount = prompt('Введите сумму в USDT (минимум 1):');
-      if (!customAmount) return;
-      depositAmount = parseFloat(customAmount);
-    } else {
-      depositAmount = parseFloat(buttonId);
-    }
+  const depositAmount = parseFloat(depositAmountStr);
 
-    if (isNaN(depositAmount) || depositAmount < 1) {
-      window.tg.showAlert('❌ Минимальная сумма: 1 USDT');
-      return;
-    }
+  if (isNaN(depositAmount) || depositAmount < 1) {
+    window.tg.showAlert('❌ Минимальная сумма пополнения: 1 USDT');
+    return;
+  }
 
-    try {
-      // Показываем индикатор загрузки
-      window.tg.MainButton.setText('Создание счета...').show().showProgress();
-
-      // Создаем инвойс через CryptoBot
-      const response = await fetch('/api/crypto/create-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: window.currentUser.id,
-          amount: depositAmount
-        })
-      });
-
-      const data = await response.json();
-
-      window.tg.MainButton.hideProgress().hide();
-
-      if (data.success && data.invoice_url) {
-        // Открываем страницу оплаты CryptoBot
-        window.tg.openLink(data.invoice_url);
-        window.tg.showAlert('✅ Счет создан! После оплаты баланс пополнится автоматически.');
-      } else {
-        window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать счет'));
+  try {
+    // Показываем индикатор загрузки
+    if (window.tg.MainButton) {
+      window.tg.MainButton.setText('Создание счета...').show();
+      if (window.tg.MainButton.showProgress) {
+        window.tg.MainButton.showProgress();
       }
-    } catch (error) {
-      window.tg.MainButton.hideProgress().hide();
-      window.tg.showAlert('❌ Ошибка при создании счета');
-      console.error('Deposit error:', error);
     }
-  });
+
+    // Создаем инвойс через CryptoBot
+    const response = await fetch('/api/crypto/create-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        amount: depositAmount
+      })
+    });
+
+    const data = await response.json();
+
+    if (window.tg.MainButton) {
+      if (window.tg.MainButton.hideProgress) {
+        window.tg.MainButton.hideProgress();
+      }
+      window.tg.MainButton.hide();
+    }
+
+    if (data.success && data.invoice_url) {
+      // Открываем страницу оплаты CryptoBot
+      window.tg.openLink(data.invoice_url);
+      window.tg.showAlert('✅ Счет создан!\n\nСумма: ' + depositAmount + ' USDT\n\nПосле оплаты баланс пополнится автоматически.');
+    } else {
+      window.tg.showAlert('❌ Ошибка создания счета:\n\n' + (data.error || 'Не удалось создать счет'));
+      console.error('Create invoice error:', data);
+    }
+  } catch (error) {
+    if (window.tg.MainButton) {
+      if (window.tg.MainButton.hideProgress) {
+        window.tg.MainButton.hideProgress();
+      }
+      window.tg.MainButton.hide();
+    }
+    window.tg.showAlert('❌ Ошибка при создании счета');
+    console.error('Deposit error:', error);
+  }
 }
 
 // Handle withdraw button - via @send
@@ -504,11 +501,11 @@ async function handleWithdraw() {
   }
 
   // Запрашиваем сумму вывода
-  const withdrawAmount = prompt(`Введите сумму для вывода (минимум 10 USDT):\nВаш баланс: ${currentBalance.toFixed(2)} USDT`);
+  const withdrawAmountStr = prompt(`💸 Введите сумму для вывода в USDT (минимум 10):\n\n💰 Ваш баланс: ${currentBalance.toFixed(2)} USDT\n\n⚡️ Вывод через @send бота`);
 
-  if (!withdrawAmount) return;
+  if (!withdrawAmountStr) return;
 
-  const amount = parseFloat(withdrawAmount);
+  const amount = parseFloat(withdrawAmountStr);
 
   if (isNaN(amount) || amount < 10) {
     window.tg.showAlert('❌ Минимальная сумма вывода: 10 USDT');
@@ -516,13 +513,18 @@ async function handleWithdraw() {
   }
 
   if (amount > currentBalance) {
-    window.tg.showAlert('❌ Недостаточно средств\nВаш баланс: ' + currentBalance.toFixed(2) + ' USDT');
+    window.tg.showAlert('❌ Недостаточно средств!\n\nЗапрошено: ' + amount.toFixed(2) + ' USDT\nДоступно: ' + currentBalance.toFixed(2) + ' USDT');
     return;
   }
 
   try {
     // Показываем индикатор загрузки
-    window.tg.MainButton.setText('Создание заявки...').show().showProgress();
+    if (window.tg.MainButton) {
+      window.tg.MainButton.setText('Создание заявки...').show();
+      if (window.tg.MainButton.showProgress) {
+        window.tg.MainButton.showProgress();
+      }
+    }
 
     // Создаем заявку на вывод
     const response = await fetch('/api/withdraw', {
@@ -537,17 +539,28 @@ async function handleWithdraw() {
 
     const data = await response.json();
 
-    window.tg.MainButton.hideProgress().hide();
+    if (window.tg.MainButton) {
+      if (window.tg.MainButton.hideProgress) {
+        window.tg.MainButton.hideProgress();
+      }
+      window.tg.MainButton.hide();
+    }
 
     if (data.success) {
       // Обновляем баланс на экране
       document.getElementById('balance').textContent = (data.newBalance || 0).toFixed(2);
-      window.tg.showAlert('✅ Заявка на вывод создана!\n\nСумма: ' + amount + ' USDT\n\nАдмин обработает заявку и отправит средства через @send бота в ближайшее время.');
+      window.tg.showAlert('✅ Заявка на вывод создана!\n\n💰 Сумма: ' + amount.toFixed(2) + ' USDT\n\n⏳ Админ обработает заявку и отправит средства через @send бота в ближайшее время.\n\n🆔 Ваш Telegram ID: ' + window.currentUser.telegram_id);
     } else {
-      window.tg.showAlert('❌ Ошибка: ' + (data.error || 'Не удалось создать заявку'));
+      window.tg.showAlert('❌ Ошибка создания заявки:\n\n' + (data.error || 'Не удалось создать заявку'));
+      console.error('Withdraw error:', data);
     }
   } catch (error) {
-    window.tg.MainButton.hideProgress().hide();
+    if (window.tg.MainButton) {
+      if (window.tg.MainButton.hideProgress) {
+        window.tg.MainButton.hideProgress();
+      }
+      window.tg.MainButton.hide();
+    }
     window.tg.showAlert('❌ Ошибка при создании заявки');
     console.error('Withdraw error:', error);
   }

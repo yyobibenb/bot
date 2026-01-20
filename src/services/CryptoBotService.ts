@@ -26,28 +26,46 @@ export class CryptoBotService {
     currency: string = "USDT"
   ): Promise<{ success: boolean; invoice_url?: string; invoice_id?: number; error?: string }> {
     try {
+      if (!this.apiKey) {
+        console.error("❌ CRYPTOBOT_API_KEY не установлен!");
+        return { success: false, error: "CryptoBot API ключ не настроен" };
+      }
+
+      console.log(`📝 Создание инвойса: User ${userId}, Amount ${amount} ${currency}`);
+
+      const payload = {
+        asset: currency,
+        amount: amount.toString(),
+        description: `Пополнение баланса - User ${userId}`,
+        paid_btn_name: "callback",
+        paid_btn_url: process.env.WEB_APP_URL || "https://t.me",
+        payload: userId.toString(),
+      };
+
+      console.log(`📤 Отправка запроса в CryptoBot API:`, payload);
+
       const response = await fetch(`${this.apiUrl}/createInvoice`, {
         method: "POST",
         headers: {
           "Crypto-Pay-API-Token": this.apiKey,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          asset: currency,
-          amount: amount.toString(),
-          description: `Пополнение баланса - User ${userId}`,
-          paid_btn_name: "callback",
-          paid_btn_url: process.env.WEB_APP_URL || "",
-          payload: userId.toString(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
+      console.log(`📥 Ответ от CryptoBot API:`, data);
+
       if (!data.ok) {
-        console.error("CryptoBot API error:", data);
-        return { success: false, error: data.error?.message || "Failed to create invoice" };
+        console.error("❌ CryptoBot API error:", data);
+        return {
+          success: false,
+          error: data.error?.message || data.error?.name || "Не удалось создать счет"
+        };
       }
+
+      console.log(`✅ Инвойс создан: ${data.result.invoice_id}, URL: ${data.result.pay_url}`);
 
       return {
         success: true,
@@ -55,8 +73,8 @@ export class CryptoBotService {
         invoice_id: data.result.invoice_id,
       };
     } catch (error: any) {
-      console.error("Error creating CryptoBot invoice:", error);
-      return { success: false, error: error.message || "Failed to create invoice" };
+      console.error("❌ Error creating CryptoBot invoice:", error);
+      return { success: false, error: error.message || "Ошибка при создании счета" };
     }
   }
 

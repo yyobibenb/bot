@@ -561,25 +561,33 @@ app.post("/api/withdraw", async (req, res) => {
   try {
     const { user_id, telegram_id, amount } = req.body;
 
+    console.log(`💸 Запрос на вывод: user_id=${user_id}, telegram_id=${telegram_id}, amount=${amount}`);
+
     if (!user_id || !telegram_id || !amount) {
-      return res.status(400).json({ success: false, error: "Missing required fields" });
+      console.error("❌ Отсутствуют обязательные поля");
+      return res.status(400).json({ success: false, error: "Отсутствуют обязательные поля" });
     }
 
     const withdrawAmount = parseFloat(amount);
 
     if (isNaN(withdrawAmount) || withdrawAmount < 10) {
+      console.error("❌ Некорректная сумма вывода:", withdrawAmount);
       return res.status(400).json({ success: false, error: "Минимальная сумма вывода: 10 USDT" });
     }
 
     // Проверяем баланс
     const balance = await BalanceModel.getBalance(user_id);
+    console.log(`💰 Текущий баланс пользователя ${user_id}:`, balance?.balance);
+
     if (!balance || balance.balance < withdrawAmount) {
+      console.error("❌ Недостаточно средств");
       return res.status(400).json({ success: false, error: "Недостаточно средств" });
     }
 
     // Получаем пользователя
     const user = await UserModel.getUserById(user_id);
     if (!user) {
+      console.error("❌ Пользователь не найден");
       return res.status(400).json({ success: false, error: "Пользователь не найден" });
     }
 
@@ -590,12 +598,15 @@ app.post("/api/withdraw", async (req, res) => {
       withdrawAmount,
       "pending"
     );
+    console.log(`✅ Транзакция на вывод создана`);
 
     // Вычитаем с баланса
     await BalanceModel.subtractBalance(user_id, withdrawAmount);
+    console.log(`✅ Баланс обновлен`);
 
     // Получаем новый баланс
     const newBalance = await BalanceModel.getBalance(user_id);
+    console.log(`💰 Новый баланс:`, newBalance?.balance);
 
     // Отправляем уведомление админу
     if (telegramBot) {
@@ -606,8 +617,9 @@ app.post("/api/withdraw", async (req, res) => {
           `🔔 **Новая заявка на вывод**\n\nПользователь: ${user.first_name} (ID: ${telegram_id})\nСумма: ${withdrawAmount} USDT\n\n💸 Используйте @send для отправки средств пользователю по ID: \`${telegram_id}\``,
           { parse_mode: "Markdown" }
         );
+        console.log(`✅ Уведомление админу отправлено`);
       } catch (err) {
-        console.error("Не удалось отправить уведомление админу:", err);
+        console.error("❌ Не удалось отправить уведомление админу:", err);
       }
     }
 
@@ -617,8 +629,8 @@ app.post("/api/withdraw", async (req, res) => {
       message: "Заявка на вывод создана"
     });
   } catch (error: any) {
-    console.error("Error processing withdrawal:", error);
-    res.status(500).json({ success: false, error: error.message || "Failed to process withdrawal" });
+    console.error("❌ Ошибка при обработке вывода:", error);
+    res.status(500).json({ success: false, error: error.message || "Не удалось обработать заявку" });
   }
 });
 
@@ -630,15 +642,27 @@ app.post("/api/withdraw", async (req, res) => {
 app.post("/api/crypto/create-invoice", async (req, res) => {
   try {
     const { user_id, amount } = req.body;
+
+    console.log(`📝 Запрос на создание инвойса: user_id=${user_id}, amount=${amount}`);
+
     if (!user_id || !amount) {
-      return res.status(400).json({ success: false, error: "Missing required fields" });
+      console.error("❌ Отсутствуют обязательные поля");
+      return res.status(400).json({ success: false, error: "Отсутствуют обязательные поля" });
+    }
+
+    if (typeof amount !== 'number' || amount < 1) {
+      console.error("❌ Некорректная сумма:", amount);
+      return res.status(400).json({ success: false, error: "Некорректная сумма пополнения" });
     }
 
     const result = await cryptoBotService.createInvoice(user_id, amount);
+
+    console.log(`📤 Результат создания инвойса:`, result);
+
     res.json(result);
   } catch (error: any) {
-    console.error("Error creating invoice:", error);
-    res.status(500).json({ success: false, error: error.message || "Failed to create invoice" });
+    console.error("❌ Ошибка при создании инвойса:", error);
+    res.status(500).json({ success: false, error: error.message || "Не удалось создать счет" });
   }
 });
 
