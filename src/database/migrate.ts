@@ -295,11 +295,17 @@ export async function runMigrations() {
  */
 async function fixTelegramIdType(): Promise<void> {
   try {
-    console.log('🔄 Проверка типа telegram_id...');
+    console.log('═══════════════════════════════════════');
+    console.log('🔄 ПРОВЕРКА ТИПА TELEGRAM_ID');
+    console.log('═══════════════════════════════════════');
 
     // Проверяем текущий тип
     const checkResult = await pool.query(`
-      SELECT data_type
+      SELECT
+        column_name,
+        data_type,
+        character_maximum_length,
+        numeric_precision
       FROM information_schema.columns
       WHERE table_name = 'users'
       AND column_name = 'telegram_id'
@@ -307,25 +313,51 @@ async function fixTelegramIdType(): Promise<void> {
 
     if (checkResult.rows.length === 0) {
       console.log('⚠️ Таблица users или колонка telegram_id не найдена');
+      console.log('═══════════════════════════════════════');
       return;
     }
 
-    const currentType = checkResult.rows[0].data_type;
+    const columnInfo = checkResult.rows[0];
+    const currentType = columnInfo.data_type;
+
+    console.log('📊 Текущая информация о колонке:');
+    console.log(`   - Тип: ${currentType}`);
+    console.log(`   - Precision: ${columnInfo.numeric_precision || 'N/A'}`);
+    console.log('');
 
     if (currentType !== 'bigint') {
-      console.log(`📝 Изменение типа telegram_id: ${currentType} → bigint`);
+      console.log(`🔧 ТРЕБУЕТСЯ ИСПРАВЛЕНИЕ: ${currentType} → bigint`);
+      console.log('⏳ Выполняю ALTER TABLE...');
 
       await pool.query(`
         ALTER TABLE users
         ALTER COLUMN telegram_id TYPE BIGINT
       `);
 
-      console.log('✅ Тип telegram_id успешно изменен на BIGINT');
+      console.log('✅ ТИП УСПЕШНО ИЗМЕНЕН НА BIGINT');
+      console.log('');
+
+      // Проверяем еще раз
+      const verifyResult = await pool.query(`
+        SELECT data_type
+        FROM information_schema.columns
+        WHERE table_name = 'users'
+        AND column_name = 'telegram_id'
+      `);
+
+      console.log(`✔️ Проверка: тип теперь ${verifyResult.rows[0].data_type}`);
     } else {
-      console.log('✅ Тип telegram_id уже BIGINT');
+      console.log('✅ ТИП УЖЕ BIGINT - ИСПРАВЛЕНИЕ НЕ ТРЕБУЕТСЯ');
     }
+
+    console.log('═══════════════════════════════════════');
   } catch (error: any) {
-    console.error('❌ Ошибка при миграции telegram_id:', error.message);
+    console.error('═══════════════════════════════════════');
+    console.error('❌ ОШИБКА ПРИ МИГРАЦИИ TELEGRAM_ID');
+    console.error('═══════════════════════════════════════');
+    console.error('Детали:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('═══════════════════════════════════════');
     // Не бросаем ошибку, чтобы не сломать старт приложения
   }
 }

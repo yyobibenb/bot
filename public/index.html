@@ -25,6 +25,24 @@
       <div class="balance-card">
         <div class="balance-label">Баланс</div>
         <div class="balance-amount"><span id="balance">0.00</span> USDT</div>
+
+        <!-- Action Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+          <button class="btn secondary" onclick="handleDeposit()" style="margin: 0;">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <polyline points="19 12 12 19 5 12"/>
+            </svg>
+            <span>Пополнить</span>
+          </button>
+          <button class="btn primary" onclick="handleWithdraw()" style="margin: 0;">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"/>
+              <polyline points="5 12 12 5 19 12"/>
+            </svg>
+            <span>Вывести</span>
+          </button>
+        </div>
       </div>
 
       <!-- User Stats Card -->
@@ -53,24 +71,6 @@
             <span id="biggest-win" style="color: var(--emerald);">0.00$</span>
           </div>
         </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="actions">
-        <button class="btn secondary" onclick="handleDeposit()">
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <polyline points="19 12 12 19 5 12"/>
-          </svg>
-          <span>Пополнить</span>
-        </button>
-        <button class="btn primary" onclick="handleWithdraw()">
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="19" x2="12" y2="5"/>
-            <polyline points="5 12 12 5 19 12"/>
-          </svg>
-          <span>Вывести</span>
-        </button>
       </div>
     </div>
 

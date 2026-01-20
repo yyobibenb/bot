@@ -1725,7 +1725,7 @@ app.get("/api/referrals/:user_id", async (req, res) => {
     const stats = await ReferralModel.getReferralStats(userId);
 
     // Получаем имя бота для ссылки
-    const botUsername = process.env.BOT_USERNAME || "your_bot";
+    const botUsername = process.env.BOT_USERNAME || "jokerycasino_bot";
     const referralLink = `https://t.me/${botUsername}?start=${user.telegram_id}`;
 
     res.json({
