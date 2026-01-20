@@ -3993,32 +3993,146 @@ async function playFromFullscreen() {
   playBtn.disabled = true;
   playBtn.textContent = 'ИГРАЕМ...';
 
-  // Запустить анимацию
+  // Запустить анимацию (loop)
   if (window.fullscreenState.lottieAnimation) {
+    window.fullscreenState.lottieAnimation.loop = true;
     window.fullscreenState.lottieAnimation.play();
   }
 
   try {
-    // Здесь будет вызов API для игры
-    // Пока просто симуляция
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Маппинг режимов на API endpoints
+    const apiEndpoints = {
+      'higher-lower': '/api/games/dice/higher-lower',
+      'even-odd': '/api/games/dice/even-odd',
+      'exact': '/api/games/dice/exact-number',
+      '2x2': '/api/games/dice/double',
+      '3x3': '/api/games/dice/triple',
+      'sector': '/api/games/dice/sector',
+      'sequence': '/api/games/dice/sequence',
+      'duel': '/api/games/dice/duel'
+    };
 
-    // После завершения игры - закрыть overlay и обновить баланс
-    closeFullscreenMode();
-
-    // Показать результат через alert (потом заменим на красивое уведомление)
-    if (window.tg) {
-      window.tg.showAlert('Игра завершена! (функционал в разработке)');
+    const endpoint = apiEndpoints[mode];
+    if (!endpoint) {
+      throw new Error('Неизвестный режим игры');
     }
+
+    // Подготовить данные запроса
+    const requestBody = {
+      user_id: window.currentUser.id,
+      bet_amount: betAmount
+    };
+
+    // Добавить choice если нужно
+    if (selectedChoice !== null && selectedChoice !== undefined) {
+      requestBody.choice = selectedChoice;
+    }
+
+    console.log('🎲 Запрос к API:', endpoint, requestBody);
+
+    // Вызов API
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+
+    const data = await response.json();
+    console.log('📥 Результат от API:', data);
+
+    if (!data.success) {
+      throw new Error(data.error || 'Ошибка при игре');
+    }
+
+    // Получили результат - показываем анимацию с этим числом
+    const diceResult = data.result; // 1-6 для кубика
+    console.log('🎯 Выпало число:', diceResult);
+
+    // Показать результат в анимации
+    await showDiceResult(diceResult, data.isWin);
+
+    // Обновить баланс
+    if (data.newBalance !== undefined) {
+      document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+    }
+
+    // Закрыть overlay
+    setTimeout(() => {
+      closeFullscreenMode();
+
+      // Показать результат
+      const resultMessage = data.isWin
+        ? `🎉 ВЫИГРЫШ!\n\n🎲 Выпало: ${diceResult}\n💰 Выигрыш: ${data.winAmount.toFixed(2)} USDT\n💵 Баланс: ${data.newBalance.toFixed(2)} USDT`
+        : `😔 ПРОИГРЫШ\n\n🎲 Выпало: ${diceResult}\n💸 Проиграно: ${betAmount.toFixed(2)} USDT\n💵 Баланс: ${data.newBalance.toFixed(2)} USDT`;
+
+      if (window.tg) {
+        window.tg.showAlert(resultMessage);
+      } else {
+        alert(resultMessage);
+      }
+    }, 1000);
+
   } catch (error) {
-    console.error('Error playing game:', error);
+    console.error('❌ Ошибка при игре:', error);
+
+    // Остановить анимацию
+    if (window.fullscreenState.lottieAnimation) {
+      window.fullscreenState.lottieAnimation.stop();
+    }
+
     if (window.tg) {
-      window.tg.showAlert('Ошибка при игре');
+      window.tg.showAlert('❌ Ошибка: ' + (error.message || 'Не удалось сыграть'));
+    } else {
+      alert('Ошибка: ' + (error.message || 'Не удалось сыграть'));
     }
   } finally {
     playBtn.disabled = false;
     playBtn.textContent = 'ИГРАТЬ';
   }
+}
+
+// Показать результат кубика в анимации
+async function showDiceResult(result, isWin) {
+  return new Promise((resolve) => {
+    // Если анимация есть
+    if (window.fullscreenState.lottieAnimation) {
+      const anim = window.fullscreenState.lottieAnimation;
+
+      // Останавливаем loop
+      anim.loop = false;
+
+      // Для TGS анимации кубика обычно каждая грань это диапазон кадров
+      // Нужно остановить на нужном кадре
+      // Пример: если в анимации 60 кадров на 6 граней = по 10 кадров на грань
+      const totalFrames = anim.totalFrames;
+      const framePerFace = totalFrames / 6;
+      const targetFrame = Math.floor((result - 1) * framePerFace + framePerFace / 2);
+
+      console.log(`🎬 Показываем результат: грань ${result}, кадр ${targetFrame}/${totalFrames}`);
+
+      // Переходим на нужный кадр
+      anim.goToAndStop(targetFrame, true);
+
+      // Добавляем эффект (увеличение для выигрыша)
+      const container = document.getElementById('fullscreen-lottie');
+      if (isWin) {
+        container.style.transform = 'scale(1.2)';
+        container.style.transition = 'transform 0.3s ease';
+        setTimeout(() => {
+          container.style.transform = 'scale(1)';
+        }, 300);
+      }
+
+      setTimeout(resolve, 1500);
+    } else {
+      // Fallback - показываем эмодзи с числом
+      const container = document.getElementById('fullscreen-lottie');
+      const diceEmojis = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+      container.innerHTML = `<div style="font-size: 120px; animation: bounce 0.5s ease;">${diceEmojis[result] || '🎲'}</div>`;
+
+      setTimeout(resolve, 1500);
+    }
+  });
 }
 
 // Инициализировать Lottie анимацию
