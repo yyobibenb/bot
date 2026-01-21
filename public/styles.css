@@ -1,26 +1,26 @@
 :root {
-  /* Premium Glass System */
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-card: rgba(255, 255, 255, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.25);
+  /* Premium Glass System - NO GREY, PURE GLASS */
+  --glass-bg: rgba(255, 255, 255, 0.14);
+  --glass-card: rgba(255, 255, 255, 0.14);
+  --glass-border: rgba(255, 255, 255, 0.18);
   --glass-light: rgba(255, 255, 255, 0.12);
   --bg-dark: #071C15;
   --bg-dark-end: #0E3A2B;
   --text-primary: #FFFFFF;
-  --text-balance: #F5F9F7;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
-  --emerald: #18E29A;
+  --text-balance: #F5FFF9;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --emerald: #1AFFA3;
   --emerald-dark: #0FD88A;
-  --emerald-muted: rgba(24, 226, 154, 0.5);
-  --emerald-darker: #0B3B2E;
+  --emerald-muted: rgba(26, 255, 163, 0.5);
+  --emerald-darker: #022318;
   --gold: #F5C76A;
   --gold-dark: #FFD36A;
-  --blur: blur(20px);
-  --blur-heavy: blur(24px);
+  --blur: blur(22px);
+  --blur-heavy: blur(28px);
   --radius-card: 22px;
   --radius-full: 999px;
-  --accent-green: #18E29A;
+  --accent-green: #1AFFA3;
   --accent-red: #F87171;
 }
 
@@ -101,7 +101,7 @@ body {
   color: var(--text-secondary);
 }
 
-/* Balance Card - Premium Glass */
+/* Balance Card - Pure Glass, NO GREY */
 .balance-card {
   margin-top: 20px;
   padding: 32px 24px;
@@ -110,7 +110,7 @@ body {
   -webkit-backdrop-filter: var(--blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   animation: slideUp 0.5s ease;
   text-align: center;
   position: relative;
@@ -124,42 +124,35 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
 }
 
 .balance-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 14px;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
 }
 
 .balance-amount {
-  font-size: 56px;
-  font-weight: 700;
+  font-size: 42px;
+  font-weight: 600;
   color: var(--text-balance);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1;
   text-shadow: none;
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .balance-amount span {
-  color: var(--text-primary);
-}
-
-/* USDT label styling */
-.balance-amount::after {
-  content: '';
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
+  color: var(--text-balance);
+  font-size: 42px;
 }
 
 /* Stats */
@@ -219,7 +212,8 @@ body {
 
 .btn.primary {
   background: linear-gradient(135deg, #1AFFA3, var(--emerald-dark));
-  color: white;
+  color: var(--emerald-darker);
+  font-weight: 600;
   box-shadow: 0 10px 30px rgba(15, 216, 138, 0.45);
   position: relative;
   overflow: hidden;
@@ -242,12 +236,17 @@ body {
   opacity: 1;
 }
 
+.btn.primary .btn-icon {
+  color: var(--emerald-darker);
+}
+
 .btn.secondary {
   background: var(--glass-light);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border: 1px solid var(--glass-border);
-  color: var(--text-primary);
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -256,7 +255,7 @@ body {
 }
 
 .btn.secondary .btn-icon {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .btn-icon {
@@ -1242,7 +1241,7 @@ body {
   align-items: center;
   padding: 10px 0;
   font-size: 14px;
-  color: var(--text-primary);
+  color: rgba(255, 255, 255, 0.7);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -1251,13 +1250,20 @@ body {
 }
 
 .stat-row span:first-child {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
 }
 
-.stat-row span:last-child {
-  color: var(--text-primary);
+.stat-row span:last-child,
+.stat-row strong {
+  color: #ffffff;
   font-weight: 600;
+}
+
+/* Highlight for big wins */
+.stat-row.highlight span:last-child,
+.stat-row.highlight strong {
+  color: var(--emerald);
 }
 
 /* Debug Logs */
