@@ -713,91 +713,43 @@
 
       <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">🎯 Дартс</h2>
 
-      <!-- Game Modes List -->
+      <!-- Game Modes List - Простые карточки как у кубика -->
       <div class="dice-modes-scroll">
 
         <!-- Mode: Red/Center -->
-        <div class="dice-mode-card-full">
-          <div class="dice-mode-header">
-            <h3>🎯 Красное/Центр</h3>
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'red', '🎯 Красное/Центр', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎯 Красное/Центр</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
-          <div class="dice-display-area">
-            <div class="dice-emoji-small" id="darts-emoji-red">🎯</div>
-          </div>
-          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
-            Попади в центр (результат 6)
-          </div>
-          <div class="dice-bet-input-section">
-            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-red">
-            <span class="dice-bet-currency">$</span>
-          </div>
-          <button class="dice-play-btn" onclick="playDartsFromCard('red', 3.68)">
-            ИГРАТЬ
-          </button>
+          <div class="dice-mode-preview" data-mode="darts-red"></div>
         </div>
 
         <!-- Mode: White -->
-        <div class="dice-mode-card-full">
-          <div class="dice-mode-header">
-            <h3>⚪ Белое</h3>
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'white', '⚪ Белое', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚪ Белое</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
-          <div class="dice-display-area">
-            <div class="dice-emoji-small" id="darts-emoji-white">🎯</div>
-          </div>
-          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
-            Попади в белое (результат 2-5)
-          </div>
-          <div class="dice-bet-input-section">
-            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-white">
-            <span class="dice-bet-currency">$</span>
-          </div>
-          <button class="dice-play-btn" onclick="playDartsFromCard('white', 3.68)">
-            ИГРАТЬ
-          </button>
+          <div class="dice-mode-preview" data-mode="darts-white"></div>
         </div>
 
-        <!-- Mode: Center (alternative) -->
-        <div class="dice-mode-card-full">
-          <div class="dice-mode-header">
-            <h3>🔴 Середина</h3>
+        <!-- Mode: Center -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'center', '🔴 Середина', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🔴 Середина</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
-          <div class="dice-display-area">
-            <div class="dice-emoji-small" id="darts-emoji-center">🎯</div>
-          </div>
-          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
-            Попади в середину (результат 6)
-          </div>
-          <div class="dice-bet-input-section">
-            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-center">
-            <span class="dice-bet-currency">$</span>
-          </div>
-          <button class="dice-play-btn" onclick="playDartsFromCard('center', 3.68)">
-            ИГРАТЬ
-          </button>
+          <div class="dice-mode-preview" data-mode="darts-center"></div>
         </div>
 
         <!-- Mode: Miss -->
-        <div class="dice-mode-card-full">
-          <div class="dice-mode-header">
-            <h3>❌ Мимо</h3>
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'miss', '❌ Мимо', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">❌ Мимо</h3>
             <span class="dice-mode-coef">x3.68</span>
           </div>
-          <div class="dice-display-area">
-            <div class="dice-emoji-small" id="darts-emoji-miss">🎯</div>
-          </div>
-          <div style="text-align: center; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">
-            Промахнись (результат 1)
-          </div>
-          <div class="dice-bet-input-section">
-            <input type="number" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10" data-mode="darts-miss">
-            <span class="dice-bet-currency">$</span>
-          </div>
-          <button class="dice-play-btn" onclick="playDartsFromCard('miss', 3.68)">
-            ИГРАТЬ
-          </button>
+          <div class="dice-mode-preview" data-mode="darts-miss"></div>
         </div>
 
       </div>
