@@ -707,6 +707,10 @@ function backToDiceModes() {
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('light');
   }
+  // Останавливаем интервал дуэлей если он был запущен
+  if (window.duelsInterval) {
+    clearInterval(window.duelsInterval);
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('dice-game-screen').classList.add('active');
 }
@@ -4472,6 +4476,219 @@ function shareReferralLink() {
   }
 }
 
+// ========================================
+// DICE DUELS (PVP) FUNCTIONS
+// ========================================
+
+// Открыть экран дуэлей
+async function openDuelScreen() {
+  hideAllScreens();
+  document.getElementById('dice-duel-screen').classList.add('active');
+
+  const balance = parseFloat(document.getElementById('balance').textContent);
+  document.getElementById('dice-duel-balance-amount').textContent = balance.toFixed(2);
+
+  const avatar = document.getElementById('avatar').textContent;
+  document.getElementById('dice-duel-avatar').textContent = avatar;
+
+  await loadDuelsList();
+
+  if (window.duelsInterval) {
+    clearInterval(window.duelsInterval);
+  }
+  window.duelsInterval = setInterval(loadDuelsList, 3000);
+}
+
+// Загрузить список дуэлей
+async function loadDuelsList() {
+  try {
+    const response = await fetch('/api/games/dice/duel/list');
+    const data = await response.json();
+
+    const duelsList = document.getElementById('duels-list');
+
+    if (!data.success || !data.duels || data.duels.length === 0) {
+      duelsList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">Нет активных дуэлей. Создайте первую! 🎲</div>';
+      return;
+    }
+
+    duelsList.innerHTML = data.duels.map(duel => {
+      const createdDate = new Date(duel.created_at);
+      const timeAgo = getTimeAgo(createdDate);
+      const isOwnDuel = duel.creator_id === window.currentUser.id;
+
+      return '<div class="duel-card"><div class="duel-card-header"><div class="duel-creator-name">' +
+        duel.creator_name +
+        (isOwnDuel ? ' <span style="color: var(--emerald); font-size: 12px;">(Ваша)</span>' : '') +
+        '</div><div class="duel-bet-amount">' + duel.bet_amount.toFixed(2) + ' USDT</div></div>' +
+        '<div class="duel-card-footer"><div class="duel-time">' + timeAgo + '</div>' +
+        (isOwnDuel
+          ? '<button class="btn secondary" onclick="cancelDuel(' + duel.id + ')" style="margin: 0; padding: 8px 16px; font-size: 13px;">Отменить</button>'
+          : '<button class="duel-join-btn" onclick="joinDuel(' + duel.id + ', ' + duel.bet_amount + ')">Присоединиться ⚔️</button>') +
+        '</div></div>';
+    }).join('');
+  } catch (error) {
+    console.error('Error loading duels:', error);
+    document.getElementById('duels-list').innerHTML = '<div style="text-align: center; color: #EF4444; padding: 40px 20px;">Ошибка загрузки дуэлей</div>';
+  }
+}
+
+// Создать дуэль
+async function createDuel() {
+  try {
+    const betInput = document.getElementById('duel-bet-input');
+    const betAmount = parseFloat(betInput.value);
+
+    if (!betAmount || betAmount < 1) {
+      window.tg.showAlert('Минимальная ставка 1 USDT');
+      return;
+    }
+
+    const balance = parseFloat(document.getElementById('balance').textContent);
+    if (betAmount > balance) {
+      window.tg.showAlert('Недостаточно средств');
+      return;
+    }
+
+    const response = await fetch('/api/games/dice/duel/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: window.currentUser.id, bet_amount: betAmount })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      betInput.value = '';
+      await loadUserInfo();
+      const newBalance = parseFloat(document.getElementById('balance').textContent);
+      document.getElementById('dice-duel-balance-amount').textContent = newBalance.toFixed(2);
+      await loadDuelsList();
+      window.tg.showAlert('Дуэль создана! Ожидайте противника...');
+    } else {
+      window.tg.showAlert(data.error || 'Ошибка создания дуэли');
+    }
+  } catch (error) {
+    console.error('Error creating duel:', error);
+    window.tg.showAlert('Ошибка создания дуэли');
+  }
+}
+
+// Присоединиться к дуэли
+async function joinDuel(duelId, betAmount) {
+  try {
+    const balance = parseFloat(document.getElementById('balance').textContent);
+    if (betAmount > balance) {
+      window.tg.showAlert('Недостаточно средств');
+      return;
+    }
+
+    const response = await fetch('/api/games/dice/duel/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ duel_id: duelId, user_id: window.currentUser.id })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      if (window.duelsInterval) {
+        clearInterval(window.duelsInterval);
+      }
+      await loadUserInfo();
+      showDuelResult(data);
+    } else {
+      window.tg.showAlert(data.error || 'Ошибка присоединения к дуэли');
+    }
+  } catch (error) {
+    console.error('Error joining duel:', error);
+    window.tg.showAlert('Ошибка присоединения к дуэли');
+  }
+}
+
+// Отменить дуэль
+async function cancelDuel(duelId) {
+  try {
+    const response = await fetch('/api/games/dice/duel/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ duel_id: duelId, user_id: window.currentUser.id })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      await loadUserInfo();
+      const newBalance = parseFloat(document.getElementById('balance').textContent);
+      document.getElementById('dice-duel-balance-amount').textContent = newBalance.toFixed(2);
+      await loadDuelsList();
+      window.tg.showAlert('Дуэль отменена, ставка возвращена');
+    } else {
+      window.tg.showAlert(data.error || 'Ошибка отмены дуэли');
+    }
+  } catch (error) {
+    console.error('Error cancelling duel:', error);
+    window.tg.showAlert('Ошибка отмены дуэли');
+  }
+}
+
+// Показать результат дуэли
+function showDuelResult(data) {
+  const isWin = data.winnerId === window.currentUser.id;
+  const isDraw = data.winnerId === 0;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'duel-result-overlay';
+  overlay.innerHTML = '<div class="duel-result-card"><div class="duel-result-title">' +
+    (isDraw ? '🤝 Ничья!' : (isWin ? '🎉 Победа!' : '😔 Поражение')) +
+    '</div><div class="duel-result-players"><div class="duel-result-player"><div class="duel-result-dice">' +
+    getDiceEmoji(data.creatorRoll) + '</div><div class="duel-result-player-name">Создатель</div>' +
+    '<div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">' + data.creatorRoll + '</div></div>' +
+    '<div class="duel-result-vs">VS</div><div class="duel-result-player"><div class="duel-result-dice">' +
+    getDiceEmoji(data.opponentRoll) + '</div><div class="duel-result-player-name">Вы</div>' +
+    '<div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">' + data.opponentRoll + '</div></div></div>' +
+    (!isDraw ? ('<div class="duel-result-winner ' + (isWin ? 'win' : 'loss') + '">' +
+      (isWin ? 'Вы выиграли!' : 'Вы проиграли') + '</div>' +
+      (isWin ? '<div class="duel-result-amount">+' + data.winAmount.toFixed(2) + ' USDT</div>' : ''))
+    : '<div class="duel-result-winner" style="color: var(--text-secondary);">Ставки возвращены</div>') +
+    '<div style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Комиссия казино: ' +
+    data.commission.toFixed(2) + ' USDT</div>' +
+    '<button class="duel-result-close-btn" onclick="closeDuelResult()">Закрыть</button></div>';
+
+  document.body.appendChild(overlay);
+}
+
+// Закрыть результат дуэли
+function closeDuelResult() {
+  const overlay = document.querySelector('.duel-result-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+  loadDuelsList();
+  if (window.duelsInterval) {
+    clearInterval(window.duelsInterval);
+  }
+  window.duelsInterval = setInterval(loadDuelsList, 3000);
+}
+
+// Получить эмодзи кубика
+function getDiceEmoji(number) {
+  const diceEmojis = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  return diceEmojis[number] || '🎲';
+}
+
+// Получить время назад
+function getTimeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  if (seconds < 60) return 'только что';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + ' мин назад';
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + ' ч назад';
+  const days = Math.floor(hours / 24);
+  return days + ' д назад';
+}
+
 // Экспортировать функции в глобальную область
 window.openFullscreenMode = openFullscreenMode;
 window.closeFullscreenMode = closeFullscreenMode;
@@ -4481,3 +4698,8 @@ window.loadReferralStats = loadReferralStats;
 window.copyReferralLink = copyReferralLink;
 window.shareReferralLink = shareReferralLink;
 window.playFromFullscreen = playFromFullscreen;
+window.openDuelScreen = openDuelScreen;
+window.createDuel = createDuel;
+window.joinDuel = joinDuel;
+window.cancelDuel = cancelDuel;
+window.closeDuelResult = closeDuelResult;

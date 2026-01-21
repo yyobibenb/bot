@@ -6,6 +6,7 @@ import { TransactionModel } from "../models/Transaction";
 import { AdminModel } from "../models/Admin";
 import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
+import { DiceDuelService } from "../services/DiceDuelService";
 import { OtherGamesService } from "../services/OtherGamesService";
 import cryptoService from "../services/CryptoService";
 import cryptoBotService from "../services/CryptoBotService";
@@ -317,6 +318,76 @@ app.post("/api/games/dice/sequence", async (req, res) => {
   } catch (error: any) {
     console.error("Error playing dice:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========================================
+// DICE DUELS (PVP) - Дуэли между игроками
+// ========================================
+
+// Создать дуэль
+app.post("/api/games/dice/duel/create", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (bet_amount < 1) {
+      return res.status(400).json({ success: false, error: "Bet amount must be at least 1 USDT" });
+    }
+
+    const result = await DiceDuelService.createDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+// Присоединиться к дуэли
+app.post("/api/games/dice/duel/join", async (req, res) => {
+  try {
+    const { duel_id, user_id } = req.body;
+
+    if (!duel_id || !user_id) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceDuelService.joinDuel(duel_id, user_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+// Получить список открытых дуэлей
+app.get("/api/games/dice/duel/list", async (req, res) => {
+  try {
+    const duels = await DiceDuelService.getAvailableDuels();
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error fetching duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to fetch duels" });
+  }
+});
+
+// Отменить дуэль
+app.post("/api/games/dice/duel/cancel", async (req, res) => {
+  try {
+    const { duel_id, user_id } = req.body;
+
+    if (!duel_id || !user_id) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceDuelService.cancelDuel(duel_id, user_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
   }
 });
 
@@ -1413,6 +1484,112 @@ app.post("/api/admin/games/:game_id/toggle", async (req, res) => {
     });
   } catch (error: any) {
     console.error("Error toggling game:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========================================
+// ADMIN: Настройки дуэлей между игроками
+// ========================================
+
+// Получить настройки дуэлей
+app.get("/api/admin/duel-settings", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const commissionQuery = await pool.query(
+      "SELECT value FROM settings WHERE key = 'duel_commission_rate'"
+    );
+    const guaranteedWinQuery = await pool.query(
+      "SELECT value FROM settings WHERE key = 'duel_guaranteed_win_user_id'"
+    );
+
+    res.json({
+      success: true,
+      commission_rate: parseFloat(commissionQuery.rows[0]?.value || '9.00'),
+      guaranteed_win_user_id: parseInt(guaranteedWinQuery.rows[0]?.value || '0')
+    });
+  } catch (error: any) {
+    console.error("Error fetching duel settings:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Обновить процент комиссии дуэлей
+app.post("/api/admin/duel-settings/commission", async (req, res) => {
+  try {
+    const { admin_id, commission_rate } = req.body;
+
+    if (!admin_id || commission_rate === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (commission_rate < 0 || commission_rate > 50) {
+      return res.status(400).json({ success: false, error: "Commission rate must be between 0 and 50" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await pool.query(
+      `UPDATE settings SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE key = 'duel_commission_rate'`,
+      [commission_rate.toString()]
+    );
+
+    res.json({
+      success: true,
+      message: `Duel commission rate updated to ${commission_rate}%`
+    });
+  } catch (error: any) {
+    console.error("Error updating duel commission:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Установить гарантированного победителя дуэлей
+app.post("/api/admin/duel-settings/guaranteed-win", async (req, res) => {
+  try {
+    const { admin_id, user_id } = req.body;
+
+    if (!admin_id || user_id === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Проверяем что пользователь существует (если не 0)
+    if (user_id !== 0) {
+      const user = await UserModel.getUserById(user_id);
+      if (!user) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+    }
+
+    await pool.query(
+      `UPDATE settings SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE key = 'duel_guaranteed_win_user_id'`,
+      [user_id.toString()]
+    );
+
+    res.json({
+      success: true,
+      message: user_id === 0 ? "Guaranteed wins disabled" : `User ${user_id} will now win all duels`
+    });
+  } catch (error: any) {
+    console.error("Error updating guaranteed win setting:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

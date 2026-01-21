@@ -268,7 +268,9 @@ INSERT INTO settings (key, value, description) VALUES
   ('channel_fake_interval_min', '10', 'Минимальный интервал между фейковыми постами (сек)'),
   ('channel_fake_interval_max', '60', 'Максимальный интервал между фейковыми постами (сек)'),
   ('channel_fake_win_rate', '30', 'Процент побед в фейковых постах'),
-  ('global_rtp', '92.00', 'Глобальный RTP (Return to Player) %')
+  ('global_rtp', '92.00', 'Глобальный RTP (Return to Player) %'),
+  ('duel_commission_rate', '9.00', 'Процент комиссии казино с дуэлей'),
+  ('duel_guaranteed_win_user_id', '0', 'ID пользователя с гарантированными победами в дуэлях (0 = выключено)')
 ON CONFLICT DO NOTHING;
 `;
 

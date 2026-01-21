@@ -243,15 +243,57 @@
           <div class="dice-mode-preview" data-mode="sequence"></div>
         </div>
 
-        <!-- Mode: Duel -->
-        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', 'duel', '⚔️ Дуэль', 1.84)">
+        <!-- Mode: Duel PVP -->
+        <div class="dice-mode-card-simple" onclick="openDuelScreen()">
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <h3 style="margin: 0;">⚔️ Дуэль</h3>
-            <span class="dice-mode-coef">x1.84</span>
+            <h3 style="margin: 0;">⚔️ Дуэль (PVP)</h3>
+            <span class="dice-mode-coef" style="font-size: 14px; color: var(--text-secondary);">vs Игрок</span>
           </div>
           <div class="dice-mode-preview" data-mode="duel"></div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Dice Duel Screen - PVP Duels List -->
+    <div id="dice-duel-screen" class="screen">
+      <!-- Header -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToDiceModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="dice-duel-balance-amount">0.00</span> USDT
+          </div>
+          <div id="dice-duel-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 20px;">⚔️ Дуэль Кубиков</h2>
+
+      <!-- Create Duel Section -->
+      <div class="duel-create-section" style="padding: 20px; background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 18px; margin-bottom: 20px; backdrop-filter: var(--blur); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+        <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">💎 Создать дуэль</h3>
+        <input
+          type="number"
+          id="duel-bet-input"
+          class="input"
+          placeholder="Сумма ставки (USDT)"
+          min="1"
+          step="0.01"
+          style="margin-bottom: 12px;"
+        />
+        <button class="btn primary" onclick="createDuel()" style="width: 100%; margin: 0;">
+          Создать дуэль
+        </button>
+      </div>
+
+      <!-- Active Duels List -->
+      <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">🎮 Активные дуэли</h3>
+      <div id="duels-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Duels will be loaded here -->
+        <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+          Загрузка дуэлей...
+        </div>
       </div>
     </div>
 
