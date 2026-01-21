@@ -4573,7 +4573,7 @@ function shareReferralLink() {
 
 // Открыть экран дуэлей
 async function openDuelScreen() {
-  hideAllScreens();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('dice-duel-screen').classList.add('active');
 
   const balance = parseFloat(document.getElementById('balance').textContent);
