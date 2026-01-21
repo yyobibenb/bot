@@ -1246,6 +1246,24 @@
             <button class="btn primary" style="width: 100%; margin-top: 8px;" onclick="saveGlobalSettings()">💾 Сохранить настройки</button>
           </div>
         </div>
+
+        <div class="balance-card" style="margin-top: 16px;">
+          <div class="balance-label">Настройки PVP дуэлей</div>
+          <div style="margin-top: 12px;">
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>Комиссия казино (%):</span>
+              <input type="number" id="duel-commission-rate" class="input" style="width: 100px;" value="9" min="0" max="50" step="0.1">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>Гарантированный победитель (ID):</span>
+              <input type="number" id="duel-guaranteed-win-user-id" class="input" style="width: 100px;" value="0" min="0" placeholder="0 = выкл">
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
+              💡 Установите Telegram ID пользователя, который будет всегда выигрывать дуэли. 0 = отключено.
+            </div>
+            <button class="btn primary" style="width: 100%; margin-top: 12px;" onclick="saveDuelSettings()">💾 Сохранить настройки дуэлей</button>
+          </div>
+        </div>
       </div>
     </div>
 

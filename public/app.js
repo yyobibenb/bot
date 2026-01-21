@@ -3208,6 +3208,8 @@ function showAdminSection(section) {
     loadBroadcasts();
   } else if (section === 'control') {
     loadProfitStats();
+  } else if (section === 'settings') {
+    loadDuelSettings();
   }
 }
 
@@ -3678,6 +3680,62 @@ async function saveGlobalSettings() {
   }
 }
 
+// Load duel settings
+async function loadDuelSettings() {
+  if (!window.currentUser) return;
+
+  try {
+    const response = await fetch('/api/admin/duel-settings?admin_id=' + window.currentUser.id);
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById('duel-commission-rate').value = data.commission_rate || 9;
+      document.getElementById('duel-guaranteed-win-user-id').value = data.guaranteed_win_user_id || 0;
+    }
+  } catch (error) {
+    console.error('Error loading duel settings:', error);
+  }
+}
+
+// Save duel settings
+async function saveDuelSettings() {
+  if (!window.currentUser) {
+    window.tg.showAlert('Ошибка: пользователь не загружен');
+    return;
+  }
+
+  const commissionRate = parseFloat(document.getElementById('duel-commission-rate').value);
+  const guaranteedWinUserId = parseInt(document.getElementById('duel-guaranteed-win-user-id').value) || 0;
+
+  if (isNaN(commissionRate) || commissionRate < 0 || commissionRate > 50) {
+    window.tg.showAlert('❌ Комиссия должна быть от 0 до 50%');
+    return;
+  }
+
+  try {
+    await fetch('/api/admin/duel-settings/commission', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_id: window.currentUser.id, commission_rate: commissionRate })
+    });
+
+    await fetch('/api/admin/duel-settings/guaranteed-win', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_id: window.currentUser.id, user_id: guaranteedWinUserId })
+    });
+
+    window.tg.showAlert('✅ Настройки дуэлей сохранены!');
+
+    if (window.tg && window.tg.HapticFeedback) {
+      window.tg.HapticFeedback.notificationOccurred('success');
+    }
+  } catch (error) {
+    console.error('Error saving duel settings:', error);
+    window.tg.showAlert('❌ Ошибка сохранения');
+  }
+}
+
 // Initialize app
 (async function initApp() {
   try {
@@ -3922,6 +3980,28 @@ const gameModeConfig = {
       layout: 'none',
       description: 'Дуэль кубиков с казино'
     }
+  },
+  darts: {
+    'red': {
+      choices: [],
+      layout: 'none',
+      description: 'Попади в центр (результат 6)'
+    },
+    'white': {
+      choices: [],
+      layout: 'none',
+      description: 'Попади в белое (результат 2-5)'
+    },
+    'center': {
+      choices: [],
+      layout: 'none',
+      description: 'Попади в середину (результат 6)'
+    },
+    'miss': {
+      choices: [],
+      layout: 'none',
+      description: 'Промахнись (результат 1)'
+    }
   }
 };
 
@@ -4103,18 +4183,29 @@ async function playFromFullscreen() {
 
   try {
     // Маппинг режимов на API endpoints
-    const apiEndpoints = {
-      'higher-lower': '/api/games/dice/higher-lower',
-      'even-odd': '/api/games/dice/even-odd',
-      'exact': '/api/games/dice/exact-number',
-      '2x2': '/api/games/dice/double',
-      '3x3': '/api/games/dice/triple',
-      'sector': '/api/games/dice/sector',
-      'sequence': '/api/games/dice/sequence',
-      'duel': '/api/games/dice/duel'
-    };
+    let endpoint;
+    if (game === 'dice') {
+      const apiEndpoints = {
+        'higher-lower': '/api/games/dice/higher-lower',
+        'even-odd': '/api/games/dice/even-odd',
+        'exact': '/api/games/dice/exact-number',
+        '2x2': '/api/games/dice/double',
+        '3x3': '/api/games/dice/triple',
+        'sector': '/api/games/dice/sector',
+        'sequence': '/api/games/dice/sequence',
+        'duel': '/api/games/dice/duel'
+      };
+      endpoint = apiEndpoints[mode];
+    } else if (game === 'darts') {
+      const apiEndpoints = {
+        'red': '/api/games/darts/red',
+        'white': '/api/games/darts/white',
+        'center': '/api/games/darts/center',
+        'miss': '/api/games/darts/miss'
+      };
+      endpoint = apiEndpoints[mode];
+    }
 
-    const endpoint = apiEndpoints[mode];
     if (!endpoint) {
       throw new Error('Неизвестный режим игры');
     }
