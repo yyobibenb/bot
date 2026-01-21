@@ -4008,7 +4008,7 @@ const gameModeConfig = {
 // Lottie анимации URLs (локальные файлы из TGS)
 const lottieAnimations = {
   dice: {
-    default: '/animations/Rectangular_1.json', // Для показа перед броском
+    default: '/animations/Rectangular_4.json', // Для показа перед броском
     faces: [
       null, // индекс 0 не используется
       '/animations/Rectangular_1.json', // грань 1

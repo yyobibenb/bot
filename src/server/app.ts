@@ -1066,11 +1066,37 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
       win_rate: parseFloat(row.win_rate) || 0,
     }));
 
+    // Общее количество игр
+    const totalGamesResult = await pool.query("SELECT COUNT(*) as count FROM game_history");
+    const totalGames = parseInt(totalGamesResult.rows[0]?.count || 0);
+
+    // Общая сумма депозитов
+    const totalDepositsResult = await pool.query(
+      "SELECT SUM(amount) as total FROM transactions WHERE type = 'deposit' AND status = 'completed'"
+    );
+    const totalDeposits = parseFloat(totalDepositsResult.rows[0]?.total || 0);
+
+    // Общая сумма выводов
+    const totalWithdrawalsResult = await pool.query(
+      "SELECT SUM(amount) as total FROM transactions WHERE type = 'withdrawal' AND status = 'completed'"
+    );
+    const totalWithdrawals = parseFloat(totalWithdrawalsResult.rows[0]?.total || 0);
+
+    // Активные пользователи сегодня
+    const activeUsersTodayResult = await pool.query(
+      "SELECT COUNT(DISTINCT user_id) as count FROM game_history WHERE DATE(created_at) = CURRENT_DATE"
+    );
+    const activeUsersToday = parseInt(activeUsersTodayResult.rows[0]?.count || 0);
+
     res.json({
       success: true,
       stats: {
         totalUsers,
         usersWithDeposits,
+        totalGames,
+        totalDeposits,
+        totalWithdrawals,
+        activeUsersToday,
         transactionsPerDay,
         topUsers,
         gamesStats,
