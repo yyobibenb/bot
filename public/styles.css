@@ -1,19 +1,23 @@
 :root {
-  /* Luxury Casino Glass */
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-card: rgba(255, 255, 255, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.35);
+  /* Premium Glass System */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-card: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-light: rgba(255, 255, 255, 0.12);
   --bg-dark: #071C15;
   --bg-dark-end: #0E3A2B;
-  --text-primary: #F5F9F7;
+  --text-primary: #FFFFFF;
+  --text-balance: #F5F9F7;
   --text-secondary: #9CA3AF;
   --text-muted: #6B7280;
   --emerald: #18E29A;
   --emerald-dark: #0FD88A;
+  --emerald-muted: rgba(24, 226, 154, 0.5);
   --emerald-darker: #0B3B2E;
   --gold: #F5C76A;
   --gold-dark: #FFD36A;
-  --blur: blur(18px);
+  --blur: blur(20px);
+  --blur-heavy: blur(24px);
   --radius-card: 22px;
   --radius-full: 999px;
   --accent-green: #18E29A;
@@ -97,7 +101,7 @@ body {
   color: var(--text-secondary);
 }
 
-/* Balance Card */
+/* Balance Card - Premium Glass */
 .balance-card {
   margin-top: 20px;
   padding: 32px 24px;
@@ -106,22 +110,21 @@ body {
   -webkit-backdrop-filter: var(--blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   animation: slideUp 0.5s ease;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.balance-card::after {
+.balance-card::before {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 20%;
-  right: 20%;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  opacity: 0.6;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .balance-label {
@@ -136,10 +139,27 @@ body {
 .balance-amount {
   font-size: 56px;
   font-weight: 700;
-  color: var(--emerald);
+  color: var(--text-balance);
   letter-spacing: -0.03em;
   line-height: 1;
-  text-shadow: 0 0 30px rgba(24, 226, 154, 0.5);
+  text-shadow: none;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+}
+
+.balance-amount span {
+  color: var(--text-primary);
+}
+
+/* USDT label styling */
+.balance-amount::after {
+  content: '';
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
 }
 
 /* Stats */
@@ -154,20 +174,20 @@ body {
   flex: 1;
   padding: 14px 12px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-light);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .stat:last-child {
   background: rgba(245, 199, 106, 0.08);
-  border-color: rgba(245, 199, 106, 0.2);
+  border-color: rgba(245, 199, 106, 0.25);
   color: var(--gold-dark);
 }
 
@@ -223,16 +243,20 @@ body {
 }
 
 .btn.secondary {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--glass-light);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
   color: var(--text-primary);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btn.secondary:active {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .btn.secondary .btn-icon {
-  color: var(--emerald);
+  color: var(--text-secondary);
 }
 
 .btn-icon {
@@ -326,10 +350,10 @@ body {
 
 .game-btn {
   padding: 20px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-light);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   font-size: 14px;
   font-weight: 600;
@@ -337,6 +361,7 @@ body {
   transition: all 0.2s ease;
   color: var(--text-primary);
   text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .game-btn:hover {
@@ -367,28 +392,32 @@ body {
 .input {
   width: 100%;
   padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-light);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   font-size: 15px;
   font-weight: 500;
   color: var(--text-primary);
   outline: none;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .input:focus {
   border-color: var(--emerald);
-  box-shadow: 0 0 0 3px rgba(24, 226, 154, 0.1);
+  box-shadow: 0 0 0 3px rgba(24, 226, 154, 0.15), 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Back button */
 .back-btn {
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-light);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   color: var(--text-primary);
   font-size: 14px;
@@ -396,10 +425,11 @@ body {
   cursor: pointer;
   margin-bottom: 16px;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Dice animation - Telegram Style */
@@ -541,10 +571,10 @@ body {
   min-width: 140px;
   height: 160px;
   padding: 18px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-light);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
   border-radius: 18px;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -555,7 +585,7 @@ body {
   gap: 12px;
   color: var(--text-primary);
   text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -1538,8 +1568,8 @@ body {
 /* Simple card style for mode selection */
 .dice-mode-card-simple {
   padding: 20px 24px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-light);
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
   margin-bottom: 12px;
   cursor: pointer;
@@ -1548,12 +1578,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(16px);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .dice-mode-card-simple:active {
   transform: scale(0.98);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .dice-mode-card-simple h3 {
