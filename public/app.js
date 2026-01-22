@@ -4033,15 +4033,15 @@ const lottieAnimations = {
   football: '/animations/football.json',
   basketball: '/animations/basketball.json',
   darts: {
-    default: '/animations/Rectangular_3.json', // Для показа перед броском
+    default: '/animations/darts-v4-5.json', // Для показа перед броском (белый)
     results: [
       null, // индекс 0 не используется
-      '/animations/Rectangular_1.json', // результат 1 - мимо
-      '/animations/Rectangular_2.json', // результат 2 - белое
-      '/animations/Rectangular_3.json', // результат 3 - белое
-      '/animations/Rectangular_4.json', // результат 4 - белое/красное
-      '/animations/Rectangular_5.json', // результат 5 - белое
-      '/animations/Rectangular_6.json'  // результат 6 - центр/красное
+      '/animations/darts-v4-miss 2.json', // результат 1 - мимо
+      '/animations/darts-v4-miss 2.json', // результат 2 - белое (мимо 2)
+      '/animations/darts-v4-5.json',      // результат 3 - белое
+      '/animations/darts-v4-4.json',      // результат 4 - красный
+      '/animations/darts-v4-5.json',      // результат 5 - белый
+      '/animations/centr.json'            // результат 6 - центр
     ]
   }
 };
@@ -4316,13 +4316,15 @@ async function showDiceResult(result, isWin) {
       window.fullscreenState.lottieAnimation = null;
     }
 
-    // Загружаем анимацию нужной грани
+    // Загружаем анимацию нужной грани/результата
     const game = window.fullscreenState.game;
     const animationConfig = lottieAnimations[game];
 
-    if (animationConfig && animationConfig.faces && animationConfig.faces[result]) {
-      const faceAnimationUrl = animationConfig.faces[result];
-      console.log(`🎬 Загружаем анимацию грани ${result}: ${faceAnimationUrl}`);
+    // Поддержка как faces (для dice), так и results (для darts и других)
+    const animationArray = animationConfig?.faces || animationConfig?.results;
+    if (animationConfig && animationArray && animationArray[result]) {
+      const faceAnimationUrl = animationArray[result];
+      console.log(`🎬 Загружаем анимацию результата ${result}: ${faceAnimationUrl}`);
 
       // Очистить контейнер
       container.innerHTML = '';
