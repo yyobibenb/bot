@@ -4041,7 +4041,7 @@ const lottieAnimations = {
       '/animations/darts-v4-5.json',      // результат 3 - белое
       '/animations/darts-v4-4.json',      // результат 4 - красный
       '/animations/darts-v4-5.json',      // результат 5 - белый
-      '/animations/centr.json'            // результат 6 - центр
+      '/animations/dartscenter.json'      // результат 6 - центр
     ]
   }
 };
