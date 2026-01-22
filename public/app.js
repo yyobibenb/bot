@@ -598,6 +598,9 @@ function handleNav(event, section) {
   } else if (section === 'profile') {
     console.log('📊 Opening profile screen, reloading stats...');
     loadUserStats();
+  } else if (section === 'admin') {
+    console.log('⚙️ Opening admin screen, loading stats...');
+    loadAdminStats();
   }
 }
 
@@ -637,14 +640,14 @@ function initDicePreviews() {
     // Очистить контейнер
     preview.innerHTML = '';
 
-    // Загрузить анимацию кубика грани "1" для красоты
+    // Загрузить анимацию кубика грани "4" для красоты
     if (typeof lottie !== 'undefined') {
       const anim = lottie.loadAnimation({
         container: preview,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: '/animations/Rectangular_1.json'
+        path: '/animations/Rectangular_4.json'
       });
 
       console.log('🎲 Превью кубика загружено для', preview.dataset.mode);
