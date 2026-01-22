@@ -4032,7 +4032,18 @@ const lottieAnimations = {
   bowling: '/animations/bowling.json',
   football: '/animations/football.json',
   basketball: '/animations/basketball.json',
-  darts: '/animations/darts.json'
+  darts: {
+    default: '/animations/Rectangular_3.json', // Для показа перед броском
+    results: [
+      null, // индекс 0 не используется
+      '/animations/Rectangular_1.json', // результат 1 - мимо
+      '/animations/Rectangular_2.json', // результат 2 - белое
+      '/animations/Rectangular_3.json', // результат 3 - белое
+      '/animations/Rectangular_4.json', // результат 4 - белое/красное
+      '/animations/Rectangular_5.json', // результат 5 - белое
+      '/animations/Rectangular_6.json'  // результат 6 - центр/красное
+    ]
+  }
 };
 
 // Открыть fullscreen режим
