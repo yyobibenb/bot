@@ -600,7 +600,8 @@ function handleNav(event, section) {
     loadUserStats();
   } else if (section === 'admin') {
     console.log('⚙️ Opening admin screen, loading stats...');
-    loadAdminStats();
+    // Вызываем showAdminSection для правильной инициализации
+    showAdminSection('stats');
   }
 }
 
@@ -3192,8 +3193,6 @@ async function checkAdminPermission() {
 
 // Show admin section
 function showAdminSection(section) {
-  console.log('🔄 showAdminSection вызвана, секция:', section);
-
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('light');
   }
@@ -3201,7 +3200,6 @@ function showAdminSection(section) {
   // Update tabs
   document.querySelectorAll('.admin-tab').forEach(tab => {
     tab.classList.remove('active');
-    // Проверяем какая кнопка соответствует секции
     const buttonText = tab.textContent.toLowerCase();
     if ((section === 'stats' && buttonText.includes('статистика')) ||
         (section === 'users' && buttonText.includes('юзеры')) ||
@@ -3216,11 +3214,8 @@ function showAdminSection(section) {
   document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
   document.getElementById(`admin-${section}-section`).classList.add('active');
 
-  console.log('📂 Переключаемся на секцию:', section);
-
   // Load data for section
   if (section === 'stats') {
-    console.log('📊 Загружаем статистику...');
     loadAdminStats();
   } else if (section === 'broadcast') {
     loadBroadcasts();
@@ -3233,23 +3228,14 @@ function showAdminSection(section) {
 
 // Load admin statistics
 async function loadAdminStats() {
-  console.log('🔄 loadAdminStats() вызвана');
-
   if (!window.currentUser) {
-    console.error('❌ Пользователь не загружен');
-    if (window.tg) {
-      window.tg.showAlert('Ошибка: пользователь не загружен');
-    }
+    console.error('❌ loadAdminStats: Пользователь не загружен');
     return;
   }
-
-  console.log('📊 Загружаем статистику для админа ID:', window.currentUser.id);
 
   try {
     const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
     const data = await response.json();
-
-    console.log('📦 Получены данные:', data);
 
     if (data.success) {
       const stats = data.stats;
@@ -3259,17 +3245,12 @@ async function loadAdminStats() {
       document.getElementById('stat-total-withdrawals').textContent = (stats.totalWithdrawals || 0).toFixed(2) + ' USDT';
       document.getElementById('stat-total-games').textContent = stats.totalGames || 0;
 
-      console.log('✅ Статистика обновлена успешно');
-
       if (window.tg && window.tg.HapticFeedback) {
         window.tg.HapticFeedback.notificationOccurred('success');
       }
     }
   } catch (error) {
     console.error('❌ Ошибка загрузки статистики:', error);
-    if (window.tg) {
-      window.tg.showAlert('❌ Ошибка загрузки статистики');
-    }
   }
 }
 
