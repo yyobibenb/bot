@@ -3218,14 +3218,23 @@ function showAdminSection(section) {
 
 // Load admin statistics
 async function loadAdminStats() {
+  console.log('🔄 loadAdminStats() вызвана');
+
   if (!window.currentUser) {
-    window.tg.showAlert('Ошибка: пользователь не загружен');
+    console.error('❌ Пользователь не загружен');
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: пользователь не загружен');
+    }
     return;
   }
+
+  console.log('📊 Загружаем статистику для админа ID:', window.currentUser.id);
 
   try {
     const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
     const data = await response.json();
+
+    console.log('📦 Получены данные:', data);
 
     if (data.success) {
       const stats = data.stats;
@@ -3235,12 +3244,14 @@ async function loadAdminStats() {
       document.getElementById('stat-total-withdrawals').textContent = (stats.totalWithdrawals || 0).toFixed(2) + ' USDT';
       document.getElementById('stat-total-games').textContent = stats.totalGames || 0;
 
+      console.log('✅ Статистика обновлена успешно');
+
       if (window.tg && window.tg.HapticFeedback) {
         window.tg.HapticFeedback.notificationOccurred('success');
       }
     }
   } catch (error) {
-    console.error('Ошибка загрузки статистики:', error);
+    console.error('❌ Ошибка загрузки статистики:', error);
     if (window.tg) {
       window.tg.showAlert('❌ Ошибка загрузки статистики');
     }
