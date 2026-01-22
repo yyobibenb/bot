@@ -633,7 +633,7 @@ function openDiceGame() {
   document.getElementById('dice-game-screen').classList.add('active');
 }
 
-// Инициализировать превью кубиков на карточках режимов
+// Инициализировать превью для карточек режимов
 function initDicePreviews() {
   const previews = document.querySelectorAll('.dice-mode-preview');
 
@@ -641,20 +641,50 @@ function initDicePreviews() {
     // Очистить контейнер
     preview.innerHTML = '';
 
-    // Загрузить анимацию кубика грани "4" для красоты
+    const mode = preview.dataset.mode;
+    let animationPath = '/animations/Rectangular_4.json'; // default для dice
+    let fallbackEmoji = '🎲';
+
+    // Определить анимацию в зависимости от режима игры
+    if (mode.startsWith('darts-')) {
+      if (mode === 'darts-red') {
+        animationPath = '/animations/darts-v4-4.json'; // красное
+        fallbackEmoji = '🔴';
+      } else if (mode === 'darts-white') {
+        animationPath = '/animations/darts-v4-5.json'; // белое
+        fallbackEmoji = '⚪';
+      } else if (mode === 'darts-center') {
+        animationPath = '/animations/dartscenter.json'; // центр
+        fallbackEmoji = '🎯';
+      } else if (mode === 'darts-miss') {
+        animationPath = '/animations/darts-v4-miss 2.json'; // мимо
+        fallbackEmoji = '❌';
+      }
+    } else if (mode.startsWith('bowling-')) {
+      animationPath = '/animations/bowling.json';
+      fallbackEmoji = '🎳';
+    } else if (mode.startsWith('football-')) {
+      animationPath = '/animations/football.json';
+      fallbackEmoji = '⚽';
+    } else if (mode.startsWith('basketball-')) {
+      animationPath = '/animations/basketball.json';
+      fallbackEmoji = '🏀';
+    }
+
+    // Загрузить анимацию
     if (typeof lottie !== 'undefined') {
       const anim = lottie.loadAnimation({
         container: preview,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: '/animations/Rectangular_4.json'
+        path: animationPath
       });
 
-      console.log('🎲 Превью кубика загружено для', preview.dataset.mode);
+      console.log('🎮 Превью загружено для', mode, '→', animationPath);
     } else {
       // Fallback - эмодзи
-      preview.innerHTML = '<div style="font-size: 40px;">🎲</div>';
+      preview.innerHTML = `<div style="font-size: 40px;">${fallbackEmoji}</div>`;
     }
   });
 }
@@ -2379,6 +2409,9 @@ function openDartsGame() {
     }
   }
 
+  // Инициализировать превью анимаций
+  initDicePreviews();
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('darts-game-screen').classList.add('active');
 }
@@ -2496,10 +2529,12 @@ async function playDartsGame() {
       if (data.success) {
         // Show result with appropriate emoji
         const resultNum = typeof data.result === 'number' ? data.result : parseInt(data.result);
-        if (resultNum === 6) {
-          dartsEmoji.textContent = '🎯🔴'; // Center/Red
-        } else if (resultNum >= 2 && resultNum <= 5) {
-          dartsEmoji.textContent = '🎯⚪'; // White
+        if (resultNum === 4) {
+          dartsEmoji.textContent = '🎯'; // Center
+        } else if (resultNum === 3) {
+          dartsEmoji.textContent = '🔴'; // Red
+        } else if (resultNum === 2) {
+          dartsEmoji.textContent = '⚪'; // White
         } else {
           dartsEmoji.textContent = '❌'; // Miss
         }
@@ -2521,7 +2556,9 @@ async function playDartsGame() {
           launchDartsConfetti();
 
           let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
-          if (window.selectedDartsMode === 'red' || window.selectedDartsMode === 'center') {
+          if (window.selectedDartsMode === 'red') {
+            resultMsg += `\n\n🔴 В красное!`;
+          } else if (window.selectedDartsMode === 'center') {
             resultMsg += `\n\n🎯 В центр!`;
           } else if (window.selectedDartsMode === 'white') {
             resultMsg += `\n\n⚪ В белое!`;
@@ -4033,15 +4070,13 @@ const lottieAnimations = {
   football: '/animations/football.json',
   basketball: '/animations/basketball.json',
   darts: {
-    default: '/animations/darts-v4-5.json', // Для показа перед броском (белый)
+    default: '/animations/darts-v4-5.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
       '/animations/darts-v4-miss 2.json', // результат 1 - мимо
       '/animations/darts-v4-5.json',      // результат 2 - белое
-      '/animations/darts-v4-5.json',      // результат 3 - белое
-      '/animations/darts-v4-5.json',      // результат 4 - белое
-      '/animations/darts-v4-5.json',      // результат 5 - белое
-      '/animations/dartscenter.json'      // результат 6 - центр (красное)
+      '/animations/darts-v4-4.json',      // результат 3 - красное
+      '/animations/dartscenter.json'      // результат 4 - центр
     ]
   }
 };

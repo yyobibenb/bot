@@ -249,14 +249,14 @@ export class OtherGamesService {
   }
 
   // ДАРТС 🎯
-  // Telegram dice emoji для дартса: 1-6
-  // 1 = мимо, 2-5 = белое, 6 = центр/красное
+  // Генерация результатов: 1-4
+  // 1 = мимо, 2 = белое, 3 = красное, 4 = центр
 
   static rollDarts(): number {
-    return Math.floor(Math.random() * 6) + 1;
+    return Math.floor(Math.random() * 4) + 1;
   }
 
-  // Красное/Центр (3.68x) - результат 6
+  // Красное/Центр (3.68x) - результат 3
   static async playDartsRed(
     userId: number,
     betAmount: number
@@ -268,7 +268,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollDarts();
-    const isWin = result === 6;
+    const isWin = result === 3;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -282,11 +282,11 @@ export class OtherGamesService {
       "red",
       isWin,
       multiplier,
-      { zone: result === 6 ? "🎯 Центр!" : result === 1 ? "❌ Мимо" : "⚪ Белое" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
     );
   }
 
-  // Белое (3.68x) - результат 2-5
+  // Белое (3.68x) - результат 2
   static async playDartsWhite(
     userId: number,
     betAmount: number
@@ -298,7 +298,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollDarts();
-    const isWin = result >= 2 && result <= 5;
+    const isWin = result === 2;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -312,11 +312,11 @@ export class OtherGamesService {
       "white",
       isWin,
       multiplier,
-      { zone: result === 6 ? "🎯 Центр!" : result === 1 ? "❌ Мимо" : "⚪ Белое" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
     );
   }
 
-  // Середина (3.68x) - альтернативное название для центра
+  // Середина (3.68x) - результат 4
   static async playDartsCenter(
     userId: number,
     betAmount: number
@@ -328,7 +328,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollDarts();
-    const isWin = result === 6;
+    const isWin = result === 4;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -342,7 +342,7 @@ export class OtherGamesService {
       "center",
       isWin,
       multiplier,
-      { zone: result === 6 ? "🎯 Центр!" : result === 1 ? "❌ Мимо" : "⚪ Белое" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
     );
   }
 
@@ -372,7 +372,7 @@ export class OtherGamesService {
       "miss",
       isWin,
       multiplier,
-      { zone: result === 6 ? "🎯 Центр!" : result === 1 ? "❌ Мимо" : "⚪ Белое" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
     );
   }
 
