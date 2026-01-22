@@ -3265,29 +3265,77 @@ function showAdminSection(section) {
 
 // Load admin statistics
 async function loadAdminStats() {
+  console.log('📊 loadAdminStats вызвана');
+  console.log('👤 window.currentUser:', window.currentUser);
+  console.log('🔐 window.isAdmin:', window.isAdmin);
+
   if (!window.currentUser) {
     console.error('❌ loadAdminStats: Пользователь не загружен');
+    if (window.tg) {
+      window.tg.showAlert('Ошибка: пользователь не загружен');
+    }
+    return;
+  }
+
+  if (!window.isAdmin) {
+    console.error('❌ loadAdminStats: Нет прав администратора');
+    if (window.tg) {
+      window.tg.showAlert('У вас нет прав администратора');
+    }
     return;
   }
 
   try {
+    console.log('🔄 Загружаем статистику для admin_id:', window.currentUser.id);
     const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
-    const data = await response.json();
 
-    if (data.success) {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('📊 Ответ от API:', data);
+
+    if (data.success && data.stats) {
       const stats = data.stats;
-      document.getElementById('stat-total-users').textContent = stats.totalUsers || 0;
-      document.getElementById('stat-active-users').textContent = stats.activeUsersToday || 0;
-      document.getElementById('stat-total-deposits').textContent = (stats.totalDeposits || 0).toFixed(2) + ' USDT';
-      document.getElementById('stat-total-withdrawals').textContent = (stats.totalWithdrawals || 0).toFixed(2) + ' USDT';
-      document.getElementById('stat-total-games').textContent = stats.totalGames || 0;
+
+      // Обновляем элементы на странице
+      const elements = {
+        'stat-total-users': stats.totalUsers || 0,
+        'stat-active-users': stats.activeUsersToday || 0,
+        'stat-total-deposits': (stats.totalDeposits || 0).toFixed(2) + ' USDT',
+        'stat-total-withdrawals': (stats.totalWithdrawals || 0).toFixed(2) + ' USDT',
+        'stat-total-games': stats.totalGames || 0
+      };
+
+      for (const [id, value] of Object.entries(elements)) {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = value;
+          console.log(`✅ Обновлен ${id}: ${value}`);
+        } else {
+          console.warn(`⚠️ Элемент ${id} не найден`);
+        }
+      }
+
+      console.log('✅ Статистика обновлена успешно');
 
       if (window.tg && window.tg.HapticFeedback) {
         window.tg.HapticFeedback.notificationOccurred('success');
       }
+    } else {
+      console.error('❌ API вернул неуспешный ответ:', data);
+      if (window.tg) {
+        window.tg.showAlert('Ошибка загрузки статистики: ' + (data.error || 'Неизвестная ошибка'));
+      }
     }
   } catch (error) {
     console.error('❌ Ошибка загрузки статистики:', error);
+    if (window.tg) {
+      window.tg.showAlert('Ошибка загрузки статистики: ' + error.message);
+    } else {
+      alert('Ошибка загрузки статистики: ' + error.message);
+    }
   }
 }
 
@@ -3929,27 +3977,71 @@ async function saveForceSettings() {
 
 // Load profit stats
 async function loadProfitStats() {
+  console.log('💰 loadProfitStats вызвана');
+
   if (!window.currentUser || !window.isAdmin) {
+    console.error('❌ loadProfitStats: Нет прав администратора');
     return;
   }
 
   try {
     const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
-    const data = await response.json();
 
-    if (data.success) {
-      // Calculate profit
-      const totalBets = data.stats.total_game_revenue || 0;
-      const totalWins = data.stats.total_game_payouts || 0;
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('💰 Ответ от API для profit stats:', data);
+
+    if (data.success && data.stats) {
+      // Calculate profit from games stats
+      let totalBets = 0;
+      let totalWins = 0;
+
+      if (data.stats.gamesStats && Array.isArray(data.stats.gamesStats)) {
+        data.stats.gamesStats.forEach(game => {
+          totalBets += parseFloat(game.total_bet || 0);
+          totalWins += parseFloat(game.total_win || 0);
+        });
+      }
+
       const profit = totalBets - totalWins;
 
-      document.getElementById('profit-bets-today').textContent = `${totalBets.toFixed(2)} USDT`;
-      document.getElementById('profit-wins-today').textContent = `${totalWins.toFixed(2)} USDT`;
-      document.getElementById('profit-total-today').textContent = `${profit.toFixed(2)} USDT`;
-      document.getElementById('profit-total-today').style.color = profit >= 0 ? 'var(--emerald)' : 'var(--accent-red)';
+      console.log(`💰 Ставки: ${totalBets}, Выплаты: ${totalWins}, Прибыль: ${profit}`);
+
+      const elements = {
+        'profit-bets-today': `${totalBets.toFixed(2)} USDT`,
+        'profit-wins-today': `${totalWins.toFixed(2)} USDT`,
+        'profit-total-today': `${profit.toFixed(2)} USDT`
+      };
+
+      for (const [id, value] of Object.entries(elements)) {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = value;
+          if (id === 'profit-total-today') {
+            element.style.color = profit >= 0 ? 'var(--emerald)' : 'var(--accent-red)';
+          }
+          console.log(`✅ Обновлен ${id}: ${value}`);
+        } else {
+          console.warn(`⚠️ Элемент ${id} не найден`);
+        }
+      }
+
+      console.log('✅ Статистика прибыли обновлена');
+
+      if (window.tg && window.tg.HapticFeedback) {
+        window.tg.HapticFeedback.notificationOccurred('success');
+      }
+    } else {
+      console.error('❌ API вернул неуспешный ответ:', data);
     }
   } catch (error) {
-    console.error('Error loading profit stats:', error);
+    console.error('❌ Ошибка загрузки статистики прибыли:', error);
+    if (window.tg) {
+      window.tg.showAlert('Ошибка загрузки статистики прибыли: ' + error.message);
+    }
   }
 }
 
