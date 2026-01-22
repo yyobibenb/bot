@@ -3192,20 +3192,35 @@ async function checkAdminPermission() {
 
 // Show admin section
 function showAdminSection(section) {
+  console.log('🔄 showAdminSection вызвана, секция:', section);
+
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('light');
   }
 
   // Update tabs
-  document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.classList.remove('active');
+    // Проверяем какая кнопка соответствует секции
+    const buttonText = tab.textContent.toLowerCase();
+    if ((section === 'stats' && buttonText.includes('статистика')) ||
+        (section === 'users' && buttonText.includes('юзеры')) ||
+        (section === 'control' && buttonText.includes('контроль')) ||
+        (section === 'broadcast' && buttonText.includes('рассылки')) ||
+        (section === 'settings' && buttonText.includes('настройки'))) {
+      tab.classList.add('active');
+    }
+  });
 
   // Update sections
   document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
   document.getElementById(`admin-${section}-section`).classList.add('active');
 
+  console.log('📂 Переключаемся на секцию:', section);
+
   // Load data for section
   if (section === 'stats') {
+    console.log('📊 Загружаем статистику...');
     loadAdminStats();
   } else if (section === 'broadcast') {
     loadBroadcasts();
