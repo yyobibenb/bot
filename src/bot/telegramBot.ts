@@ -192,14 +192,13 @@ export class TelegramBotService {
         });
       }
 
-      // Отправляем приветствие с KEYBOARD кнопкой (внизу)
+      // Отправляем приветствие с INLINE кнопкой Mini App
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
-          keyboard: [
-            [{ text: "🚀 Открыть Casino" }]
+          inline_keyboard: [
+            [{ text: "🚀 Открыть Casino", web_app: { url: webAppUrl } }]
           ],
-          resize_keyboard: true,
         },
       });
 
@@ -209,10 +208,9 @@ export class TelegramBotService {
       await this.bot.sendMessage(chatId, WELCOME_MESSAGE, {
         parse_mode: "Markdown",
         reply_markup: {
-          keyboard: [
-            [{ text: "🚀 Открыть Casino" }]
+          inline_keyboard: [
+            [{ text: "🚀 Открыть Casino", web_app: { url: webAppUrl } }]
           ],
-          resize_keyboard: true,
         },
       });
     }
