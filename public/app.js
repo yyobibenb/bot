@@ -4037,11 +4037,11 @@ const lottieAnimations = {
     results: [
       null, // индекс 0 не используется
       '/animations/darts-v4-miss 2.json', // результат 1 - мимо
-      '/animations/darts-v4-miss 2.json', // результат 2 - белое (мимо 2)
+      '/animations/darts-v4-5.json',      // результат 2 - белое
       '/animations/darts-v4-5.json',      // результат 3 - белое
-      '/animations/darts-v4-4.json',      // результат 4 - красный
-      '/animations/darts-v4-5.json',      // результат 5 - белый
-      '/animations/dartscenter.json'      // результат 6 - центр
+      '/animations/darts-v4-5.json',      // результат 4 - белое
+      '/animations/darts-v4-5.json',      // результат 5 - белое
+      '/animations/dartscenter.json'      // результат 6 - центр (красное)
     ]
   }
 };
