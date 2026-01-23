@@ -3289,12 +3289,27 @@ async function loadAdminStats() {
     console.log('🔄 Загружаем статистику для admin_id:', window.currentUser.id);
     const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    let data;
+    let errorDetails = '';
+
+    // Пытаемся получить JSON-ответ даже если статус не успешный
+    try {
+      data = await response.json();
+      console.log('📊 Ответ от API:', data);
+    } catch (jsonError) {
+      console.error('❌ Не удалось распарсить JSON:', jsonError);
+      throw new Error(`HTTP ${response.status}: ${response.statusText} (не удалось получить детали)`);
     }
 
-    const data = await response.json();
-    console.log('📊 Ответ от API:', data);
+    if (!response.ok) {
+      // Формируем подробное сообщение об ошибке
+      errorDetails = `HTTP ${response.status}: ${response.statusText}`;
+      if (data && data.error) {
+        errorDetails += `\n\nДетали: ${data.error}`;
+      }
+      console.error('❌ Ошибка сервера:', errorDetails, '\nПолный ответ:', data);
+      throw new Error(errorDetails);
+    }
 
     if (data.success && data.stats) {
       const stats = data.stats;
@@ -3325,16 +3340,19 @@ async function loadAdminStats() {
       }
     } else {
       console.error('❌ API вернул неуспешный ответ:', data);
+      const errorMsg = data.error || 'Неизвестная ошибка';
       if (window.tg) {
-        window.tg.showAlert('Ошибка загрузки статистики: ' + (data.error || 'Неизвестная ошибка'));
+        window.tg.showAlert('Ошибка загрузки статистики:\n' + errorMsg);
       }
     }
   } catch (error) {
     console.error('❌ Ошибка загрузки статистики:', error);
+    console.error('❌ Stack trace:', error.stack);
+    const errorMessage = error.message || String(error);
     if (window.tg) {
-      window.tg.showAlert('Ошибка загрузки статистики: ' + error.message);
+      window.tg.showAlert('Ошибка загрузки статистики:\n' + errorMessage);
     } else {
-      alert('Ошибка загрузки статистики: ' + error.message);
+      alert('Ошибка загрузки статистики:\n' + errorMessage);
     }
   }
 }
@@ -3987,12 +4005,27 @@ async function loadProfitStats() {
   try {
     const response = await fetch(`/api/admin/stats/detailed?admin_id=${window.currentUser.id}`);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    let data;
+    let errorDetails = '';
+
+    // Пытаемся получить JSON-ответ даже если статус не успешный
+    try {
+      data = await response.json();
+      console.log('💰 Ответ от API для profit stats:', data);
+    } catch (jsonError) {
+      console.error('❌ Не удалось распарсить JSON:', jsonError);
+      throw new Error(`HTTP ${response.status}: ${response.statusText} (не удалось получить детали)`);
     }
 
-    const data = await response.json();
-    console.log('💰 Ответ от API для profit stats:', data);
+    if (!response.ok) {
+      // Формируем подробное сообщение об ошибке
+      errorDetails = `HTTP ${response.status}: ${response.statusText}`;
+      if (data && data.error) {
+        errorDetails += `\n\nДетали: ${data.error}`;
+      }
+      console.error('❌ Ошибка сервера:', errorDetails, '\nПолный ответ:', data);
+      throw new Error(errorDetails);
+    }
 
     if (data.success && data.stats) {
       // Calculate profit from games stats
@@ -4036,11 +4069,19 @@ async function loadProfitStats() {
       }
     } else {
       console.error('❌ API вернул неуспешный ответ:', data);
+      const errorMsg = data.error || 'Неизвестная ошибка';
+      if (window.tg) {
+        window.tg.showAlert('Ошибка загрузки статистики:\n' + errorMsg);
+      }
     }
   } catch (error) {
     console.error('❌ Ошибка загрузки статистики прибыли:', error);
+    console.error('❌ Stack trace:', error.stack);
+    const errorMessage = error.message || String(error);
     if (window.tg) {
-      window.tg.showAlert('Ошибка загрузки статистики прибыли: ' + error.message);
+      window.tg.showAlert('Ошибка загрузки статистики прибыли:\n' + errorMessage);
+    } else {
+      alert('Ошибка загрузки статистики прибыли:\n' + errorMessage);
     }
   }
 }

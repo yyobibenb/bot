@@ -966,26 +966,37 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
   try {
     const { admin_id } = req.query;
 
+    console.log("📊 /api/admin/stats/detailed: Запрос от admin_id =", admin_id);
+
     if (!admin_id) {
+      console.error("❌ /api/admin/stats/detailed: Missing admin_id");
       return res.status(400).json({ success: false, error: "Missing admin_id" });
     }
 
     // Проверяем права админа
+    console.log("🔐 Проверяем права администратора для user_id =", admin_id);
     const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "view_stats");
     if (!hasPermission) {
-      return res.status(403).json({ success: false, error: "Access denied" });
+      console.error("❌ /api/admin/stats/detailed: Access denied для user_id =", admin_id);
+      return res.status(403).json({ success: false, error: "Access denied: недостаточно прав для просмотра статистики" });
     }
 
+    console.log("✅ Права администратора подтверждены");
+
     // Общая статистика пользователей
+    console.log("📊 Получаем общую статистику пользователей...");
     const totalUsersResult = await pool.query("SELECT COUNT(*) as count FROM users");
     const totalUsers = parseInt(totalUsersResult.rows[0].count);
+    console.log("✅ Всего пользователей:", totalUsers);
 
     const usersWithDepositsResult = await pool.query(
       "SELECT COUNT(DISTINCT user_id) as count FROM transactions WHERE type = 'deposit' AND status = 'completed'"
     );
     const usersWithDeposits = parseInt(usersWithDepositsResult.rows[0].count);
+    console.log("✅ Пользователей с депозитами:", usersWithDeposits);
 
     // Депозиты и выводы за месяц по дням
+    console.log("📊 Получаем транзакции за последние 30 дней...");
     const transactionsPerDayResult = await pool.query(
       `SELECT
         created_at::date as date,
@@ -1005,8 +1016,10 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
       count: parseInt(row.count),
       total_amount: parseFloat(row.total_amount),
     }));
+    console.log("✅ Получено транзакций за месяц:", transactionsPerDay.length);
 
     // Топ пользователей по депозитам
+    console.log("📊 Получаем топ пользователей...");
     const topUsersResult = await pool.query(
       `SELECT
         u.id,
@@ -1035,8 +1048,10 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
       balance: parseFloat(row.balance) || 0,
       total_transactions: parseInt(row.total_transactions) || 0,
     }));
+    console.log("✅ Получено топ пользователей:", topUsers.length);
 
     // Статистика игр
+    console.log("📊 Получаем статистику игр...");
     const gamesStatsResult = await pool.query(
       `SELECT
         g.id,
@@ -1065,28 +1080,39 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
       total_win: parseFloat(row.total_win) || 0,
       win_rate: parseFloat(row.win_rate) || 0,
     }));
+    console.log("✅ Получена статистика по играм:", gamesStats.length);
 
     // Общее количество игр
+    console.log("📊 Получаем общее количество игр...");
     const totalGamesResult = await pool.query("SELECT COUNT(*) as count FROM game_history");
     const totalGames = parseInt(totalGamesResult.rows[0]?.count || 0);
+    console.log("✅ Всего игр сыграно:", totalGames);
 
     // Общая сумма депозитов
+    console.log("📊 Получаем общую сумму депозитов...");
     const totalDepositsResult = await pool.query(
       "SELECT SUM(amount) as total FROM transactions WHERE type = 'deposit' AND status = 'completed'"
     );
     const totalDeposits = parseFloat(totalDepositsResult.rows[0]?.total || 0);
+    console.log("✅ Общая сумма депозитов:", totalDeposits);
 
     // Общая сумма выводов
+    console.log("📊 Получаем общую сумму выводов...");
     const totalWithdrawalsResult = await pool.query(
       "SELECT SUM(amount) as total FROM transactions WHERE type = 'withdrawal' AND status = 'completed'"
     );
     const totalWithdrawals = parseFloat(totalWithdrawalsResult.rows[0]?.total || 0);
+    console.log("✅ Общая сумма выводов:", totalWithdrawals);
 
     // Активные пользователи сегодня
+    console.log("📊 Получаем активных пользователей сегодня...");
     const activeUsersTodayResult = await pool.query(
       "SELECT COUNT(DISTINCT user_id) as count FROM game_history WHERE created_at::date = CURRENT_DATE"
     );
     const activeUsersToday = parseInt(activeUsersTodayResult.rows[0]?.count || 0);
+    console.log("✅ Активных пользователей сегодня:", activeUsersToday);
+
+    console.log("✅ Все данные статистики получены успешно");
 
     res.json({
       success: true,
@@ -1103,8 +1129,36 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
       }
     });
   } catch (error: any) {
-    console.error("Error getting detailed stats:", error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error("❌ КРИТИЧЕСКАЯ ОШИБКА в /api/admin/stats/detailed:");
+    console.error("❌ Тип ошибки:", error.constructor.name);
+    console.error("❌ Сообщение ошибки:", error.message);
+    console.error("❌ Stack trace:", error.stack);
+
+    // Дополнительные детали для SQL ошибок
+    if (error.code) {
+      console.error("❌ SQL код ошибки:", error.code);
+    }
+    if (error.detail) {
+      console.error("❌ SQL детали:", error.detail);
+    }
+    if (error.hint) {
+      console.error("❌ SQL подсказка:", error.hint);
+    }
+
+    // Формируем подробное сообщение для клиента
+    let errorMessage = error.message || "Неизвестная ошибка сервера";
+    if (error.code) {
+      errorMessage += ` (SQL код: ${error.code})`;
+    }
+    if (error.detail) {
+      errorMessage += `\nДетали: ${error.detail}`;
+    }
+
+    res.status(500).json({
+      success: false,
+      error: errorMessage,
+      errorType: error.constructor.name
+    });
   }
 });
 
