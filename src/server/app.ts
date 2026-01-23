@@ -1013,15 +1013,15 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
         u.username,
         u.first_name,
         u.created_at,
-        b.total_deposited,
-        b.total_withdrawn,
-        b.balance,
+        COALESCE(MAX(b.total_deposited), 0) as total_deposited,
+        COALESCE(MAX(b.total_withdrawn), 0) as total_withdrawn,
+        COALESCE(MAX(b.balance), 0) as balance,
         COUNT(DISTINCT t.id) as total_transactions
        FROM users u
        LEFT JOIN balances b ON u.id = b.user_id
        LEFT JOIN transactions t ON u.id = t.user_id
-       GROUP BY u.id, u.username, u.first_name, u.created_at, b.total_deposited, b.total_withdrawn, b.balance
-       ORDER BY b.total_deposited DESC
+       GROUP BY u.id, u.username, u.first_name, u.created_at
+       ORDER BY MAX(b.total_deposited) DESC NULLS LAST
        LIMIT 50`
     );
 
