@@ -38,6 +38,7 @@ export class AdminModel {
     if (!admin) return false;
 
     const permissions = admin.permissions as any;
-    return permissions[permission] === true;
+    // Проверяем права "all" (полный доступ) или конкретное разрешение
+    return permissions?.all === true || permissions?.[permission] === true;
   }
 }
