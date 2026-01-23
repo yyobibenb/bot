@@ -1107,7 +1107,7 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
     // Активные пользователи сегодня
     console.log("📊 Получаем активных пользователей сегодня...");
     const activeUsersTodayResult = await pool.query(
-      "SELECT COUNT(DISTINCT user_id) as count FROM game_history WHERE created_at::date = CURRENT_DATE"
+      "SELECT COUNT(DISTINCT user_id) as count FROM game_history WHERE played_at::date = CURRENT_DATE"
     );
     const activeUsersToday = parseInt(activeUsersTodayResult.rows[0]?.count || 0);
     console.log("✅ Активных пользователей сегодня:", activeUsersToday);
