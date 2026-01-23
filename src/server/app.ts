@@ -988,15 +988,15 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
     // Депозиты и выводы за месяц по дням
     const transactionsPerDayResult = await pool.query(
       `SELECT
-        DATE(created_at) as date,
+        created_at::date as date,
         type,
         COUNT(*) as count,
         SUM(amount) as total_amount
        FROM transactions
        WHERE created_at >= NOW() - INTERVAL '30 days'
        AND status = 'completed'
-       GROUP BY DATE(created_at), type
-       ORDER BY DATE(created_at) DESC`
+       GROUP BY created_at::date, type
+       ORDER BY created_at::date DESC`
     );
 
     const transactionsPerDay = transactionsPerDayResult.rows.map(row => ({
@@ -1084,7 +1084,7 @@ app.get("/api/admin/stats/detailed", async (req, res) => {
 
     // Активные пользователи сегодня
     const activeUsersTodayResult = await pool.query(
-      "SELECT COUNT(DISTINCT user_id) as count FROM game_history WHERE DATE(created_at) = CURRENT_DATE"
+      "SELECT COUNT(DISTINCT user_id) as count FROM game_history WHERE created_at::date = CURRENT_DATE"
     );
     const activeUsersToday = parseInt(activeUsersTodayResult.rows[0]?.count || 0);
 

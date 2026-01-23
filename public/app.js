@@ -648,10 +648,10 @@ function initDicePreviews() {
     // Определить анимацию в зависимости от режима игры
     if (mode.startsWith('darts-')) {
       if (mode === 'darts-red') {
-        animationPath = '/animations/darts-v4-4.json'; // красное
+        animationPath = '/animations/darts-v4-5.json'; // красное (файл darts-v4-5 показывает красное)
         fallbackEmoji = '🔴';
       } else if (mode === 'darts-white') {
-        animationPath = '/animations/darts-v4-5.json'; // белое
+        animationPath = '/animations/darts-v4-4.json'; // белое (файл darts-v4-4 показывает белое)
         fallbackEmoji = '⚪';
       } else if (mode === 'darts-center') {
         animationPath = '/animations/dartscenter.json'; // центр
@@ -4162,12 +4162,12 @@ const lottieAnimations = {
   football: '/animations/football.json',
   basketball: '/animations/basketball.json',
   darts: {
-    default: '/animations/darts-v4-5.json', // Для показа перед броском
+    default: '/animations/darts-v4-4.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
       '/animations/darts-v4-miss 2.json', // результат 1 - мимо
-      '/animations/darts-v4-5.json',      // результат 2 - белое
-      '/animations/darts-v4-4.json',      // результат 3 - красное
+      '/animations/darts-v4-4.json',      // результат 2 - белое (файл darts-v4-4 показывает белое)
+      '/animations/darts-v4-5.json',      // результат 3 - красное (файл darts-v4-5 показывает красное)
       '/animations/dartscenter.json'      // результат 4 - центр
     ]
   }
