@@ -664,7 +664,7 @@ function initDicePreviews() {
       animationPath = lottieAnimations.bowling?.results?.[5] || '/animations/bowling_5.json'; // Показываем 5 кеглей
       fallbackEmoji = '🎳';
     } else if (mode.startsWith('football-')) {
-      animationPath = lottieAnimations.football?.results?.[5] || '/animations/football_5.json'; // Показываем "попал"
+      animationPath = lottieAnimations.football?.results?.[3] || '/animations/football_3.json'; // Показываем "попал"
       fallbackEmoji = '⚽';
     } else if (mode.startsWith('basketball-')) {
       animationPath = lottieAnimations.basketball?.results?.[5] || '/animations/basketball_5.json'; // Показываем "попал"
@@ -1942,9 +1942,9 @@ async function playFootballGame() {
       if (data.success) {
         // Show result with appropriate emoji/text
         const resultNum = typeof data.result === 'number' ? data.result : parseInt(data.result);
-        if (resultNum === 5) {
+        if (resultNum === 3) {
           footballEmoji.textContent = '⚽🥅'; // Попал (гол)
-        } else if (resultNum === 3) {
+        } else if (resultNum === 1) {
           footballEmoji.textContent = '❌'; // Не попал (промах)
         } else {
           footballEmoji.textContent = '❌'; // Default - не попал
@@ -4201,12 +4201,12 @@ const gameModeConfig = {
     'goal': {
       choices: [],
       layout: 'none',
-      description: 'Забей гол (результат 4 или 5)'
+      description: 'Забей гол (результат 3)'
     },
     'miss': {
       choices: [],
       layout: 'none',
-      description: 'Промахнись (результат 1 или 2)'
+      description: 'Промахнись (результат 1)'
     },
     'duel': {
       choices: [],
@@ -4255,14 +4255,14 @@ const lottieAnimations = {
     ]
   },
   football: {
-    default: '/animations/football_3.json', // Для показа перед броском
+    default: '/animations/football_1.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
-      '/animations/football_3.json', // результат 1 - не попал
-      '/animations/football_3.json', // результат 2 - не попал
-      '/animations/football_3.json', // результат 3 - не попал
-      '/animations/football_5.json', // результат 4 - попал
-      '/animations/football_5.json'  // результат 5 - попал
+      '/animations/football_1.json', // результат 1 - не попал
+      '/animations/football_1.json', // результат 2 - не используется
+      '/animations/football_3.json', // результат 3 - попал (гол)
+      '/animations/football_3.json', // результат 4 - не используется
+      '/animations/football_3.json'  // результат 5 - не используется
     ]
   },
   basketball: {

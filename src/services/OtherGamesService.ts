@@ -82,15 +82,15 @@ export class OtherGamesService {
   }
 
   // ФУТБОЛ ⚽
-  // Telegram API: 3 = промах (не попал), 5 = гол (попал)
-  // Казино генерирует только 3 или 5
+  // Telegram API: 1 = промах (не попал), 3 = гол (попал)
+  // Казино генерирует только 1 или 3
 
   static rollFootball(): number {
-    // Генерируем 3 или 5 (50/50 вероятность)
-    return Math.random() < 0.5 ? 3 : 5;
+    // Генерируем 1 или 3 (50/50 вероятность)
+    return Math.random() < 0.5 ? 1 : 3;
   }
 
-  // Гол (1.33x) - результат 5
+  // Гол (1.33x) - результат 3
   static async playFootballGoal(
     userId: number,
     betAmount: number
@@ -102,7 +102,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollFootball();
-    const isWin = result === 5; // 5 = гол
+    const isWin = result === 3; // 3 = гол (попал)
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -116,11 +116,11 @@ export class OtherGamesService {
       "goal",
       isWin,
       multiplier,
-      { score: result === 5 ? "⚽ ГОЛ!" : "❌ Мимо" }
+      { score: result === 3 ? "⚽ ГОЛ!" : "❌ Мимо" }
     );
   }
 
-  // Мимо (1.84x) - результат 3
+  // Мимо (1.84x) - результат 1
   static async playFootballMiss(
     userId: number,
     betAmount: number
@@ -132,7 +132,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollFootball();
-    const isWin = result === 3; // 3 = мимо
+    const isWin = result === 1; // 1 = мимо (не попал)
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -146,11 +146,11 @@ export class OtherGamesService {
       "miss",
       isWin,
       multiplier,
-      { score: result === 5 ? "⚽ ГОЛ!" : "❌ Мимо" }
+      { score: result === 3 ? "⚽ ГОЛ!" : "❌ Мимо" }
     );
   }
 
-  // Не попал (1.84x) - результат 3 (промах)
+  // Не попал (1.84x) - результат 1 (промах)
   static async playFootballNotHit(
     userId: number,
     betAmount: number
@@ -162,7 +162,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollFootball();
-    const isWin = result === 3; // 3 = не попал
+    const isWin = result === 1; // 1 = не попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -176,11 +176,11 @@ export class OtherGamesService {
       "not_hit",
       isWin,
       multiplier,
-      { score: result === 3 ? "❌ Не попал!" : "⚽ ПОПАЛ!" }
+      { score: result === 1 ? "❌ Не попал!" : "⚽ ПОПАЛ!" }
     );
   }
 
-  // Попал (1.84x) - результат 5 (гол)
+  // Попал (1.84x) - результат 3 (гол)
   static async playFootballHit(
     userId: number,
     betAmount: number
@@ -192,7 +192,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollFootball();
-    const isWin = result === 5; // 5 = попал
+    const isWin = result === 3; // 3 = попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -206,7 +206,7 @@ export class OtherGamesService {
       "hit",
       isWin,
       multiplier,
-      { score: result === 5 ? "⚽ ПОПАЛ!" : "❌ Не попал!" }
+      { score: result === 3 ? "⚽ ПОПАЛ!" : "❌ Не попал!" }
     );
   }
 
