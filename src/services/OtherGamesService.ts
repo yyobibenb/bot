@@ -14,13 +14,13 @@ export interface GameResult {
 
 export class OtherGamesService {
   // БОУЛИНГ 🎳
-  // Telegram dice emoji для боулинга возвращает 1-6 (количество сбитых кеглей)
+  // Telegram dice emoji для боулинга возвращает 1-5 (количество сбитых кеглей)
 
   static rollBowling(): number {
-    return Math.floor(Math.random() * 6) + 1;
+    return Math.floor(Math.random() * 5) + 1;
   }
 
-  // Страйк (1.84x) - сбить все 6 кеглей
+  // Страйк (1.84x) - сбить все 5 кеглей
   static async playBowlingStrike(
     userId: number,
     betAmount: number
@@ -32,7 +32,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollBowling();
-    const isWin = result === 6; // Strike = все 6 кеглей
+    const isWin = result === 5; // Strike = все 5 кеглей
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
