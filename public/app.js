@@ -661,13 +661,13 @@ function initDicePreviews() {
         fallbackEmoji = '❌';
       }
     } else if (mode.startsWith('bowling-')) {
-      animationPath = lottieAnimations.bowling?.default || '/animations/bowling-4.json';
+      animationPath = lottieAnimations.bowling?.default || '/animations/bowling_4.json';
       fallbackEmoji = '🎳';
     } else if (mode.startsWith('football-')) {
-      animationPath = lottieAnimations.football?.default || '/animations/football-3.json';
+      animationPath = lottieAnimations.football?.default || '/animations/football_3.json';
       fallbackEmoji = '⚽';
     } else if (mode.startsWith('basketball-')) {
-      animationPath = lottieAnimations.basketball?.default || '/animations/basketball-3.json';
+      animationPath = lottieAnimations.basketball?.default || '/animations/basketball_3.json';
       fallbackEmoji = '🏀';
     }
 
@@ -4200,37 +4200,37 @@ const lottieAnimations = {
     ]
   },
   bowling: {
-    default: '/animations/bowling-4.json', // Для показа перед броском
+    default: '/animations/bowling_4.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
-      '/animations/bowling-1.json', // результат 1 - 1 кегля
-      '/animations/bowling-2.json', // результат 2 - 2 кегли
-      '/animations/bowling-3.json', // результат 3 - 3 кегли
-      '/animations/bowling-4.json', // результат 4 - 4 кегли
-      '/animations/bowling-5.json', // результат 5 - 5 кеглей
-      '/animations/bowling-6.json'  // результат 6 - страйк (все кегли)
+      '/animations/bowling_1.json', // результат 1 - 1 кегля
+      '/animations/bowling_2.json', // результат 2 - 2 кегли
+      '/animations/bowling_3.json', // результат 3 - 3 кегли
+      '/animations/bowling_4.json', // результат 4 - 4 кегли
+      '/animations/bowling_5.json', // результат 5 - 5 кеглей
+      '/animations/bowling_6.json'  // результат 6 - страйк (все кегли)
     ]
   },
   football: {
-    default: '/animations/football-3.json', // Для показа перед броском
+    default: '/animations/football_3.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
-      '/animations/football-1.json', // результат 1 - мимо
-      '/animations/football-2.json', // результат 2 - мимо
-      '/animations/football-3.json', // результат 3 - штанга/перекладина (не попал)
-      '/animations/football-4.json', // результат 4 - гол
-      '/animations/football-5.json'  // результат 5 - гол (попал)
+      '/animations/football_3.json', // результат 1 - не попал
+      '/animations/football_3.json', // результат 2 - не попал
+      '/animations/football_3.json', // результат 3 - не попал
+      '/animations/football_5.json', // результат 4 - попал
+      '/animations/football_5.json'  // результат 5 - попал
     ]
   },
   basketball: {
-    default: '/animations/basketball-3.json', // Для показа перед броском
+    default: '/animations/basketball_3.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
-      '/animations/basketball-1.json', // результат 1 - промах
-      '/animations/basketball-2.json', // результат 2 - промах
-      '/animations/basketball-3.json', // результат 3 - промах от кольца (не попал)
-      '/animations/basketball-4.json', // результат 4 - попал
-      '/animations/basketball-5.json'  // результат 5 - попал (точное попадание)
+      '/animations/basketball_3.json', // результат 1 - не попал
+      '/animations/basketball_3.json', // результат 2 - не попал
+      '/animations/basketball_3.json', // результат 3 - не попал
+      '/animations/basketball_5.json', // результат 4 - попал
+      '/animations/basketball_5.json'  // результат 5 - попал
     ]
   },
   darts: {
