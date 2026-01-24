@@ -4243,7 +4243,7 @@ const lottieAnimations = {
     ]
   },
   bowling: {
-    default: '/animations/bowling_4.json', // Для показа перед броском
+    default: '/animations/bowling_1.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
       '/animations/bowling_1.json', // результат 1 - 1 кегля
@@ -4255,7 +4255,7 @@ const lottieAnimations = {
     ]
   },
   football: {
-    default: '/animations/football_1.json', // Для показа перед броском
+    default: '/animations/football_3.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
       '/animations/football_1.json', // результат 1 - не попал
