@@ -529,6 +529,20 @@ app.post("/api/games/basketball/miss", async (req, res) => {
   }
 });
 
+app.post("/api/games/basketball/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
 // ========== СЛОТЫ API ==========
 
 app.post("/api/games/slots/play", async (req, res) => {

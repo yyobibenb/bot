@@ -74,6 +74,14 @@ export class GameModel {
     return result.rows[0] || null;
   }
 
+  static async getGameModeByName(gameId: number, modeName: string): Promise<GameMode | null> {
+    const result = await pool.query(
+      "SELECT * FROM game_modes WHERE game_id = $1 AND name = $2",
+      [gameId, modeName]
+    );
+    return result.rows[0] || null;
+  }
+
   static async createGameHistory(
     data: CreateGameHistoryData
   ): Promise<GameHistory> {

@@ -248,6 +248,37 @@ export class OtherGamesService {
     );
   }
 
+  // Дуэль баскетбола (1.84x)
+  static async playBasketballDuel(
+    userId: number,
+    betAmount: number
+  ): Promise<GameResult> {
+    const game = await GameModel.getGameById(4);
+    if (!game) throw new Error("Game not found");
+
+    const gameMode = await GameModel.getGameModeByName(4, "Дуэль"); // Дуэль баскетбола
+    if (!gameMode) throw new Error("Game mode not found");
+
+    const userShot = this.rollBasketball();
+    const casinoShot = this.rollBasketball();
+    const isWin = userShot > casinoShot;
+    const multiplier = gameMode.multiplier;
+    const winAmount = isWin ? betAmount * multiplier : 0;
+
+    return this.processGame(
+      userId,
+      game.id,
+      gameMode.id,
+      betAmount,
+      winAmount,
+      `${userShot} vs ${casinoShot}`,
+      `user_${userShot}`,
+      isWin,
+      multiplier,
+      { userShot, casinoShot }
+    );
+  }
+
   // ДАРТС 🎯
   // Генерация результатов: 1-4
   // 1 = мимо, 2 = белое, 3 = красное, 4 = центр
