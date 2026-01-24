@@ -4243,7 +4243,7 @@ const lottieAnimations = {
     ]
   },
   bowling: {
-    default: '/animations/bowling_1.json', // Для показа перед броском
+    default: '/animations/bowling_5.json', // Для показа перед броском
     results: [
       null, // индекс 0 не используется
       '/animations/bowling_1.json', // результат 1 - 1 кегля

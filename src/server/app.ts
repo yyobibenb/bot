@@ -8,6 +8,7 @@ import { GameModel } from "../models/Game";
 import { DiceGameService } from "../services/DiceGameService";
 import { DiceDuelService } from "../services/DiceDuelService";
 import { OtherGamesService } from "../services/OtherGamesService";
+import { OtherGamesDuelService } from "../services/OtherGamesDuelService";
 import cryptoService from "../services/CryptoService";
 import cryptoBotService from "../services/CryptoBotService";
 import { DuelService } from "../services/DuelService";
@@ -1935,6 +1936,153 @@ app.get("/api/duels/user/:user_id", async (req, res) => {
   try {
     const { user_id } = req.params;
     const duels = await DuelService.getUserDuels(parseInt(user_id));
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting user duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get user duels" });
+  }
+});
+
+// ============================================
+// OTHER GAMES PVP DUELS API (Bowling, Football, Basketball)
+// ============================================
+
+// Создать PvP дуэль
+app.post("/api/other-duels/create", async (req, res) => {
+  try {
+    const { user_id, game_type, mode_name, bet_amount } = req.body;
+
+    if (!user_id || !game_type || !mode_name || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (!['bowling', 'football', 'basketball'].includes(game_type)) {
+      return res.status(400).json({ success: false, error: "Invalid game type" });
+    }
+
+    const result = await OtherGamesDuelService.createDuelRoom(
+      user_id,
+      game_type as 'bowling' | 'football' | 'basketball',
+      mode_name,
+      parseFloat(bet_amount)
+    );
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating other game duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+// Присоединиться к PvP дуэли
+app.post("/api/other-duels/join", async (req, res) => {
+  try {
+    const { user_id, room_code } = req.body;
+
+    if (!user_id || !room_code) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await OtherGamesDuelService.joinDuelRoom(user_id, room_code);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining other game duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+// Сыграть в PvP дуэли
+app.post("/api/other-duels/:duel_id/play", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const result = await OtherGamesDuelService.playDuel(user_id, parseInt(duel_id));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing other game duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play duel" });
+  }
+});
+
+// Получить информацию о дуэли
+app.get("/api/other-duels/:duel_id", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const duel = await OtherGamesDuelService.getDuel(parseInt(duel_id));
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Duel not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Получить дуэль по коду комнаты
+app.get("/api/other-duels/room/:room_code", async (req, res) => {
+  try {
+    const { room_code } = req.params;
+    const duel = await OtherGamesDuelService.getDuelByRoomCode(room_code);
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Room not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel by room code:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Отменить дуэль
+app.post("/api/other-duels/:duel_id/cancel", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const result = await OtherGamesDuelService.cancelDuel(user_id, parseInt(duel_id));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
+  }
+});
+
+// Получить доступные дуэли для игры
+app.get("/api/other-duels/available/:game_type", async (req, res) => {
+  try {
+    const { game_type } = req.params;
+
+    if (!['bowling', 'football', 'basketball'].includes(game_type)) {
+      return res.status(400).json({ success: false, error: "Invalid game type" });
+    }
+
+    const duels = await OtherGamesDuelService.getAvailableDuels(game_type as 'bowling' | 'football' | 'basketball');
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting available duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duels" });
+  }
+});
+
+// Получить активные дуэли пользователя
+app.get("/api/other-duels/user/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const duels = await OtherGamesDuelService.getUserDuels(parseInt(user_id));
     res.json({ success: true, duels });
   } catch (error: any) {
     console.error("Error getting user duels:", error);

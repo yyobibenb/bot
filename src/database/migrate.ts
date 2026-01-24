@@ -133,6 +133,25 @@ CREATE TABLE IF NOT EXISTS duels (
 
 CREATE INDEX IF NOT EXISTS idx_waiting_duels ON duels(status, created_at);
 
+-- Дуэли других игр (боулинг, футбол, баскетбол)
+CREATE TABLE IF NOT EXISTS other_game_duels (
+  id SERIAL PRIMARY KEY,
+  game_type VARCHAR(20) NOT NULL,
+  mode_name VARCHAR(50),
+  room_code VARCHAR(10) UNIQUE,
+  creator_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  opponent_id INTEGER REFERENCES users(id),
+  bet_amount DECIMAL(15, 2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'waiting',
+  winner_id INTEGER REFERENCES users(id),
+  creator_result INTEGER,
+  opponent_result INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_waiting_other_duels ON other_game_duels(status, game_type, created_at);
+
 -- Статистика пользователей
 CREATE TABLE IF NOT EXISTS user_stats (
   id SERIAL PRIMARY KEY,
