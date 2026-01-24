@@ -149,6 +149,66 @@ export class OtherGamesService {
     );
   }
 
+  // Не попал (3.68x) - результат 3 (штанга)
+  static async playFootballNotHit(
+    userId: number,
+    betAmount: number
+  ): Promise<GameResult> {
+    const game = await GameModel.getGameById(3);
+    if (!game) throw new Error("Game not found");
+
+    const gameMode = await GameModel.getGameModeByName(3, "Не попал");
+    if (!gameMode) throw new Error("Game mode not found");
+
+    const result = this.rollFootball();
+    const isWin = result === 3; // 3 = штанга/не попал
+    const multiplier = gameMode.multiplier;
+    const winAmount = isWin ? betAmount * multiplier : 0;
+
+    return this.processGame(
+      userId,
+      game.id,
+      gameMode.id,
+      betAmount,
+      winAmount,
+      result.toString(),
+      "not_hit",
+      isWin,
+      multiplier,
+      { score: result === 3 ? "🥅 Не попал!" : result >= 4 ? "⚽ ГОЛ!" : "❌ Мимо" }
+    );
+  }
+
+  // Попал (1.84x) - результат 5
+  static async playFootballHit(
+    userId: number,
+    betAmount: number
+  ): Promise<GameResult> {
+    const game = await GameModel.getGameById(3);
+    if (!game) throw new Error("Game not found");
+
+    const gameMode = await GameModel.getGameModeByName(3, "Попал");
+    if (!gameMode) throw new Error("Game mode not found");
+
+    const result = this.rollFootball();
+    const isWin = result === 5; // 5 = попал
+    const multiplier = gameMode.multiplier;
+    const winAmount = isWin ? betAmount * multiplier : 0;
+
+    return this.processGame(
+      userId,
+      game.id,
+      gameMode.id,
+      betAmount,
+      winAmount,
+      result.toString(),
+      "hit",
+      isWin,
+      multiplier,
+      { score: result === 5 ? "⚽ ПОПАЛ!" : result === 3 ? "🥅 Не попал" : "❌ Мимо" }
+    );
+  }
+
   // Дуэль футбола (1.84x)
   static async playFootballDuel(
     userId: number,
@@ -157,7 +217,7 @@ export class OtherGamesService {
     const game = await GameModel.getGameById(3);
     if (!game) throw new Error("Game not found");
 
-    const gameMode = await GameModel.getGameModeById(17); // Дуэль
+    const gameMode = await GameModel.getGameModeByName(3, "Дуэль");
     if (!gameMode) throw new Error("Game mode not found");
 
     const userKick = this.rollFootball();
@@ -245,6 +305,66 @@ export class OtherGamesService {
       isWin,
       multiplier,
       { score: result >= 4 ? "🏀 Попал!" : "❌ Промах" }
+    );
+  }
+
+  // Не попал (3.68x) - результат 3 (не попал в кольцо)
+  static async playBasketballNotHit(
+    userId: number,
+    betAmount: number
+  ): Promise<GameResult> {
+    const game = await GameModel.getGameById(4);
+    if (!game) throw new Error("Game not found");
+
+    const gameMode = await GameModel.getGameModeByName(4, "Не попал");
+    if (!gameMode) throw new Error("Game mode not found");
+
+    const result = this.rollBasketball();
+    const isWin = result === 3; // 3 = не попал в кольцо
+    const multiplier = gameMode.multiplier;
+    const winAmount = isWin ? betAmount * multiplier : 0;
+
+    return this.processGame(
+      userId,
+      game.id,
+      gameMode.id,
+      betAmount,
+      winAmount,
+      result.toString(),
+      "not_hit",
+      isWin,
+      multiplier,
+      { score: result === 3 ? "🏀 Не попал!" : result >= 4 ? "🏀 Попал!" : "❌ Промах" }
+    );
+  }
+
+  // Попал (1.84x) - результат 5
+  static async playBasketballHit(
+    userId: number,
+    betAmount: number
+  ): Promise<GameResult> {
+    const game = await GameModel.getGameById(4);
+    if (!game) throw new Error("Game mode not found");
+
+    const gameMode = await GameModel.getGameModeByName(4, "Попал");
+    if (!gameMode) throw new Error("Game mode not found");
+
+    const result = this.rollBasketball();
+    const isWin = result === 5; // 5 = попал
+    const multiplier = gameMode.multiplier;
+    const winAmount = isWin ? betAmount * multiplier : 0;
+
+    return this.processGame(
+      userId,
+      game.id,
+      gameMode.id,
+      betAmount,
+      winAmount,
+      result.toString(),
+      "hit",
+      isWin,
+      multiplier,
+      { score: result === 5 ? "🏀 ПОПАЛ!" : result === 3 ? "🏀 Не попал" : "❌ Промах" }
     );
   }
 

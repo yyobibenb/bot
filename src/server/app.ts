@@ -485,6 +485,34 @@ app.post("/api/games/football/miss", async (req, res) => {
   }
 });
 
+app.post("/api/games/football/not-hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballNotHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing football not-hit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/football/hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing football hit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
 app.post("/api/games/football/duel", async (req, res) => {
   try {
     const { user_id, bet_amount } = req.body;
@@ -525,6 +553,34 @@ app.post("/api/games/basketball/miss", async (req, res) => {
     res.json(result);
   } catch (error: any) {
     console.error("Error playing basketball:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/basketball/not-hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballNotHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball not-hit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/basketball/hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball hit:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
   }
 });
