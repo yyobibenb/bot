@@ -14,10 +14,10 @@ export interface GameResult {
 
 export class OtherGamesService {
   // БОУЛИНГ 🎳
-  // Telegram dice emoji для боулинга возвращает 1-6 (количество сбитых кеглей)
+  // Telegram dice emoji для боулинга возвращает 1-5 (количество сбитых кеглей)
 
   static rollBowling(): number {
-    return Math.floor(Math.random() * 6) + 1;
+    return Math.floor(Math.random() * 5) + 1;
   }
 
   // Страйк (1.84x) - сбить все 6 кеглей
@@ -32,7 +32,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollBowling();
-    const isWin = result === 6; // Strike = все 6 кеглей
+    const isWin = result === 5; // Strike = все 5 кеглей
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -82,11 +82,12 @@ export class OtherGamesService {
   }
 
   // ФУТБОЛ ⚽
-  // Telegram dice emoji для футбола: 1-5
-  // 1,2 = мимо, 3 = попал в штангу, 4,5 = гол
+  // Новая логика: только 2 анимации
+  // 3 = не попал (промах)
+  // 5 = попал (гол)
 
   static rollFootball(): number {
-    return Math.floor(Math.random() * 5) + 1;
+    return Math.random() < 0.5 ? 3 : 5;
   }
 
   // Гол (1.33x) - результат 4 или 5
@@ -149,7 +150,7 @@ export class OtherGamesService {
     );
   }
 
-  // Не попал (3.68x) - результат 3 (штанга)
+  // Не попал (1.84x) - результат 3 (промах)
   static async playFootballNotHit(
     userId: number,
     betAmount: number
@@ -161,7 +162,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollFootball();
-    const isWin = result === 3; // 3 = штанга/не попал
+    const isWin = result === 3; // 3 = не попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -175,11 +176,11 @@ export class OtherGamesService {
       "not_hit",
       isWin,
       multiplier,
-      { score: result === 3 ? "🥅 Не попал!" : result >= 4 ? "⚽ ГОЛ!" : "❌ Мимо" }
+      { score: result === 3 ? "❌ Не попал!" : "⚽ ПОПАЛ!" }
     );
   }
 
-  // Попал (1.84x) - результат 5
+  // Попал (1.84x) - результат 5 (гол)
   static async playFootballHit(
     userId: number,
     betAmount: number
@@ -205,7 +206,7 @@ export class OtherGamesService {
       "hit",
       isWin,
       multiplier,
-      { score: result === 5 ? "⚽ ПОПАЛ!" : result === 3 ? "🥅 Не попал" : "❌ Мимо" }
+      { score: result === 5 ? "⚽ ПОПАЛ!" : "❌ Не попал!" }
     );
   }
 
@@ -241,11 +242,12 @@ export class OtherGamesService {
   }
 
   // БАСКЕТБОЛ 🏀
-  // Telegram dice emoji для баскетбола: 1-5
-  // 1,2,3 = мимо, 4,5 = попал
+  // Новая логика: только 2 анимации
+  // 3 = не попал (промах)
+  // 5 = попал (в кольцо)
 
   static rollBasketball(): number {
-    return Math.floor(Math.random() * 5) + 1;
+    return Math.random() < 0.5 ? 3 : 5;
   }
 
   // Гол/Попадание (1.84x) - результат 4 или 5
@@ -308,7 +310,7 @@ export class OtherGamesService {
     );
   }
 
-  // Не попал (3.68x) - результат 3 (не попал в кольцо)
+  // Не попал (1.84x) - результат 3 (промах)
   static async playBasketballNotHit(
     userId: number,
     betAmount: number
@@ -320,7 +322,7 @@ export class OtherGamesService {
     if (!gameMode) throw new Error("Game mode not found");
 
     const result = this.rollBasketball();
-    const isWin = result === 3; // 3 = не попал в кольцо
+    const isWin = result === 3; // 3 = не попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
 
@@ -334,11 +336,11 @@ export class OtherGamesService {
       "not_hit",
       isWin,
       multiplier,
-      { score: result === 3 ? "🏀 Не попал!" : result >= 4 ? "🏀 Попал!" : "❌ Промах" }
+      { score: result === 3 ? "❌ Не попал!" : "🏀 ПОПАЛ!" }
     );
   }
 
-  // Попал (1.84x) - результат 5
+  // Попал (1.84x) - результат 5 (в кольцо)
   static async playBasketballHit(
     userId: number,
     betAmount: number
@@ -364,7 +366,7 @@ export class OtherGamesService {
       "hit",
       isWin,
       multiplier,
-      { score: result === 5 ? "🏀 ПОПАЛ!" : result === 3 ? "🏀 Не попал" : "❌ Промах" }
+      { score: result === 5 ? "🏀 ПОПАЛ!" : "❌ Не попал!" }
     );
   }
 

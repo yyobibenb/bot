@@ -661,13 +661,13 @@ function initDicePreviews() {
         fallbackEmoji = '❌';
       }
     } else if (mode.startsWith('bowling-')) {
-      animationPath = lottieAnimations.bowling?.default || '/animations/bowling_4.json';
+      animationPath = lottieAnimations.bowling?.results?.[5] || '/animations/bowling_5.json'; // Показываем 5 кеглей
       fallbackEmoji = '🎳';
     } else if (mode.startsWith('football-')) {
-      animationPath = lottieAnimations.football?.default || '/animations/football_3.json';
+      animationPath = lottieAnimations.football?.results?.[5] || '/animations/football_5.json'; // Показываем "попал"
       fallbackEmoji = '⚽';
     } else if (mode.startsWith('basketball-')) {
-      animationPath = lottieAnimations.basketball?.default || '/animations/basketball_3.json';
+      animationPath = lottieAnimations.basketball?.results?.[5] || '/animations/basketball_5.json'; // Показываем "попал"
       fallbackEmoji = '🏀';
     }
 
@@ -1942,12 +1942,12 @@ async function playFootballGame() {
       if (data.success) {
         // Show result with appropriate emoji/text
         const resultNum = typeof data.result === 'number' ? data.result : parseInt(data.result);
-        if (resultNum >= 4) {
-          footballEmoji.textContent = '⚽🥅'; // Goal
+        if (resultNum === 5) {
+          footballEmoji.textContent = '⚽🥅'; // Попал (гол)
         } else if (resultNum === 3) {
-          footballEmoji.textContent = '🥅'; // Post
+          footballEmoji.textContent = '❌'; // Не попал (промах)
         } else {
-          footballEmoji.textContent = '❌'; // Miss
+          footballEmoji.textContent = '❌'; // Default - не попал
         }
 
         // Update balance
@@ -2234,10 +2234,12 @@ async function playBasketballGame() {
       if (data.success) {
         // Show result with appropriate emoji
         const resultNum = typeof data.result === 'number' ? data.result : parseInt(data.result);
-        if (resultNum >= 4) {
-          basketballEmoji.textContent = '🏀✨'; // Made it
+        if (resultNum === 5) {
+          basketballEmoji.textContent = '🏀✨'; // Попал (в кольцо)
+        } else if (resultNum === 3) {
+          basketballEmoji.textContent = '❌'; // Не попал (промах)
         } else {
-          basketballEmoji.textContent = '❌'; // Miss
+          basketballEmoji.textContent = '❌'; // Default - не попал
         }
 
         // Update balance
@@ -4475,13 +4477,18 @@ async function playFromFullscreen() {
       const apiEndpoints = {
         'goal': '/api/games/football/goal',
         'miss': '/api/games/football/miss',
+        'not-hit': '/api/games/football/not-hit',
+        'hit': '/api/games/football/hit',
         'duel': '/api/games/football/duel'
       };
       endpoint = apiEndpoints[mode];
     } else if (game === 'basketball') {
       const apiEndpoints = {
         'goal': '/api/games/basketball/goal',
-        'miss': '/api/games/basketball/miss'
+        'miss': '/api/games/basketball/miss',
+        'not-hit': '/api/games/basketball/not-hit',
+        'hit': '/api/games/basketball/hit',
+        'duel': '/api/games/basketball/duel'
       };
       endpoint = apiEndpoints[mode];
     }
@@ -4521,8 +4528,18 @@ async function playFromFullscreen() {
     const diceResult = data.result; // 1-6 для кубика
     console.log('🎯 Выпало число:', diceResult);
 
+    // Проверяем, является ли это дуэлью
+    const isDuel = mode === 'duel' && data.details && (data.details.userKick || data.details.userShot || data.details.userPins);
+
     // Показать результат в анимации
-    await showDiceResult(diceResult, data.isWin);
+    if (isDuel) {
+      // Для дуэлей показываем 2 анимации
+      const userResult = data.details.userKick || data.details.userShot || data.details.userPins;
+      const casinoResult = data.details.casinoKick || data.details.casinoShot || data.details.casinoPins;
+      await showDuelResults(userResult, casinoResult, data.isWin);
+    } else {
+      await showDiceResult(diceResult, data.isWin);
+    }
 
     // Обновить баланс
     if (data.newBalance !== undefined) {
@@ -4620,6 +4637,105 @@ async function showDiceResult(result, isWin) {
       // Fallback - показываем эмодзи с числом
       showDiceFallback(result, container);
       setTimeout(resolve, 1500);
+    }
+  });
+}
+
+// Показать результаты дуэли (2 анимации: пользователь и казино)
+async function showDuelResults(userResult, casinoResult, isWin) {
+  return new Promise((resolve) => {
+    const container = document.getElementById('fullscreen-lottie');
+
+    // Уничтожаем текущую анимацию
+    if (window.fullscreenState.lottieAnimation) {
+      window.fullscreenState.lottieAnimation.destroy();
+      window.fullscreenState.lottieAnimation = null;
+    }
+
+    // Очистить контейнер
+    container.innerHTML = '';
+
+    // Создаем 2 контейнера для анимаций
+    const duelContainer = document.createElement('div');
+    duelContainer.style.cssText = 'display: flex; justify-content: space-around; align-items: center; height: 100%; width: 100%; gap: 20px;';
+
+    const userContainer = document.createElement('div');
+    userContainer.style.cssText = 'flex: 1; display: flex; flex-direction: column; align-items: center;';
+
+    const userLabel = document.createElement('div');
+    userLabel.textContent = 'Вы';
+    userLabel.style.cssText = 'font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #fff;';
+
+    const userAnimContainer = document.createElement('div');
+    userAnimContainer.style.cssText = 'width: 150px; height: 150px;';
+
+    const casinoContainer = document.createElement('div');
+    casinoContainer.style.cssText = 'flex: 1; display: flex; flex-direction: column; align-items: center;';
+
+    const casinoLabel = document.createElement('div');
+    casinoLabel.textContent = 'Казино';
+    casinoLabel.style.cssText = 'font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #fff;';
+
+    const casinoAnimContainer = document.createElement('div');
+    casinoAnimContainer.style.cssText = 'width: 150px; height: 150px;';
+
+    userContainer.appendChild(userLabel);
+    userContainer.appendChild(userAnimContainer);
+    casinoContainer.appendChild(casinoLabel);
+    casinoContainer.appendChild(casinoAnimContainer);
+    duelContainer.appendChild(userContainer);
+    duelContainer.appendChild(casinoContainer);
+    container.appendChild(duelContainer);
+
+    // Получаем тип игры
+    const game = window.fullscreenState.game;
+    const animationConfig = lottieAnimations[game];
+    const animationArray = animationConfig?.results;
+
+    if (animationArray && typeof lottie !== 'undefined') {
+      // Загружаем анимацию для пользователя
+      if (animationArray[userResult]) {
+        const userAnim = lottie.loadAnimation({
+          container: userAnimContainer,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: animationArray[userResult]
+        });
+
+        // Подсветка победителя
+        if (isWin) {
+          userAnimContainer.style.border = '3px solid #4CAF50';
+          userAnimContainer.style.borderRadius = '10px';
+          userAnimContainer.style.boxShadow = '0 0 20px rgba(76, 175, 80, 0.6)';
+        }
+      }
+
+      // Загружаем анимацию для казино
+      if (animationArray[casinoResult]) {
+        const casinoAnim = lottie.loadAnimation({
+          container: casinoAnimContainer,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: animationArray[casinoResult]
+        });
+
+        // Подсветка победителя
+        if (!isWin) {
+          casinoAnimContainer.style.border = '3px solid #f44336';
+          casinoAnimContainer.style.borderRadius = '10px';
+          casinoAnimContainer.style.boxShadow = '0 0 20px rgba(244, 67, 54, 0.6)';
+        }
+      }
+
+      console.log(`✅ Анимации дуэли загружены: User ${userResult} vs Casino ${casinoResult}`);
+      setTimeout(resolve, 2500);
+    } else {
+      // Fallback - показываем числа
+      userAnimContainer.innerHTML = `<div style="font-size: 60px; text-align: center;">${userResult}</div>`;
+      casinoAnimContainer.innerHTML = `<div style="font-size: 60px; text-align: center;">${casinoResult}</div>`;
+      setTimeout(resolve, 2000);
     }
   });
 }
