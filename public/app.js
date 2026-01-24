@@ -4182,6 +4182,47 @@ const gameModeConfig = {
       layout: 'none',
       description: 'Промахнись (результат 1)'
     }
+  },
+  bowling: {
+    'strike': {
+      choices: [],
+      layout: 'none',
+      description: 'Сбей все 6 кеглей'
+    },
+    'duel': {
+      choices: [],
+      layout: 'none',
+      description: 'Дуэль боулинга с казино'
+    }
+  },
+  football: {
+    'goal': {
+      choices: [],
+      layout: 'none',
+      description: 'Забей гол (результат 4 или 5)'
+    },
+    'miss': {
+      choices: [],
+      layout: 'none',
+      description: 'Промахнись (результат 1 или 2)'
+    },
+    'duel': {
+      choices: [],
+      layout: 'none',
+      description: 'Дуэль футбола с казино'
+    }
+  },
+  basketball: {
+    'goal': {
+      choices: [],
+      layout: 'none',
+      description: 'Попади в кольцо (результат 4 или 5)'
+    },
+    'miss': {
+      choices: [],
+      layout: 'none',
+      description: 'Промахнись (результат 1, 2 или 3)'
+    }
   }
 };
 
@@ -4422,6 +4463,25 @@ async function playFromFullscreen() {
         'white': '/api/games/darts/white',
         'center': '/api/games/darts/center',
         'miss': '/api/games/darts/miss'
+      };
+      endpoint = apiEndpoints[mode];
+    } else if (game === 'bowling') {
+      const apiEndpoints = {
+        'strike': '/api/games/bowling/strike',
+        'duel': '/api/games/bowling/duel'
+      };
+      endpoint = apiEndpoints[mode];
+    } else if (game === 'football') {
+      const apiEndpoints = {
+        'goal': '/api/games/football/goal',
+        'miss': '/api/games/football/miss',
+        'duel': '/api/games/football/duel'
+      };
+      endpoint = apiEndpoints[mode];
+    } else if (game === 'basketball') {
+      const apiEndpoints = {
+        'goal': '/api/games/basketball/goal',
+        'miss': '/api/games/basketball/miss'
       };
       endpoint = apiEndpoints[mode];
     }
