@@ -2952,11 +2952,41 @@ function cleanupSlotsAnimations() {
   }
 }
 
-// Open Slots Game
+// Global variable to store selected slot type
+window.selectedSlotType = null;
+
+// Open Slots Game - Show type selection first
 function openSlotsGame() {
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('medium');
   }
+
+  // Update slots type selection screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('slots-type-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const slotsTypeAvatar = document.getElementById('slots-type-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      slotsTypeAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      slotsTypeAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('slots-type-screen').classList.add('active');
+}
+
+// Select slot type and open game
+function selectSlotType(type) {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  window.selectedSlotType = type;
 
   // Update slots screen balance and avatar
   if (window.currentUser) {
@@ -2973,16 +3003,48 @@ function openSlotsGame() {
     }
   }
 
-  // Reset slots
-  document.getElementById('slot-1').textContent = '🍋';
-  document.getElementById('slot-2').textContent = '🍇';
-  document.getElementById('slot-3').textContent = '🍋';
+  // Update title with selected type
+  const titleElement = document.getElementById('slots-mode-title');
+  const multipliers = {
+    '🍋': 5,
+    '🍇': 10,
+    'BAR': 30,
+    '7️⃣': 70
+  };
+  const typeNames = {
+    '🍋': 'Лимоны',
+    '🍇': 'Виноград',
+    'BAR': 'BAR',
+    '7️⃣': 'Семёрка'
+  };
+  titleElement.textContent = `🎰 ${typeNames[type]} (x${multipliers[type]})`;
+
+  // Reset slots to show selected type
+  document.getElementById('slot-1').textContent = type;
+  document.getElementById('slot-2').textContent = type;
+  document.getElementById('slot-3').textContent = type;
 
   // Initialize Lottie animations
   initSlotsAnimations();
 
+  // Load wins from localStorage
+  loadSlotsWinsFromStorage();
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('slots-game-screen').classList.add('active');
+}
+
+// Back to slots type selection
+function backToSlotsTypeSelection() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+
+  // Clean up animations
+  cleanupSlotsAnimations();
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('slots-type-screen').classList.add('active');
 }
 
 // Play slots game
@@ -3098,7 +3160,8 @@ async function playSlotsGame() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: window.currentUser.id,
-        bet_amount: betAmount
+        bet_amount: betAmount,
+        selected_type: window.selectedSlotType
       })
     });
 
@@ -3248,7 +3311,7 @@ async function playSlotsGame() {
   }
 }
 
-// Add win to slots history
+// Add win to slots history (with localStorage)
 function addSlotsWinToHistory(amount, multiplier) {
   const winsList = document.getElementById('slots-wins-list');
 
@@ -3272,6 +3335,67 @@ function addSlotsWinToHistory(amount, multiplier) {
 
   // Add to top of list
   winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveSlotsWinToStorage(amount, multiplier, timeStr);
+}
+
+// Save slots win to localStorage
+function saveSlotsWinToStorage(amount, multiplier, timeStr) {
+  try {
+    // Get existing wins from localStorage
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `slots_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    // Add new win
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    // Keep only last 50 wins
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    // Save back to localStorage
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving win to localStorage:', error);
+  }
+}
+
+// Load slots wins from localStorage
+function loadSlotsWinsFromStorage() {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `slots_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('slots-wins-list');
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    // Display wins
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading wins from localStorage:', error);
+  }
 }
 
 // Slots confetti animation

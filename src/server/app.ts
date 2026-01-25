@@ -604,11 +604,11 @@ app.post("/api/games/basketball/duel", async (req, res) => {
 
 app.post("/api/games/slots/play", async (req, res) => {
   try {
-    const { user_id, bet_amount } = req.body;
+    const { user_id, bet_amount, selected_type } = req.body;
     if (!user_id || !bet_amount) {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
-    const result = await SlotsGameService.playSlots(user_id, bet_amount);
+    const result = await SlotsGameService.playSlots(user_id, bet_amount, selected_type);
     res.json(result);
   } catch (error: any) {
     console.error("Error playing slots:", error);

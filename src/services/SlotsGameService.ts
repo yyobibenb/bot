@@ -99,7 +99,34 @@ export class SlotsGameService {
   /**
    * Проверяет, является ли результат выигрышным и возвращает множитель
    */
-  private static checkWin(result: string[]): { win: boolean; multiplier: number; winType: string } {
+  private static checkWin(result: string[], selectedType?: string): { win: boolean; multiplier: number; winType: string } {
+    // Если выбран конкретный тип, проверяем только его
+    if (selectedType) {
+      if (result[0] === selectedType && result[1] === selectedType && result[2] === selectedType) {
+        const multiplier = this.MULTIPLIERS[selectedType as keyof typeof this.MULTIPLIERS] || 0;
+        let winType = "";
+
+        switch (selectedType) {
+          case "🍋":
+            winType = "Лимоны";
+            break;
+          case "🍇":
+            winType = "Виноград";
+            break;
+          case "BAR":
+            winType = "BAR";
+            break;
+          case "7️⃣":
+            winType = "777";
+            break;
+        }
+
+        return { win: true, multiplier, winType };
+      }
+      return { win: false, multiplier: 0, winType: "" };
+    }
+
+    // Старая логика - любые 3 одинаковых символа
     if (result[0] === result[1] && result[1] === result[2]) {
       const symbol = result[0];
       const multiplier = this.MULTIPLIERS[symbol as keyof typeof this.MULTIPLIERS] || 0;
@@ -129,7 +156,7 @@ export class SlotsGameService {
   /**
    * Играть в слоты
    */
-  static async playSlots(userId: number, betAmount: number): Promise<SlotResult> {
+  static async playSlots(userId: number, betAmount: number, selectedType?: string): Promise<SlotResult> {
     if (betAmount <= 0) {
       throw new Error("Ставка должна быть больше 0");
     }
@@ -142,7 +169,7 @@ export class SlotsGameService {
 
     // Генерируем результат
     const result = await this.generateResult();
-    const winCheck = this.checkWin(result);
+    const winCheck = this.checkWin(result, selectedType);
 
     let winAmount = 0;
     if (winCheck.win) {

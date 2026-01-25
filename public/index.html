@@ -761,11 +761,66 @@
       <canvas id="darts-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
+    <!-- Slots Type Selection Screen -->
+    <div id="slots-type-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="slots-type-balance-amount">0.00</span> USDT
+          </div>
+          <div id="slots-type-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🎰 Выберите тип слота</h2>
+
+      <!-- Slots Type Cards -->
+      <div class="dice-modes-scroll">
+        <!-- Лимон -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('🍋')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🍋 Лимоны</h3>
+            <span class="dice-mode-coef">x5</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">🍋 🍋 🍋</div>
+        </div>
+
+        <!-- Виноград -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('🍇')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🍇 Виноград</h3>
+            <span class="dice-mode-coef">x10</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">🍇 🍇 🍇</div>
+        </div>
+
+        <!-- BAR -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('BAR')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">💎 BAR</h3>
+            <span class="dice-mode-coef">x30</span>
+          </div>
+          <div style="text-align: center; font-size: 36px; margin-top: 12px; font-weight: bold;">BAR BAR BAR</div>
+        </div>
+
+        <!-- 7 -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('7️⃣')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">7️⃣ Семёрка</h3>
+            <span class="dice-mode-coef">x70</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">7️⃣ 7️⃣ 7️⃣</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Slots Game Screen -->
     <div id="slots-game-screen" class="screen">
       <!-- Header with Balance and Avatar -->
       <div class="dice-header">
-        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <button class="back-btn-small" onclick="backToSlotsTypeSelection()">← Назад</button>
         <div class="dice-header-right">
           <div class="dice-balance">
             <span id="slots-balance-amount">0.00</span> USDT
@@ -777,7 +832,7 @@
       <!-- Game Play Area -->
       <div class="dice-game-area">
         <!-- Mode Title -->
-        <h3 style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🎰 Слоты (до x70)</h3>
+        <h3 id="slots-mode-title" style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🎰 Слоты (до x70)</h3>
 
         <!-- Slots Display -->
         <div class="dice-display-main">
