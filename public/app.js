@@ -4443,33 +4443,35 @@ const lottieAnimations = {
     ]
   },
   slots: {
-    drum: '/animations/slots/drum.json',           // Барабан (анимка 1)
-    base: '/animations/slots/base.json',           // Основание с ручкой (анимка 2)
+    drum: '/animations/slots_1.json',           // Барабан (анимка 1 - скрин 1)
+    base: '/animations/slots_2.json',           // Основание с ручкой (анимка 2 - скрин 2)
     symbols: [
       null, // индекс 0 не используется
-      '/animations/slots/symbol_1.json',   // символ 1
-      '/animations/slots/symbol_2.json',   // символ 2
-      '/animations/slots/symbol_3.json',   // символ 3
-      '/animations/slots/symbol_4.json',   // символ 4
-      '/animations/slots/symbol_5.json',   // символ 5
-      '/animations/slots/symbol_6.json',   // символ 6
-      '/animations/slots/symbol_7.json',   // символ 7
-      '/animations/slots/symbol_8.json',   // символ 8
-      '/animations/slots/symbol_9.json',   // символ 9
-      '/animations/slots/symbol_10.json',  // символ 10
-      '/animations/slots/symbol_11.json',  // символ 11
-      '/animations/slots/symbol_12.json',  // символ 12
-      '/animations/slots/symbol_13.json',  // символ 13
-      '/animations/slots/symbol_14.json',  // символ 14
-      '/animations/slots/symbol_15.json',  // символ 15
-      '/animations/slots/symbol_16.json'   // символ 16
+      '/animations/slots_3.json',   // символ 1 (анимка 3)
+      '/animations/slots_4.json',   // символ 2 (анимка 4)
+      '/animations/slots_5.json',   // символ 3 (анимка 5)
+      '/animations/slots_6.json',   // символ 4 (анимка 6)
+      '/animations/slots_7.json',   // символ 5 (анимка 7)
+      '/animations/slots_8.json',   // символ 6 (анимка 8)
+      '/animations/slots_9.json',   // символ 7 (анимка 9)
+      '/animations/slots_10.json',  // символ 8 (анимка 10)
+      '/animations/slots_11.json',  // символ 9 (анимка 11)
+      '/animations/slots_12.json',  // символ 10 (анимка 12)
+      '/animations/slots_13.json',  // символ 11 (анимка 13)
+      '/animations/slots_14.json',  // символ 12 (анимка 14)
+      '/animations/slots_15.json',  // символ 13 (анимка 15)
+      '/animations/slots_16.json',  // символ 14 (анимка 16)
+      '/animations/slots_17.json',  // символ 15 (анимка 17)
+      '/animations/slots_18.json',  // символ 16 (анимка 18)
+      '/animations/slots_19.json',  // дополнительно (анимка 19)
+      '/animations/slots_20.json'   // дополнительно (анимка 20)
     ],
     // Символы для результатов (лимон, виноград, BAR, 777)
     results: {
-      'lemon': '/animations/slots/symbol_1.json',  // 🍋 Лимон
-      'grape': '/animations/slots/symbol_2.json',  // 🍇 Виноград
-      'bar': '/animations/slots/symbol_3.json',    // BAR
-      'seven': '/animations/slots/symbol_4.json'   // 7️⃣ 777
+      'lemon': '/animations/slots_3.json',   // 🍋 Лимон (анимка 3)
+      'grape': '/animations/slots_4.json',   // 🍇 Виноград (анимка 4)
+      'bar': '/animations/slots_5.json',     // BAR (анимка 5)
+      'seven': '/animations/slots_6.json'    // 7️⃣ 777 (анимка 6)
     }
   }
 };
