@@ -331,6 +331,15 @@
         <button class="dice-play-btn" id="play-dice-btn" onclick="playDiceGame()">
           ИГРАТЬ
         </button>
+
+        <!-- Win Display -->
+        <div id="dice-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="dice-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="dice-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
       </div>
 
       <!-- Wins History Section -->
@@ -417,6 +426,15 @@
         <button class="dice-play-btn" id="play-bowling-btn" onclick="playBowlingGame()">
           ИГРАТЬ
         </button>
+
+        <!-- Win Display -->
+        <div id="bowling-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="bowling-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="bowling-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
       </div>
 
       <!-- Wins History Section -->
@@ -512,6 +530,15 @@
         <button class="dice-play-btn" id="play-football-btn" onclick="playFootballGame()">
           ИГРАТЬ
         </button>
+
+        <!-- Win Display -->
+        <div id="football-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="football-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="football-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
       </div>
 
       <!-- Wins History Section -->
@@ -598,6 +625,15 @@
         <button class="dice-play-btn" id="play-basketball-btn" onclick="playBasketballGame()">
           ИГРАТЬ
         </button>
+
+        <!-- Win Display -->
+        <div id="basketball-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="basketball-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="basketball-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
       </div>
 
       <!-- Wins History Section -->
@@ -702,6 +738,15 @@
         <button class="dice-play-btn" id="play-darts-btn" onclick="playDartsGame()">
           ИГРАТЬ
         </button>
+
+        <!-- Win Display -->
+        <div id="darts-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="darts-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="darts-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
       </div>
 
       <!-- Wins History Section -->
@@ -737,15 +782,15 @@
         <!-- Slots Display -->
         <div class="dice-display-main">
           <!-- Lottie слот-машина (барабан + основание + символы) -->
-          <div id="slots-machine-container" style="position: relative; width: 100%; max-width: 350px; margin: 0 auto; display: none;">
+          <div id="slots-machine-container" style="position: relative; width: 100%; max-width: 350px; margin: 0 auto; display: block;">
             <!-- Барабан (верхний элемент, анимка 1) -->
-            <div id="slots-drum-container" style="position: relative; width: 100%; height: 280px;"></div>
+            <div id="slots-drum-container" style="position: relative; width: 100%; height: 250px;"></div>
 
             <!-- Основание с ручкой (нижний элемент, анимка 2) -->
-            <div id="slots-base-container" style="position: relative; width: 100%; height: 180px; margin-top: -50px;"></div>
+            <div id="slots-base-container" style="position: relative; width: 100%; height: 200px; margin-top: -80px;"></div>
 
             <!-- Символы внутри барабана (поверх барабана) -->
-            <div id="slots-symbols-container" style="position: absolute; top: 100px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 10;">
+            <div id="slots-symbols-container" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 10;">
               <div id="slot-symbol-1" style="width: 85px; height: 85px;"></div>
               <div id="slot-symbol-2" style="width: 85px; height: 85px;"></div>
               <div id="slot-symbol-3" style="width: 85px; height: 85px;"></div>
@@ -775,6 +820,15 @@
         <button class="dice-play-btn" id="play-slots-btn" onclick="playSlotsGame()">
           КРУТИТЬ
         </button>
+
+        <!-- Win Display -->
+        <div id="slots-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="slots-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="slots-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
       </div>
 
       <!-- Wins History Section -->
@@ -839,6 +893,15 @@
         <button class="dice-play-btn" id="play-rps-btn" onclick="playRPSGame()">
           ИГРАТЬ
         </button>
+
+        <!-- Win Display -->
+        <div id="rps-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="rps-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="rps-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
       </div>
 
       <!-- Wins History Section -->

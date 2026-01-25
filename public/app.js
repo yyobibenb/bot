@@ -887,6 +887,22 @@ async function playDiceGame() {
 
           launchConfetti();
 
+          // Show win display on screen
+          const winDisplay = document.getElementById('dice-win-display');
+          const winAmount = document.getElementById('dice-win-amount');
+          const winMultiplier = document.getElementById('dice-win-multiplier');
+
+          if (winDisplay && winAmount && winMultiplier) {
+            winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
+            winMultiplier.textContent = `Результат: ${data.result} • x${data.multiplier}`;
+            winDisplay.style.display = 'block';
+
+            // Hide win display after 5 seconds
+            setTimeout(() => {
+              winDisplay.style.display = 'none';
+            }, 5000);
+          }
+
           if (window.tg) {
             window.tg.showAlert(`🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`);
           }
@@ -894,7 +910,12 @@ async function playDiceGame() {
           // Add to wins history
           addWinToHistory(data.winAmount, data.multiplier);
         } else {
-          // Loss - no action, just update balance silently
+          // Loss - hide win display if showing
+          const winDisplay = document.getElementById('dice-win-display');
+          if (winDisplay) {
+            winDisplay.style.display = 'none';
+          }
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
@@ -1674,6 +1695,28 @@ async function playBowlingGame() {
 
           launchBowlingConfetti();
 
+          // Show win display on screen
+          const winDisplay = document.getElementById('bowling-win-display');
+          const winAmount = document.getElementById('bowling-win-amount');
+          const winMultiplier = document.getElementById('bowling-win-multiplier');
+
+          if (winDisplay && winAmount && winMultiplier) {
+            winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
+            let multiplierText = `x${data.multiplier}`;
+            if (window.selectedBowlingMode === 'duel') {
+              multiplierText += ` • Вы: ${data.details?.userPins || ''} vs Казино: ${data.details?.casinoPins || ''}`;
+            } else if (window.selectedBowlingMode === 'strike') {
+              multiplierText += ' • 🎳 Страйк!';
+            }
+            winMultiplier.textContent = multiplierText;
+            winDisplay.style.display = 'block';
+
+            // Hide win display after 5 seconds
+            setTimeout(() => {
+              winDisplay.style.display = 'none';
+            }, 5000);
+          }
+
           let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
           if (window.selectedBowlingMode === 'duel') {
             resultMsg += `\n\nВаш результат: ${data.details?.userPins || ''} кеглей\nКазино: ${data.details?.casinoPins || ''} кеглей`;
@@ -1688,7 +1731,12 @@ async function playBowlingGame() {
           // Add to wins history
           addBowlingWinToHistory(data.winAmount, data.multiplier);
         } else {
-          // Loss
+          // Loss - hide win display if showing
+          const winDisplay = document.getElementById('bowling-win-display');
+          if (winDisplay) {
+            winDisplay.style.display = 'none';
+          }
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
@@ -1966,6 +2014,30 @@ async function playFootballGame() {
 
           launchFootballConfetti();
 
+          // Show win display on screen
+          const winDisplay = document.getElementById('football-win-display');
+          const winAmount = document.getElementById('football-win-amount');
+          const winMultiplier = document.getElementById('football-win-multiplier');
+
+          if (winDisplay && winAmount && winMultiplier) {
+            winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
+            let multiplierText = `x${data.multiplier}`;
+            if (window.selectedFootballMode === 'duel') {
+              multiplierText += ` • Вы: ${data.details?.userKick || ''} vs Казино: ${data.details?.casinoKick || ''}`;
+            } else if (window.selectedFootballMode === 'goal') {
+              multiplierText += ' • ⚽ ГОЛ!';
+            } else if (window.selectedFootballMode === 'miss') {
+              multiplierText += ' • ❌ Мимо!';
+            }
+            winMultiplier.textContent = multiplierText;
+            winDisplay.style.display = 'block';
+
+            // Hide win display after 5 seconds
+            setTimeout(() => {
+              winDisplay.style.display = 'none';
+            }, 5000);
+          }
+
           let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
           if (window.selectedFootballMode === 'duel') {
             resultMsg += `\n\nВаш удар: ${data.details?.userKick || ''}\nКазино: ${data.details?.casinoKick || ''}`;
@@ -1982,7 +2054,12 @@ async function playFootballGame() {
           // Add to wins history
           addFootballWinToHistory(data.winAmount, data.multiplier);
         } else {
-          // Loss
+          // Loss - hide win display if showing
+          const winDisplay = document.getElementById('football-win-display');
+          if (winDisplay) {
+            winDisplay.style.display = 'none';
+          }
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
@@ -2258,6 +2335,28 @@ async function playBasketballGame() {
 
           launchBasketballConfetti();
 
+          // Show win display on screen
+          const winDisplay = document.getElementById('basketball-win-display');
+          const winAmount = document.getElementById('basketball-win-amount');
+          const winMultiplier = document.getElementById('basketball-win-multiplier');
+
+          if (winDisplay && winAmount && winMultiplier) {
+            winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
+            let multiplierText = `x${data.multiplier}`;
+            if (window.selectedBasketballMode === 'goal') {
+              multiplierText += ' • 🏀 Попал!';
+            } else if (window.selectedBasketballMode === 'miss') {
+              multiplierText += ' • ❌ Промах!';
+            }
+            winMultiplier.textContent = multiplierText;
+            winDisplay.style.display = 'block';
+
+            // Hide win display after 5 seconds
+            setTimeout(() => {
+              winDisplay.style.display = 'none';
+            }, 5000);
+          }
+
           let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
           if (window.selectedBasketballMode === 'goal') {
             resultMsg += `\n\n🏀 Попал!`;
@@ -2272,7 +2371,12 @@ async function playBasketballGame() {
           // Add to wins history
           addBasketballWinToHistory(data.winAmount, data.multiplier);
         } else {
-          // Loss
+          // Loss - hide win display if showing
+          const winDisplay = document.getElementById('basketball-win-display');
+          if (winDisplay) {
+            winDisplay.style.display = 'none';
+          }
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
@@ -2557,6 +2661,32 @@ async function playDartsGame() {
 
           launchDartsConfetti();
 
+          // Show win display on screen
+          const winDisplay = document.getElementById('darts-win-display');
+          const winAmount = document.getElementById('darts-win-amount');
+          const winMultiplier = document.getElementById('darts-win-multiplier');
+
+          if (winDisplay && winAmount && winMultiplier) {
+            winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
+            let multiplierText = `x${data.multiplier}`;
+            if (window.selectedDartsMode === 'red') {
+              multiplierText += ' • 🔴 В красное!';
+            } else if (window.selectedDartsMode === 'center') {
+              multiplierText += ' • 🎯 В центр!';
+            } else if (window.selectedDartsMode === 'white') {
+              multiplierText += ' • ⚪ В белое!';
+            } else if (window.selectedDartsMode === 'miss') {
+              multiplierText += ' • ❌ Мимо!';
+            }
+            winMultiplier.textContent = multiplierText;
+            winDisplay.style.display = 'block';
+
+            // Hide win display after 5 seconds
+            setTimeout(() => {
+              winDisplay.style.display = 'none';
+            }, 5000);
+          }
+
           let resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
           if (window.selectedDartsMode === 'red') {
             resultMsg += `\n\n🔴 В красное!`;
@@ -2575,7 +2705,12 @@ async function playDartsGame() {
           // Add to wins history
           addDartsWinToHistory(data.winAmount, data.multiplier);
         } else {
-          // Loss
+          // Loss - hide win display if showing
+          const winDisplay = document.getElementById('darts-win-display');
+          if (winDisplay) {
+            winDisplay.style.display = 'none';
+          }
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
@@ -2992,6 +3127,20 @@ async function playSlotsGame() {
 
           launchSlotsConfetti();
 
+          // Show win display on screen
+          const winDisplay = document.getElementById('slots-win-display');
+          const winAmount = document.getElementById('slots-win-amount');
+          const winMultiplier = document.getElementById('slots-win-multiplier');
+
+          winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
+          winMultiplier.textContent = `${data.result[0]} ${data.result[1]} ${data.result[2]} • x${data.multiplier}`;
+          winDisplay.style.display = 'block';
+
+          // Hide win display after 5 seconds
+          setTimeout(() => {
+            winDisplay.style.display = 'none';
+          }, 5000);
+
           const resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\n${data.result[0]} ${data.result[1]} ${data.result[2]}\nx${data.multiplier}`;
 
           if (window.tg) {
@@ -3001,7 +3150,10 @@ async function playSlotsGame() {
           // Add to wins history
           addSlotsWinToHistory(data.winAmount, data.multiplier);
         } else {
-          // Loss
+          // Loss - hide win display if showing
+          const winDisplay = document.getElementById('slots-win-display');
+          winDisplay.style.display = 'none';
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
@@ -3256,6 +3408,22 @@ async function playRPSGame() {
 
           launchRPSConfetti();
 
+          // Show win display on screen
+          const winDisplay = document.getElementById('rps-win-display');
+          const winAmount = document.getElementById('rps-win-amount');
+          const winMultiplier = document.getElementById('rps-win-multiplier');
+
+          if (winDisplay && winAmount && winMultiplier) {
+            winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
+            winMultiplier.textContent = `x2.76 • Вы: ${choiceEmojis[data.userChoice]} vs Бот: ${choiceEmojis[data.botChoice]}`;
+            winDisplay.style.display = 'block';
+
+            // Hide win display after 5 seconds
+            setTimeout(() => {
+              winDisplay.style.display = 'none';
+            }, 5000);
+          }
+
           const resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`;
 
           if (window.tg) {
@@ -3265,12 +3433,22 @@ async function playRPSGame() {
           // Add to wins history
           addRPSWinToHistory(data.winAmount, 2.76);
         } else if (data.draw) {
-          // Draw
+          // Draw - hide win display if showing
+          const winDisplay = document.getElementById('rps-win-display');
+          if (winDisplay) {
+            winDisplay.style.display = 'none';
+          }
+
           if (window.tg) {
             window.tg.showAlert(`Ничья! Ставка возвращена.\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`);
           }
         } else {
-          // Loss
+          // Loss - hide win display if showing
+          const winDisplay = document.getElementById('rps-win-display');
+          if (winDisplay) {
+            winDisplay.style.display = 'none';
+          }
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
