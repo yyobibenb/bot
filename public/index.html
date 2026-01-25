@@ -736,9 +736,23 @@
 
         <!-- Slots Display -->
         <div class="dice-display-main">
-          <!-- Lottie animation контейнер -->
-          <div id="slots-lottie-container" style="width: 200px; height: 200px; margin: 0 auto; display: none;"></div>
-          <!-- Fallback emoji -->
+          <!-- Lottie слот-машина (барабан + основание + символы) -->
+          <div id="slots-machine-container" style="position: relative; width: 100%; max-width: 320px; height: 350px; margin: 0 auto; display: none;">
+            <!-- Основание с ручкой (задний слой, анимка 2) -->
+            <div id="slots-base-container" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 150px;"></div>
+
+            <!-- Барабан (средний слой, анимка 1) -->
+            <div id="slots-drum-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 250px;"></div>
+
+            <!-- Символы внутри барабана (верхний слой, анимки 3-20) -->
+            <div id="slots-symbols-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 8px; z-index: 10;">
+              <div id="slot-symbol-1" style="width: 70px; height: 70px;"></div>
+              <div id="slot-symbol-2" style="width: 70px; height: 70px;"></div>
+              <div id="slot-symbol-3" style="width: 70px; height: 70px;"></div>
+            </div>
+          </div>
+
+          <!-- Fallback emoji (если Lottie недоступны) -->
           <div style="display: block;" id="slots-emoji-container">
             <div style="display: flex; justify-content: center; gap: 10px; font-size: 48px;">
               <span id="slot-1">🍋</span>

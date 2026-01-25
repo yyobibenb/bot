@@ -2717,20 +2717,24 @@ function getSlotSymbolAnimation(symbol) {
 
 // Initialize slots animations
 function initSlotsAnimations() {
-  const drumContainer = document.getElementById('slots-lottie-container');
+  const machineContainer = document.getElementById('slots-machine-container');
   const emojiContainer = document.getElementById('slots-emoji-container');
+  const drumContainer = document.getElementById('slots-drum-container');
+  const baseContainer = document.getElementById('slots-base-container');
+  const symbol1Container = document.getElementById('slot-symbol-1');
+  const symbol2Container = document.getElementById('slot-symbol-2');
+  const symbol3Container = document.getElementById('slot-symbol-3');
 
   // Проверяем, доступны ли Lottie анимации
-  if (typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.drum) {
-    // Скрываем emoji, показываем Lottie контейнер
+  if (typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.drum && lottieAnimations.slots.base) {
+    // Скрываем emoji, показываем Lottie слот-машину
     emojiContainer.style.display = 'none';
-    drumContainer.style.display = 'block';
+    machineContainer.style.display = 'block';
 
-    // Загружаем анимацию барабана
-    if (window.slotsAnimations.drum) {
-      window.slotsAnimations.drum.destroy();
-    }
+    // Очищаем предыдущие анимации
+    cleanupSlotsAnimations();
 
+    // Загружаем анимацию барабана (slots_1.json)
     window.slotsAnimations.drum = lottie.loadAnimation({
       container: drumContainer,
       renderer: 'svg',
@@ -2739,12 +2743,53 @@ function initSlotsAnimations() {
       path: lottieAnimations.slots.drum
     });
 
+    // Загружаем анимацию основания с ручкой (slots_2.json)
+    window.slotsAnimations.base = lottie.loadAnimation({
+      container: baseContainer,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: lottieAnimations.slots.base
+    });
+
+    // Загружаем начальные символы (🍋🍇🍋)
+    if (lottieAnimations.slots.results) {
+      // Символ 1 - Лимон
+      window.slotsAnimations.symbol1 = lottie.loadAnimation({
+        container: symbol1Container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: lottieAnimations.slots.results.lemon
+      });
+
+      // Символ 2 - Виноград
+      window.slotsAnimations.symbol2 = lottie.loadAnimation({
+        container: symbol2Container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: lottieAnimations.slots.results.grape
+      });
+
+      // Символ 3 - Лимон
+      window.slotsAnimations.symbol3 = lottie.loadAnimation({
+        container: symbol3Container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: lottieAnimations.slots.results.lemon
+      });
+    }
+
+    console.log('✅ Слот-машина: барабан, основание и символы загружены');
     return true;
   }
 
   // Fallback на emoji
   emojiContainer.style.display = 'block';
-  drumContainer.style.display = 'none';
+  machineContainer.style.display = 'none';
+  console.log('⚠️ Lottie недоступен, используем эмодзи для слотов');
   return false;
 }
 
@@ -2862,43 +2907,39 @@ async function playSlotsGame() {
 
     setTimeout(() => {
       if (data.success) {
-        // Show result on emoji display
+        // Show result on emoji display (fallback)
         slot1.textContent = data.result[0];
         slot2.textContent = data.result[1];
         slot3.textContent = data.result[2];
 
-        // Try to show Lottie animations if available
-        const lottieContainer = document.getElementById('slots-lottie-container');
-        const emojiContainer = document.getElementById('slots-emoji-container');
+        // Update Lottie symbols if available
+        const machineContainer = document.getElementById('slots-machine-container');
+        if (machineContainer && machineContainer.style.display === 'block' && typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.results) {
+          const symbol1Container = document.getElementById('slot-symbol-1');
+          const symbol2Container = document.getElementById('slot-symbol-2');
+          const symbol3Container = document.getElementById('slot-symbol-3');
 
-        if (typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.results) {
-          // Create symbols container overlay for results
-          const symbolsOverlay = document.createElement('div');
-          symbolsOverlay.id = 'slots-result-overlay';
-          symbolsOverlay.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 15px; z-index: 10; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 16px;';
+          // Уничтожаем старые анимации символов
+          if (window.slotsAnimations.symbol1) {
+            window.slotsAnimations.symbol1.destroy();
+            symbol1Container.innerHTML = '';
+          }
+          if (window.slotsAnimations.symbol2) {
+            window.slotsAnimations.symbol2.destroy();
+            symbol2Container.innerHTML = '';
+          }
+          if (window.slotsAnimations.symbol3) {
+            window.slotsAnimations.symbol3.destroy();
+            symbol3Container.innerHTML = '';
+          }
 
-          const symbol1Container = document.createElement('div');
-          symbol1Container.style.cssText = 'width: 80px; height: 80px;';
-
-          const symbol2Container = document.createElement('div');
-          symbol2Container.style.cssText = 'width: 80px; height: 80px;';
-
-          const symbol3Container = document.createElement('div');
-          symbol3Container.style.cssText = 'width: 80px; height: 80px;';
-
-          symbolsOverlay.appendChild(symbol1Container);
-          symbolsOverlay.appendChild(symbol2Container);
-          symbolsOverlay.appendChild(symbol3Container);
-
-          lottieContainer.appendChild(symbolsOverlay);
-
-          // Load animations for each symbol
+          // Загружаем новые анимации с результатами
           const anim1Path = getSlotSymbolAnimation(data.result[0]);
           const anim2Path = getSlotSymbolAnimation(data.result[1]);
           const anim3Path = getSlotSymbolAnimation(data.result[2]);
 
           if (anim1Path) {
-            lottie.loadAnimation({
+            window.slotsAnimations.symbol1 = lottie.loadAnimation({
               container: symbol1Container,
               renderer: 'svg',
               loop: true,
@@ -2906,11 +2947,11 @@ async function playSlotsGame() {
               path: anim1Path
             });
           } else {
-            symbol1Container.innerHTML = `<div style="font-size: 60px; line-height: 80px; text-align: center;">${data.result[0]}</div>`;
+            symbol1Container.innerHTML = `<div style="font-size: 50px; line-height: 70px; text-align: center;">${data.result[0]}</div>`;
           }
 
           if (anim2Path) {
-            lottie.loadAnimation({
+            window.slotsAnimations.symbol2 = lottie.loadAnimation({
               container: symbol2Container,
               renderer: 'svg',
               loop: true,
@@ -2918,11 +2959,11 @@ async function playSlotsGame() {
               path: anim2Path
             });
           } else {
-            symbol2Container.innerHTML = `<div style="font-size: 60px; line-height: 80px; text-align: center;">${data.result[1]}</div>`;
+            symbol2Container.innerHTML = `<div style="font-size: 50px; line-height: 70px; text-align: center;">${data.result[1]}</div>`;
           }
 
           if (anim3Path) {
-            lottie.loadAnimation({
+            window.slotsAnimations.symbol3 = lottie.loadAnimation({
               container: symbol3Container,
               renderer: 'svg',
               loop: true,
@@ -2930,15 +2971,10 @@ async function playSlotsGame() {
               path: anim3Path
             });
           } else {
-            symbol3Container.innerHTML = `<div style="font-size: 60px; line-height: 80px; text-align: center;">${data.result[2]}</div>`;
+            symbol3Container.innerHTML = `<div style="font-size: 50px; line-height: 70px; text-align: center;">${data.result[2]}</div>`;
           }
 
-          // Show overlay for 3 seconds, then remove
-          setTimeout(() => {
-            if (symbolsOverlay.parentNode) {
-              symbolsOverlay.remove();
-            }
-          }, 3000);
+          console.log(`✅ Слоты: символы обновлены ${data.result[0]} ${data.result[1]} ${data.result[2]}`);
         }
 
         // Update balance
