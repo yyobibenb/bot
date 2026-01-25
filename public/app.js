@@ -4892,7 +4892,6 @@ const lottieAnimations = {
       }
     }
   }
-  }
 };
 
 // Открыть fullscreen режим
