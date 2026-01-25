@@ -1028,16 +1028,20 @@ async function playDiceFromCard(mode, multiplier) {
       endpoint = '/api/games/dice/exact-number';
       body.choice = parseInt(choice);
     } else if (mode === '2x2') {
-      endpoint = '/api/games/dice/2x2';
+      endpoint = '/api/games/dice/double';
       body.choice = choice;
     } else if (mode === '3x3') {
-      endpoint = '/api/games/dice/3x3';
+      endpoint = '/api/games/dice/triple';
       body.choice = choice;
     } else if (mode === 'sector') {
       endpoint = '/api/games/dice/sector';
-      body.choice = parseInt(choice);
+      body.sector = parseInt(choice);
     } else if (mode === 'sequence') {
       endpoint = '/api/games/dice/sequence';
+      // Для sequence нужен массив из 3 чисел
+      if (window.diceSequenceChoices && window.diceSequenceChoices.length === 3) {
+        body.choices = window.diceSequenceChoices;
+      }
     } else if (mode === 'duel') {
       endpoint = '/api/games/dice/duel';
     }
@@ -4505,8 +4509,15 @@ const gameModeConfig = {
       layout: 'grid'
     },
     'sequence': {
-      choices: [], // Нет выбора для sequence
-      layout: 'none',
+      choices: [
+        { value: 1, label: '1' },
+        { value: 2, label: '2' },
+        { value: 3, label: '3' },
+        { value: 4, label: '4' },
+        { value: 5, label: '5' },
+        { value: 6, label: '6' }
+      ],
+      layout: 'sequence',
       description: 'Угадай 3 числа подряд'
     },
     'duel': {
@@ -4717,6 +4728,59 @@ function openFullscreenMode(game, mode, title, multiplier) {
       btn.textContent = choice.label;
       choicesContainer.appendChild(btn);
     });
+  } else if (config.layout === 'sequence') {
+    // Специальный интерфейс для выбора 3 чисел подряд
+    window.diceSequenceChoices = [null, null, null];
+
+    const desc = document.createElement('div');
+    desc.style.textAlign = 'center';
+    desc.style.fontSize = '14px';
+    desc.style.color = 'var(--text-secondary)';
+    desc.style.marginBottom = '15px';
+    desc.textContent = 'Выберите 3 числа по порядку:';
+    choicesContainer.appendChild(desc);
+
+    for (let i = 0; i < 3; i++) {
+      const rowLabel = document.createElement('div');
+      rowLabel.style.textAlign = 'center';
+      rowLabel.style.fontSize = '12px';
+      rowLabel.style.color = 'var(--text-secondary)';
+      rowLabel.style.marginTop = '10px';
+      rowLabel.style.marginBottom = '5px';
+      rowLabel.textContent = `${i + 1}-е число:`;
+      choicesContainer.appendChild(rowLabel);
+
+      const row = document.createElement('div');
+      row.style.display = 'grid';
+      row.style.gridTemplateColumns = 'repeat(6, 1fr)';
+      row.style.gap = '8px';
+      row.style.marginBottom = '10px';
+
+      config.choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'fullscreen-choice-btn sequence-number-btn';
+        btn.textContent = choice.label;
+        btn.style.padding = '10px';
+        btn.onclick = () => {
+          // Сохранить выбор для этой позиции
+          window.diceSequenceChoices[i] = choice.value;
+
+          // Убрать active со всех кнопок в этом ряду
+          row.querySelectorAll('.sequence-number-btn').forEach(b => b.classList.remove('active'));
+
+          // Добавить active к выбранной кнопке
+          btn.classList.add('active');
+
+          // Проверить, выбраны ли все три числа
+          if (window.diceSequenceChoices.every(c => c !== null)) {
+            window.fullscreenState.selectedChoice = window.diceSequenceChoices.slice();
+          }
+        };
+        row.appendChild(btn);
+      });
+
+      choicesContainer.appendChild(row);
+    }
   } else if (config.layout === 'none') {
     // Показать описание если есть
     if (config.description) {
@@ -4887,9 +4951,18 @@ async function playFromFullscreen() {
       bet_amount: betAmount
     };
 
-    // Добавить choice если нужно
+    // Добавить параметры в зависимости от режима
     if (selectedChoice !== null && selectedChoice !== undefined) {
-      requestBody.choice = selectedChoice;
+      if (mode === 'sequence') {
+        // Для sequence передаем массив choices
+        requestBody.choices = Array.isArray(selectedChoice) ? selectedChoice : [selectedChoice];
+      } else if (mode === 'sector') {
+        // Для sector передаем sector
+        requestBody.sector = selectedChoice;
+      } else {
+        // Для остальных режимов передаем choice
+        requestBody.choice = selectedChoice;
+      }
     }
 
     console.log('🎲 Запрос к API:', endpoint, requestBody);
@@ -4904,40 +4977,51 @@ async function playFromFullscreen() {
     const data = await response.json();
     console.log('📥 Результат от API:', data);
 
-    if (!data.success) {
-      throw new Error(data.error || 'Ошибка при игре');
+    // Для режимов 2x2, 3x3, sequence бэкенд возвращает { rolls: [...], result: {...} }
+    let actualData = data;
+    if (data.rolls && data.result) {
+      actualData = data.result;
+    }
+
+    if (!actualData.success) {
+      throw new Error(actualData.error || 'Ошибка при игре');
     }
 
     // Получили результат - показываем анимацию с этим числом
-    const diceResult = data.result; // 1-6 для кубика
+    const diceResult = actualData.result; // 1-6 для кубика
     console.log('🎯 Выпало число:', diceResult);
 
     // Проверяем, является ли это дуэлью
-    const isDuel = mode === 'duel' && data.details && (data.details.userKick || data.details.userShot || data.details.userPins);
+    const isDuel = mode === 'duel' && actualData.details && (actualData.details.userKick || actualData.details.userShot || actualData.details.userPins);
 
     // Показать результат в анимации
     if (isDuel) {
       // Для дуэлей показываем 2 анимации
-      const userResult = data.details.userKick || data.details.userShot || data.details.userPins;
-      const casinoResult = data.details.casinoKick || data.details.casinoShot || data.details.casinoPins;
-      await showDuelResults(userResult, casinoResult, data.isWin);
+      const userResult = actualData.details.userKick || actualData.details.userShot || actualData.details.userPins;
+      const casinoResult = actualData.details.casinoKick || actualData.details.casinoShot || actualData.details.casinoPins;
+      await showDuelResults(userResult, casinoResult, actualData.isWin);
     } else {
-      await showDiceResult(diceResult, data.isWin);
+      await showDiceResult(diceResult, actualData.isWin);
     }
 
     // Обновить баланс
-    if (data.newBalance !== undefined) {
-      document.getElementById('balance').textContent = data.newBalance.toFixed(2);
+    if (actualData.newBalance !== undefined) {
+      document.getElementById('balance').textContent = actualData.newBalance.toFixed(2);
     }
 
     // Закрыть overlay
     setTimeout(() => {
       closeFullscreenMode();
 
-      // Показать результат
-      const resultMessage = data.isWin
-        ? `🎉 ВЫИГРЫШ!\n\n🎲 Выпало: ${diceResult}\n💰 Выигрыш: ${data.winAmount.toFixed(2)} USDT\n💵 Баланс: ${data.newBalance.toFixed(2)} USDT`
-        : `😔 ПРОИГРЫШ\n\n🎲 Выпало: ${diceResult}\n💸 Проиграно: ${betAmount.toFixed(2)} USDT\n💵 Баланс: ${data.newBalance.toFixed(2)} USDT`;
+      // Показать результат (для 2x2, 3x3, sequence показываем все броски)
+      let resultDisplay = diceResult;
+      if (data.rolls) {
+        resultDisplay = data.rolls.join(', ');
+      }
+
+      const resultMessage = actualData.isWin
+        ? `🎉 ВЫИГРЫШ!\n\n🎲 Выпало: ${resultDisplay}\n💰 Выигрыш: ${actualData.winAmount.toFixed(2)} USDT\n💵 Баланс: ${actualData.newBalance.toFixed(2)} USDT`
+        : `😔 ПРОИГРЫШ\n\n🎲 Выпало: ${resultDisplay}\n💸 Проиграно: ${betAmount.toFixed(2)} USDT\n💵 Баланс: ${actualData.newBalance.toFixed(2)} USDT`;
 
       if (window.tg) {
         window.tg.showAlert(resultMessage);
