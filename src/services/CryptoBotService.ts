@@ -208,6 +208,92 @@ export class CryptoBotService {
       return null;
     }
   }
+
+  /**
+   * Установить URL вебхука
+   * @param webhookUrl - URL для получения уведомлений о платежах
+   */
+  async setWebhook(webhookUrl: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!this.apiKey) {
+        console.error("❌ CRYPTOBOT_API_KEY не установлен!");
+        return { success: false, error: "CryptoBot API ключ не настроен" };
+      }
+
+      console.log(`🔗 Установка вебхука: ${webhookUrl}`);
+
+      const response = await fetch(`${this.apiUrl}/setWebhookUrl`, {
+        method: "POST",
+        headers: {
+          "Crypto-Pay-API-Token": this.apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: webhookUrl,
+        }),
+      });
+
+      const data = await response.json();
+
+      console.log(`📥 Ответ от CryptoBot API:`, data);
+
+      if (!data.ok) {
+        console.error("❌ CryptoBot API error:", data);
+        return {
+          success: false,
+          error: data.error?.message || data.error?.name || "Не удалось установить вебхук"
+        };
+      }
+
+      console.log(`✅ Вебхук установлен: ${webhookUrl}`);
+
+      return { success: true };
+    } catch (error: any) {
+      console.error("❌ Error setting webhook:", error);
+      return { success: false, error: error.message || "Ошибка при установке вебхука" };
+    }
+  }
+
+  /**
+   * Удалить вебхук
+   */
+  async deleteWebhook(): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!this.apiKey) {
+        console.error("❌ CRYPTOBOT_API_KEY не установлен!");
+        return { success: false, error: "CryptoBot API ключ не настроен" };
+      }
+
+      console.log(`🗑️ Удаление вебхука`);
+
+      const response = await fetch(`${this.apiUrl}/deleteWebhook`, {
+        method: "POST",
+        headers: {
+          "Crypto-Pay-API-Token": this.apiKey,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      console.log(`📥 Ответ от CryptoBot API:`, data);
+
+      if (!data.ok) {
+        console.error("❌ CryptoBot API error:", data);
+        return {
+          success: false,
+          error: data.error?.message || data.error?.name || "Не удалось удалить вебхук"
+        };
+      }
+
+      console.log(`✅ Вебхук удалён`);
+
+      return { success: true };
+    } catch (error: any) {
+      console.error("❌ Error deleting webhook:", error);
+      return { success: false, error: error.message || "Ошибка при удалении вебхука" };
+    }
+  }
 }
 
 export default new CryptoBotService();

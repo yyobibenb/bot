@@ -827,6 +827,62 @@ app.post("/api/crypto/webhook", async (req, res) => {
   }
 });
 
+// Установить вебхук для CryptoBot (только для админов)
+app.post("/api/crypto/set-webhook", async (req, res) => {
+  try {
+    const { user_id, webhook_url } = req.body;
+
+    // Проверка что пользователь админ
+    const user = await UserModel.getUserById(user_id);
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ success: false, error: "Доступ запрещён" });
+    }
+
+    const webhookUrl = webhook_url || `${process.env.BASE_URL || "https://bot-rl59.onrender.com"}/api/crypto/webhook`;
+    const result = await cryptoBotService.setWebhook(webhookUrl);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: "Вебхук успешно установлен",
+        webhook_url: webhookUrl
+      });
+    } else {
+      res.status(400).json({ success: false, error: result.error || "Не удалось установить вебхук" });
+    }
+  } catch (error: any) {
+    console.error("Error setting webhook:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Удалить вебхук CryptoBot (только для админов)
+app.post("/api/crypto/delete-webhook", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    // Проверка что пользователь админ
+    const user = await UserModel.getUserById(user_id);
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ success: false, error: "Доступ запрещён" });
+    }
+
+    const result = await cryptoBotService.deleteWebhook();
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: "Вебхук успешно удалён"
+      });
+    } else {
+      res.status(400).json({ success: false, error: result.error || "Не удалось удалить вебхук" });
+    }
+  } catch (error: any) {
+    console.error("Error deleting webhook:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ============================================
 // OLD CRYPTO API ENDPOINTS (TronWeb - deprecated)
 // ============================================
