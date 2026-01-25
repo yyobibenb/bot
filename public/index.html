@@ -841,8 +841,11 @@
             <!-- Основание с ручкой (нижний элемент, анимка 2) -->
             <div id="slots-base-container" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 380px; z-index: 1;"></div>
 
-            <!-- Три барабана (поверх основания) -->
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 12px; z-index: 10; margin-top: -10px;">
+            <!-- Центральный барабан с числами (анимка 1, по центру основания) -->
+            <div id="slots-drum-container" style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; z-index: 2;"></div>
+
+            <!-- Три барабана (поверх основания, выше центрального барабана) -->
+            <div style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 12px; z-index: 10;">
               <!-- Барабан 1 (левый) -->
               <div id="slot-reel-1" style="width: 85px; height: 85px; position: relative;">
                 <div id="slot-spin-1" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
@@ -901,11 +904,90 @@
       <canvas id="slots-confetti-canvas" class="confetti-canvas"></canvas>
     </div>
 
+    <!-- RPS Mode Selection Screen -->
+    <div id="rps-mode-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="rps-mode-balance-amount">0.00</span> USDT
+          </div>
+          <div id="rps-mode-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🪨📄✂️ КНБ - Выбор режима</h2>
+
+      <!-- Mode Cards -->
+      <div class="dice-modes-scroll">
+        <!-- Solo Mode -->
+        <div class="dice-mode-card-simple" onclick="openRPSSoloGame()">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎮 Обычная игра</h3>
+            <span class="dice-mode-coef">x2.76</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">🪨 📄 ✂️</div>
+        </div>
+
+        <!-- Duel Mode -->
+        <div class="dice-mode-card-simple" onclick="openRPSDuelScreen()">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚔️ Дуэль (PVP)</h3>
+            <span class="dice-mode-coef" style="font-size: 14px; color: var(--text-secondary);">vs Игрок</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">⚔️</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RPS Duel Screen - PVP Duels List -->
+    <div id="rps-duel-screen" class="screen">
+      <!-- Header -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToRPSModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="rps-duel-balance-amount">0.00</span> USDT
+          </div>
+          <div id="rps-duel-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">⚔️ Дуэль КНБ</h2>
+
+      <!-- Create Duel Section -->
+      <div class="duel-create-section" style="padding: 20px; background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 18px; margin-bottom: 20px; backdrop-filter: var(--blur); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+        <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">💎 Создать дуэль</h3>
+        <input
+          type="number"
+          id="rps-duel-bet-input"
+          class="input"
+          placeholder="Сумма ставки (USDT)"
+          min="1"
+          step="0.01"
+          style="margin-bottom: 12px;"
+        />
+        <button class="btn primary" onclick="createRPSDuel()" style="width: 100%; margin: 0;">
+          Создать дуэль
+        </button>
+      </div>
+
+      <!-- Active Duels List -->
+      <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">🎮 Активные дуэли</h3>
+      <div id="rps-duels-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Duels will be loaded here -->
+        <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+          Загрузка дуэлей...
+        </div>
+      </div>
+    </div>
+
     <!-- RPS Game Screen -->
     <div id="rps-game-screen" class="screen">
       <!-- Header with Balance and Avatar -->
       <div class="dice-header">
-        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <button class="back-btn-small" onclick="backToRPSModes()">← Назад</button>
         <div class="dice-header-right">
           <div class="dice-balance">
             <span id="rps-balance-amount">0.00</span> USDT

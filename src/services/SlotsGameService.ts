@@ -108,16 +108,16 @@ export class SlotsGameService {
 
         switch (selectedType) {
           case "🍋":
-            winType = "Лимоны";
+            winType = "Лимоны x3";
             break;
           case "🍇":
-            winType = "Виноград";
+            winType = "Виноград x3";
             break;
           case "BAR":
-            winType = "BAR";
+            winType = "BAR x3";
             break;
           case "7️⃣":
-            winType = "777";
+            winType = "777 x3";
             break;
         }
 
@@ -126,7 +126,7 @@ export class SlotsGameService {
       return { win: false, multiplier: 0, winType: "" };
     }
 
-    // Старая логика - любые 3 одинаковых символа
+    // Проверка на 3 одинаковых символа (полный выигрыш)
     if (result[0] === result[1] && result[1] === result[2]) {
       const symbol = result[0];
       const multiplier = this.MULTIPLIERS[symbol as keyof typeof this.MULTIPLIERS] || 0;
@@ -134,20 +134,53 @@ export class SlotsGameService {
 
       switch (symbol) {
         case "🍋":
-          winType = "Лимоны";
+          winType = "🍋 Лимоны x3";
           break;
         case "🍇":
-          winType = "Виноград";
+          winType = "🍇 Виноград x3";
           break;
         case "BAR":
-          winType = "BAR";
+          winType = "💎 BAR x3";
           break;
         case "7️⃣":
-          winType = "777";
+          winType = "7️⃣ Семёрка x3";
           break;
       }
 
       return { win: true, multiplier, winType };
+    }
+
+    // Проверка на 2 одинаковых символа (частичный выигрыш)
+    const counts: { [key: string]: number } = {};
+    result.forEach(symbol => {
+      counts[symbol] = (counts[symbol] || 0) + 1;
+    });
+
+    // Найти символ, который встречается 2 раза
+    for (const [symbol, count] of Object.entries(counts)) {
+      if (count === 2) {
+        // Частичный выигрыш - 20% от полного множителя, но минимум x1.5
+        const baseMultiplier = this.MULTIPLIERS[symbol as keyof typeof this.MULTIPLIERS] || 0;
+        const multiplier = Math.max(1.5, baseMultiplier * 0.2);
+        let winType = "";
+
+        switch (symbol) {
+          case "🍋":
+            winType = "🍋 Два Лимона";
+            break;
+          case "🍇":
+            winType = "🍇 Два Винограда";
+            break;
+          case "BAR":
+            winType = "💎 Два BAR";
+            break;
+          case "7️⃣":
+            winType = "7️⃣ Две Семёрки";
+            break;
+        }
+
+        return { win: true, multiplier, winType };
+      }
     }
 
     return { win: false, multiplier: 0, winType: "" };

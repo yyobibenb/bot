@@ -14,6 +14,7 @@ import cryptoBotService from "../services/CryptoBotService";
 import { DuelService } from "../services/DuelService";
 import { SlotsGameService } from "../services/SlotsGameService";
 import { RPSGameService } from "../services/RPSGameService";
+import { RPSDuelService } from "../services/RPSDuelService";
 import { BroadcastModel } from "../models/Broadcast";
 import { BroadcastService } from "../services/BroadcastService";
 import pool from "../database/pool";
@@ -634,6 +635,69 @@ app.post("/api/games/rps/play", async (req, res) => {
   } catch (error: any) {
     console.error("Error playing RPS:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== КНБ ДУЭЛИ API ==========
+
+app.post("/api/games/rps/duel/create", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await RPSDuelService.createDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating RPS duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+app.get("/api/games/rps/duel/list/:user_id", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.user_id);
+    if (!userId) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const duels = await RPSDuelService.getAvailableDuels(userId);
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting RPS duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duels" });
+  }
+});
+
+app.post("/api/games/rps/duel/join", async (req, res) => {
+  try {
+    const { user_id, duel_id, choice } = req.body;
+    if (!user_id || !duel_id || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (!["rock", "paper", "scissors"].includes(choice)) {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await RPSDuelService.joinDuel(user_id, duel_id, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining RPS duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+app.post("/api/games/rps/duel/cancel", async (req, res) => {
+  try {
+    const { user_id, duel_id } = req.body;
+    if (!user_id || !duel_id) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await RPSDuelService.cancelDuel(user_id, duel_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling RPS duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
   }
 });
 

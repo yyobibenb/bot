@@ -2835,6 +2835,7 @@ function launchDartsConfetti() {
 // Slots Lottie animations
 window.slotsAnimations = {
   base: null,
+  drum: null,
   spin1: null,
   spin2: null,
   spin3: null,
@@ -2849,6 +2850,7 @@ function initSlotsAnimations() {
   const machineContainer = document.getElementById('slots-machine-container');
   const emojiContainer = document.getElementById('slots-emoji-container');
   const baseContainer = document.getElementById('slots-base-container');
+  const drumContainer = document.getElementById('slots-drum-container');
 
   const spin1Container = document.getElementById('slot-spin-1');
   const spin2Container = document.getElementById('slot-spin-2');
@@ -2875,6 +2877,17 @@ function initSlotsAnimations() {
       autoplay: true,
       path: lottieAnimations.slots.base
     });
+
+    // Загружаем центральный барабан с числами (slots_1.json)
+    if (lottieAnimations.slots.drum && drumContainer) {
+      window.slotsAnimations.drum = lottie.loadAnimation({
+        container: drumContainer,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: lottieAnimations.slots.drum
+      });
+    }
 
     // Загружаем начальные символы - показываем лимоны по умолчанию
     if (lottieAnimations.slots.reel1 && lottieAnimations.slots.reel2 && lottieAnimations.slots.reel3) {
@@ -2909,7 +2922,7 @@ function initSlotsAnimations() {
       });
     }
 
-    console.log('✅ Слот-машина: основание и символы загружены');
+    console.log('✅ Слот-машина: основание, центральный барабан и символы загружены');
     return true;
   }
 
@@ -2925,6 +2938,10 @@ function cleanupSlotsAnimations() {
   if (window.slotsAnimations.base) {
     window.slotsAnimations.base.destroy();
     window.slotsAnimations.base = null;
+  }
+  if (window.slotsAnimations.drum) {
+    window.slotsAnimations.drum.destroy();
+    window.slotsAnimations.drum = null;
   }
   if (window.slotsAnimations.spin1) {
     window.slotsAnimations.spin1.destroy();
@@ -3464,8 +3481,33 @@ function launchSlotsConfetti() {
 
 // ========== RPS GAME ==========
 
-// Open RPS Game
+// Open RPS Mode Selection
 function openRPSGame() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Update rps mode screen balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('rps-mode-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const rpsModeAvatar = document.getElementById('rps-mode-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      rpsModeAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      rpsModeAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('rps-mode-screen').classList.add('active');
+}
+
+// Open RPS Solo Game
+function openRPSSoloGame() {
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('medium');
   }
@@ -3498,6 +3540,228 @@ function openRPSGame() {
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('rps-game-screen').classList.add('active');
+}
+
+// Back to RPS Modes
+function backToRPSModes() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('light');
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('rps-mode-screen').classList.add('active');
+}
+
+// Open RPS Duel Screen
+function openRPSDuelScreen() {
+  if (window.tg && window.tg.HapticFeedback) {
+    window.tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Update balance and avatar
+  if (window.currentUser) {
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('rps-duel-balance-amount').textContent = balance;
+
+    const mainAvatar = document.getElementById('avatar');
+    const rpsDuelAvatar = document.getElementById('rps-duel-avatar');
+
+    if (mainAvatar.querySelector('img')) {
+      rpsDuelAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      rpsDuelAvatar.textContent = mainAvatar.textContent;
+    }
+  }
+
+  // Load duels list
+  loadRPSDuels();
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('rps-duel-screen').classList.add('active');
+}
+
+// Load RPS duels
+async function loadRPSDuels() {
+  if (!window.currentUser) return;
+
+  try {
+    const response = await fetch(`/api/games/rps/duel/list/${window.currentUser.id}`);
+    const data = await response.json();
+
+    const duelsList = document.getElementById('rps-duels-list');
+
+    if (data.success && data.duels && data.duels.length > 0) {
+      duelsList.innerHTML = data.duels.map(duel => `
+        <div class="duel-card" style="padding: 16px; background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 16px; backdrop-filter: var(--blur);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${duel.creator_name}</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Ставка: ${parseFloat(duel.bet_amount).toFixed(2)} USDT</div>
+            </div>
+            <button class="btn primary" onclick="joinRPSDuelWithChoice(${duel.id}, ${duel.bet_amount})" style="margin: 0; padding: 10px 16px; font-size: 14px;">
+              Принять
+            </button>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Создано: ${new Date(duel.created_at).toLocaleString('ru-RU')}
+          </div>
+        </div>
+      `).join('');
+    } else {
+      duelsList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">Нет активных дуэлей</div>';
+    }
+  } catch (error) {
+    console.error('Error loading RPS duels:', error);
+    document.getElementById('rps-duels-list').innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">Ошибка загрузки дуэлей</div>';
+  }
+}
+
+// Create RPS Duel
+async function createRPSDuel() {
+  if (!window.currentUser) {
+    if (window.tg) {
+      window.tg.showAlert('Пожалуйста, подождите, загружаем данные...');
+    }
+    return;
+  }
+
+  const betAmount = parseFloat(document.getElementById('rps-duel-bet-input').value);
+  if (isNaN(betAmount) || betAmount <= 0) {
+    if (window.tg) {
+      window.tg.showAlert('Введите корректную ставку!');
+    }
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/games/rps/duel/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        bet_amount: betAmount
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      if (window.tg) {
+        window.tg.showAlert('Дуэль создана! Ожидайте противника...');
+      }
+
+      // Reload balance
+      await loadUserData();
+
+      // Reload duels list
+      await loadRPSDuels();
+
+      // Clear input
+      document.getElementById('rps-duel-bet-input').value = '';
+    } else {
+      if (window.tg) {
+        window.tg.showAlert('❌ ' + (data.error || 'Ошибка создания дуэли'));
+      }
+    }
+  } catch (error) {
+    console.error('Error creating RPS duel:', error);
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+  }
+}
+
+// Join RPS Duel with Choice Selection
+async function joinRPSDuelWithChoice(duelId, betAmount) {
+  if (!window.currentUser) return;
+
+  // Show choice selection popup (we'll use Telegram's popup or custom)
+  if (window.tg) {
+    // Create choice buttons
+    const choices = [
+      { text: '🪨 Камень', value: 'rock' },
+      { text: '📄 Бумага', value: 'paper' },
+      { text: '✂️ Ножницы', value: 'scissors' }
+    ];
+
+    // For simplicity, we'll use a simple prompt, but you can create a custom modal
+    if (window.tg.showPopup) {
+      window.tg.showPopup({
+        title: 'Выберите ваш ход',
+        message: `Ставка: ${betAmount.toFixed(2)} USDT\n\nВыберите камень, бумагу или ножницы:`,
+        buttons: [
+          { id: 'rock', type: 'default', text: '🪨 Камень' },
+          { id: 'paper', type: 'default', text: '📄 Бумага' },
+          { id: 'scissors', type: 'default', text: '✂️ Ножницы' },
+          { type: 'cancel' }
+        ]
+      }, async (buttonId) => {
+        if (buttonId && buttonId !== 'cancel') {
+          await joinRPSDuel(duelId, buttonId);
+        }
+      });
+    } else {
+      // Fallback for web
+      const choice = prompt('Выберите ваш ход:\n1 - Камень\n2 - Бумага\n3 - Ножницы');
+      const choiceMap = { '1': 'rock', '2': 'paper', '3': 'scissors' };
+      if (choice && choiceMap[choice]) {
+        await joinRPSDuel(duelId, choiceMap[choice]);
+      }
+    }
+  }
+}
+
+// Join RPS Duel
+async function joinRPSDuel(duelId, choice) {
+  if (!window.currentUser) return;
+
+  try {
+    const response = await fetch('/api/games/rps/duel/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: window.currentUser.id,
+        duel_id: duelId,
+        choice: choice
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Update balance
+      await loadUserData();
+
+      // Show result
+      const choiceEmojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+
+      if (data.isDraw) {
+        if (window.tg) {
+          window.tg.showAlert(`Ничья!\n\nВы: ${choiceEmojis[data.opponentChoice]}\nОппонент: ${choiceEmojis[data.creatorChoice]}\n\nСтавки возвращены.`);
+        }
+      } else if (data.winnerId === window.currentUser.id) {
+        if (window.tg) {
+          window.tg.showAlert(`🎉 Победа!\n\nВы: ${choiceEmojis[data.opponentChoice]}\nОппонент: ${choiceEmojis[data.creatorChoice]}\n\nВыигрыш: ${data.winAmount.toFixed(2)} USDT`);
+        }
+      } else {
+        if (window.tg) {
+          window.tg.showAlert(`Поражение\n\nВы: ${choiceEmojis[data.opponentChoice]}\nОппонент: ${choiceEmojis[data.creatorChoice]}`);
+        }
+      }
+
+      // Reload duels list
+      await loadRPSDuels();
+    } else {
+      if (window.tg) {
+        window.tg.showAlert('❌ ' + (data.error || 'Ошибка присоединения к дуэли'));
+      }
+    }
+  } catch (error) {
+    console.error('Error joining RPS duel:', error);
+    if (window.tg) {
+      window.tg.showAlert('❌ Ошибка: ' + error.message);
+    }
+  }
 }
 
 // Select RPS choice
@@ -3551,22 +3815,30 @@ async function playRPSGame() {
 
   const playBtn = document.getElementById('play-rps-btn');
   const botChoiceEl = document.getElementById('rps-bot-choice');
+  const userChoiceEl = document.getElementById('rps-user-choice');
 
   // Disable button
   playBtn.disabled = true;
   playBtn.textContent = 'Играем...';
 
-  // Animate bot choice
+  // Add shake animation to both choices
+  userChoiceEl.classList.add('rps-choice-shake');
+  botChoiceEl.classList.add('rps-choice-shake');
+
+  // Animate bot choice with spinning effect
   const choiceEmojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+  botChoiceEl.classList.add('rps-spinning');
+
   let animCount = 0;
   const animInterval = setInterval(() => {
     const randomChoice = ['rock', 'paper', 'scissors'][Math.floor(Math.random() * 3)];
     botChoiceEl.textContent = choiceEmojis[randomChoice];
     animCount++;
-    if (animCount > 10) {
+    if (animCount > 20) {
       clearInterval(animInterval);
+      botChoiceEl.classList.remove('rps-spinning');
     }
-  }, 100);
+  }, 80);
 
   try {
     const response = await fetch('/api/games/rps/play', {
@@ -3583,8 +3855,13 @@ async function playRPSGame() {
 
     setTimeout(() => {
       if (data.success) {
-        // Show bot choice
+        // Remove shake animation
+        userChoiceEl.classList.remove('rps-choice-shake');
+        botChoiceEl.classList.remove('rps-choice-shake');
+
+        // Show bot choice with reveal animation
         botChoiceEl.textContent = choiceEmojis[data.botChoice];
+        botChoiceEl.classList.add('rps-choice-reveal');
 
         // Update balance
         if (data.newBalance !== undefined) {
@@ -3592,9 +3869,12 @@ async function playRPSGame() {
           document.getElementById('rps-balance-amount').textContent = data.newBalance.toFixed(2);
         }
 
-        // Show result
+        // Show result with animations
         if (data.win) {
-          // Win
+          // Win - add bounce animation
+          userChoiceEl.classList.add('rps-choice-win');
+          botChoiceEl.classList.add('rps-choice-loss');
+
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.notificationOccurred('success');
           }
@@ -3626,7 +3906,11 @@ async function playRPSGame() {
           // Add to wins history
           addRPSWinToHistory(data.winAmount, 2.76);
         } else if (data.draw) {
-          // Draw - hide win display if showing
+          // Draw - no winner, pulse both
+          userChoiceEl.classList.add('rpsPulse');
+          botChoiceEl.classList.add('rpsPulse');
+
+          // Hide win display if showing
           const winDisplay = document.getElementById('rps-win-display');
           if (winDisplay) {
             winDisplay.style.display = 'none';
@@ -3636,7 +3920,11 @@ async function playRPSGame() {
             window.tg.showAlert(`Ничья! Ставка возвращена.\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`);
           }
         } else {
-          // Loss - hide win display if showing
+          // Loss - user loses, bot wins
+          userChoiceEl.classList.add('rps-choice-loss');
+          botChoiceEl.classList.add('rps-choice-win');
+
+          // Hide win display if showing
           const winDisplay = document.getElementById('rps-win-display');
           if (winDisplay) {
             winDisplay.style.display = 'none';
@@ -3646,6 +3934,12 @@ async function playRPSGame() {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
         }
+
+        // Clear all animations after 3 seconds
+        setTimeout(() => {
+          userChoiceEl.classList.remove('rps-choice-win', 'rps-choice-loss', 'rps-choice-reveal', 'rpsPulse');
+          botChoiceEl.classList.remove('rps-choice-win', 'rps-choice-loss', 'rps-choice-reveal', 'rpsPulse');
+        }, 3000);
       } else {
         if (window.tg) {
           window.tg.showAlert('❌ ' + (data.error || 'Ошибка'));
@@ -4858,6 +5152,7 @@ const lottieAnimations = {
   },
   slots: {
     base: '/animations/slots_2.json',           // Основание с ручкой (анимка 2)
+    drum: '/animations/slots_1.json',           // Центральный барабан с числами (анимка 1)
 
     // Барабан 1 (левый)
     reel1: {
