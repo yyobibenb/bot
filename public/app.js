@@ -3127,20 +3127,6 @@ async function playSlotsGame() {
 
           launchSlotsConfetti();
 
-          // Show win display on screen
-          const winDisplay = document.getElementById('slots-win-display');
-          const winAmount = document.getElementById('slots-win-amount');
-          const winMultiplier = document.getElementById('slots-win-multiplier');
-
-          winAmount.textContent = `+${data.winAmount.toFixed(2)} USDT`;
-          winMultiplier.textContent = `${data.result[0]} ${data.result[1]} ${data.result[2]} • x${data.multiplier}`;
-          winDisplay.style.display = 'block';
-
-          // Hide win display after 5 seconds
-          setTimeout(() => {
-            winDisplay.style.display = 'none';
-          }, 5000);
-
           const resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\n${data.result[0]} ${data.result[1]} ${data.result[2]}\nx${data.multiplier}`;
 
           if (window.tg) {
@@ -3150,10 +3136,6 @@ async function playSlotsGame() {
           // Add to wins history
           addSlotsWinToHistory(data.winAmount, data.multiplier);
         } else {
-          // Loss - hide win display if showing
-          const winDisplay = document.getElementById('slots-win-display');
-          winDisplay.style.display = 'none';
-
           if (window.tg && window.tg.HapticFeedback) {
             window.tg.HapticFeedback.impactOccurred('medium');
           }
