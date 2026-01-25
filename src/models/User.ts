@@ -13,6 +13,7 @@ export interface User {
   referrer_id?: number;
   deposit_address?: string;
   deposit_private_key?: string;
+  role?: string; // from admins table: 'admin', 'moderator', or undefined for regular users
   created_at: Date;
   last_activity: Date;
 }
@@ -31,14 +32,23 @@ export interface CreateUserData {
 export class UserModel {
   static async findByTelegramId(telegramId: number): Promise<User | null> {
     const result = await pool.query(
-      "SELECT * FROM users WHERE telegram_id = $1",
+      `SELECT u.*, a.role
+       FROM users u
+       LEFT JOIN admins a ON u.id = a.user_id
+       WHERE u.telegram_id = $1`,
       [telegramId]
     );
     return result.rows[0] || null;
   }
 
   static async findById(id: number): Promise<User | null> {
-    const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+    const result = await pool.query(
+      `SELECT u.*, a.role
+       FROM users u
+       LEFT JOIN admins a ON u.id = a.user_id
+       WHERE u.id = $1`,
+      [id]
+    );
     return result.rows[0] || null;
   }
 
@@ -156,7 +166,13 @@ export class UserModel {
   }
 
   static async getUserById(userId: number): Promise<User | null> {
-    const result = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+    const result = await pool.query(
+      `SELECT u.*, a.role
+       FROM users u
+       LEFT JOIN admins a ON u.id = a.user_id
+       WHERE u.id = $1`,
+      [userId]
+    );
     return result.rows[0] || null;
   }
 
