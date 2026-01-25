@@ -2834,53 +2834,38 @@ function launchDartsConfetti() {
 
 // Slots Lottie animations
 window.slotsAnimations = {
-  drum: null,
   base: null,
+  spin1: null,
+  spin2: null,
+  spin3: null,
   symbol1: null,
   symbol2: null,
   symbol3: null
 };
 
 // Map symbols to animation files
-function getSlotSymbolAnimation(symbol) {
-  const symbolMap = {
-    '🍋': 'lemon',
-    '🍇': 'grape',
-    'BAR': 'bar',
-    '7️⃣': 'seven'
-  };
-
-  const symbolKey = symbolMap[symbol] || 'lemon';
-  return lottieAnimations.slots?.results?.[symbolKey];
-}
-
 // Initialize slots animations
 function initSlotsAnimations() {
   const machineContainer = document.getElementById('slots-machine-container');
   const emojiContainer = document.getElementById('slots-emoji-container');
-  const drumContainer = document.getElementById('slots-drum-container');
   const baseContainer = document.getElementById('slots-base-container');
+
+  const spin1Container = document.getElementById('slot-spin-1');
+  const spin2Container = document.getElementById('slot-spin-2');
+  const spin3Container = document.getElementById('slot-spin-3');
+
   const symbol1Container = document.getElementById('slot-symbol-1');
   const symbol2Container = document.getElementById('slot-symbol-2');
   const symbol3Container = document.getElementById('slot-symbol-3');
 
   // Проверяем, доступны ли Lottie анимации
-  if (typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.drum && lottieAnimations.slots.base) {
+  if (typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.base) {
     // Скрываем emoji, показываем Lottie слот-машину
     emojiContainer.style.display = 'none';
     machineContainer.style.display = 'block';
 
     // Очищаем предыдущие анимации
     cleanupSlotsAnimations();
-
-    // Загружаем анимацию барабана (slots_1.json)
-    window.slotsAnimations.drum = lottie.loadAnimation({
-      container: drumContainer,
-      renderer: 'svg',
-      loop: true,
-      autoplay: true,
-      path: lottieAnimations.slots.drum
-    });
 
     // Загружаем анимацию основания с ручкой (slots_2.json)
     window.slotsAnimations.base = lottie.loadAnimation({
@@ -2891,37 +2876,40 @@ function initSlotsAnimations() {
       path: lottieAnimations.slots.base
     });
 
-    // Загружаем начальные символы (🍋🍇🍋)
-    if (lottieAnimations.slots.results) {
-      // Символ 1 - Лимон
+    // Загружаем начальные символы - показываем лимоны по умолчанию
+    if (lottieAnimations.slots.reel1 && lottieAnimations.slots.reel2 && lottieAnimations.slots.reel3) {
+      // Барабан 1 - Лимон
+      symbol1Container.style.display = 'block';
       window.slotsAnimations.symbol1 = lottie.loadAnimation({
         container: symbol1Container,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.results.lemon
+        path: lottieAnimations.slots.reel1.symbols['🍋']
       });
 
-      // Символ 2 - Виноград
+      // Барабан 2 - Виноград
+      symbol2Container.style.display = 'block';
       window.slotsAnimations.symbol2 = lottie.loadAnimation({
         container: symbol2Container,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.results.grape
+        path: lottieAnimations.slots.reel2.symbols['🍇']
       });
 
-      // Символ 3 - Лимон
+      // Барабан 3 - Лимон
+      symbol3Container.style.display = 'block';
       window.slotsAnimations.symbol3 = lottie.loadAnimation({
         container: symbol3Container,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.results.lemon
+        path: lottieAnimations.slots.reel3.symbols['🍋']
       });
     }
 
-    console.log('✅ Слот-машина: барабан, основание и символы загружены');
+    console.log('✅ Слот-машина: основание и символы загружены');
     return true;
   }
 
@@ -2934,13 +2922,21 @@ function initSlotsAnimations() {
 
 // Cleanup slots animations
 function cleanupSlotsAnimations() {
-  if (window.slotsAnimations.drum) {
-    window.slotsAnimations.drum.destroy();
-    window.slotsAnimations.drum = null;
-  }
   if (window.slotsAnimations.base) {
     window.slotsAnimations.base.destroy();
     window.slotsAnimations.base = null;
+  }
+  if (window.slotsAnimations.spin1) {
+    window.slotsAnimations.spin1.destroy();
+    window.slotsAnimations.spin1 = null;
+  }
+  if (window.slotsAnimations.spin2) {
+    window.slotsAnimations.spin2.destroy();
+    window.slotsAnimations.spin2 = null;
+  }
+  if (window.slotsAnimations.spin3) {
+    window.slotsAnimations.spin3.destroy();
+    window.slotsAnimations.spin3 = null;
   }
   if (window.slotsAnimations.symbol1) {
     window.slotsAnimations.symbol1.destroy();
@@ -3019,7 +3015,7 @@ async function playSlotsGame() {
   playBtn.disabled = true;
   playBtn.textContent = 'Крутим...';
 
-  // Spinning animation
+  // Emoji fallback spinning animation
   const symbols = ['🍋', '🍇', 'BAR', '7️⃣'];
   let spinCount = 0;
   const spinInterval = setInterval(() => {
@@ -3031,6 +3027,70 @@ async function playSlotsGame() {
       clearInterval(spinInterval);
     }
   }, 100);
+
+  // Show spinning animations for Lottie reels
+  const machineContainer = document.getElementById('slots-machine-container');
+  if (machineContainer && machineContainer.style.display === 'block' && typeof lottie !== 'undefined' && lottieAnimations.slots) {
+    const spin1Container = document.getElementById('slot-spin-1');
+    const spin2Container = document.getElementById('slot-spin-2');
+    const spin3Container = document.getElementById('slot-spin-3');
+
+    const symbol1Container = document.getElementById('slot-symbol-1');
+    const symbol2Container = document.getElementById('slot-symbol-2');
+    const symbol3Container = document.getElementById('slot-symbol-3');
+
+    // Скрываем символы
+    symbol1Container.style.display = 'none';
+    symbol2Container.style.display = 'none';
+    symbol3Container.style.display = 'none';
+
+    // Уничтожаем старые анимации символов
+    if (window.slotsAnimations.symbol1) {
+      window.slotsAnimations.symbol1.destroy();
+      symbol1Container.innerHTML = '';
+    }
+    if (window.slotsAnimations.symbol2) {
+      window.slotsAnimations.symbol2.destroy();
+      symbol2Container.innerHTML = '';
+    }
+    if (window.slotsAnimations.symbol3) {
+      window.slotsAnimations.symbol3.destroy();
+      symbol3Container.innerHTML = '';
+    }
+
+    // Загружаем анимации вращения
+    if (lottieAnimations.slots.reel1 && lottieAnimations.slots.reel1.spin) {
+      window.slotsAnimations.spin1 = lottie.loadAnimation({
+        container: spin1Container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: lottieAnimations.slots.reel1.spin
+      });
+    }
+
+    if (lottieAnimations.slots.reel2 && lottieAnimations.slots.reel2.spin) {
+      window.slotsAnimations.spin2 = lottie.loadAnimation({
+        container: spin2Container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: lottieAnimations.slots.reel2.spin
+      });
+    }
+
+    if (lottieAnimations.slots.reel3 && lottieAnimations.slots.reel3.spin) {
+      window.slotsAnimations.spin3 = lottie.loadAnimation({
+        container: spin3Container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: lottieAnimations.slots.reel3.spin
+      });
+    }
+
+    console.log('🎰 Анимации вращения запущены');
+  }
 
   try {
     const response = await fetch('/api/games/slots/play', {
@@ -3052,68 +3112,76 @@ async function playSlotsGame() {
         slot3.textContent = data.result[2];
 
         // Update Lottie symbols if available
-        const machineContainer = document.getElementById('slots-machine-container');
-        if (machineContainer && machineContainer.style.display === 'block' && typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.results) {
+        if (machineContainer && machineContainer.style.display === 'block' && typeof lottie !== 'undefined' && lottieAnimations.slots) {
+          const spin1Container = document.getElementById('slot-spin-1');
+          const spin2Container = document.getElementById('slot-spin-2');
+          const spin3Container = document.getElementById('slot-spin-3');
+
           const symbol1Container = document.getElementById('slot-symbol-1');
           const symbol2Container = document.getElementById('slot-symbol-2');
           const symbol3Container = document.getElementById('slot-symbol-3');
 
-          // Уничтожаем старые анимации символов
-          if (window.slotsAnimations.symbol1) {
-            window.slotsAnimations.symbol1.destroy();
-            symbol1Container.innerHTML = '';
+          // Останавливаем и уничтожаем анимации вращения
+          if (window.slotsAnimations.spin1) {
+            window.slotsAnimations.spin1.destroy();
+            spin1Container.innerHTML = '';
           }
-          if (window.slotsAnimations.symbol2) {
-            window.slotsAnimations.symbol2.destroy();
-            symbol2Container.innerHTML = '';
+          if (window.slotsAnimations.spin2) {
+            window.slotsAnimations.spin2.destroy();
+            spin2Container.innerHTML = '';
           }
-          if (window.slotsAnimations.symbol3) {
-            window.slotsAnimations.symbol3.destroy();
-            symbol3Container.innerHTML = '';
+          if (window.slotsAnimations.spin3) {
+            window.slotsAnimations.spin3.destroy();
+            spin3Container.innerHTML = '';
           }
 
-          // Загружаем новые анимации с результатами
-          const anim1Path = getSlotSymbolAnimation(data.result[0]);
-          const anim2Path = getSlotSymbolAnimation(data.result[1]);
-          const anim3Path = getSlotSymbolAnimation(data.result[2]);
+          // Показываем контейнеры символов
+          symbol1Container.style.display = 'block';
+          symbol2Container.style.display = 'block';
+          symbol3Container.style.display = 'block';
 
-          if (anim1Path) {
+          // Загружаем анимации результатов из соответствующих барабанов
+          const symbol1 = data.result[0];
+          const symbol2 = data.result[1];
+          const symbol3 = data.result[2];
+
+          if (lottieAnimations.slots.reel1.symbols[symbol1]) {
             window.slotsAnimations.symbol1 = lottie.loadAnimation({
               container: symbol1Container,
               renderer: 'svg',
               loop: true,
               autoplay: true,
-              path: anim1Path
+              path: lottieAnimations.slots.reel1.symbols[symbol1]
             });
           } else {
-            symbol1Container.innerHTML = `<div style="font-size: 50px; line-height: 70px; text-align: center;">${data.result[0]}</div>`;
+            symbol1Container.innerHTML = `<div style="font-size: 50px; line-height: 85px; text-align: center;">${symbol1}</div>`;
           }
 
-          if (anim2Path) {
+          if (lottieAnimations.slots.reel2.symbols[symbol2]) {
             window.slotsAnimations.symbol2 = lottie.loadAnimation({
               container: symbol2Container,
               renderer: 'svg',
               loop: true,
               autoplay: true,
-              path: anim2Path
+              path: lottieAnimations.slots.reel2.symbols[symbol2]
             });
           } else {
-            symbol2Container.innerHTML = `<div style="font-size: 50px; line-height: 70px; text-align: center;">${data.result[1]}</div>`;
+            symbol2Container.innerHTML = `<div style="font-size: 50px; line-height: 85px; text-align: center;">${symbol2}</div>`;
           }
 
-          if (anim3Path) {
+          if (lottieAnimations.slots.reel3.symbols[symbol3]) {
             window.slotsAnimations.symbol3 = lottie.loadAnimation({
               container: symbol3Container,
               renderer: 'svg',
               loop: true,
               autoplay: true,
-              path: anim3Path
+              path: lottieAnimations.slots.reel3.symbols[symbol3]
             });
           } else {
-            symbol3Container.innerHTML = `<div style="font-size: 50px; line-height: 70px; text-align: center;">${data.result[2]}</div>`;
+            symbol3Container.innerHTML = `<div style="font-size: 50px; line-height: 85px; text-align: center;">${symbol3}</div>`;
           }
 
-          console.log(`✅ Слоты: символы обновлены ${data.result[0]} ${data.result[1]} ${data.result[2]}`);
+          console.log(`✅ Слоты: результат ${symbol1} ${symbol2} ${symbol3}`);
         }
 
         // Update balance
@@ -3155,6 +3223,21 @@ async function playSlotsGame() {
     }, 2000);
   } catch (error) {
     clearInterval(spinInterval);
+
+    // Очищаем анимации вращения при ошибке
+    if (window.slotsAnimations.spin1) {
+      window.slotsAnimations.spin1.destroy();
+      document.getElementById('slot-spin-1').innerHTML = '';
+    }
+    if (window.slotsAnimations.spin2) {
+      window.slotsAnimations.spin2.destroy();
+      document.getElementById('slot-spin-2').innerHTML = '';
+    }
+    if (window.slotsAnimations.spin3) {
+      window.slotsAnimations.spin3.destroy();
+      document.getElementById('slot-spin-3').innerHTML = '';
+    }
+
     playBtn.disabled = false;
     playBtn.textContent = 'КРУТИТЬ';
 
@@ -4650,36 +4733,41 @@ const lottieAnimations = {
     ]
   },
   slots: {
-    drum: '/animations/slots_1.json',           // Барабан (анимка 1 - скрин 1)
-    base: '/animations/slots_2.json',           // Основание с ручкой (анимка 2 - скрин 2)
-    symbols: [
-      null, // индекс 0 не используется
-      '/animations/slots_3.json',   // символ 1 (анимка 3)
-      '/animations/slots_4.json',   // символ 2 (анимка 4)
-      '/animations/slots_5.json',   // символ 3 (анимка 5)
-      '/animations/slots_6.json',   // символ 4 (анимка 6)
-      '/animations/slots_7.json',   // символ 5 (анимка 7)
-      '/animations/slots_8.json',   // символ 6 (анимка 8)
-      '/animations/slots_9.json',   // символ 7 (анимка 9)
-      '/animations/slots_10.json',  // символ 8 (анимка 10)
-      '/animations/slots_11.json',  // символ 9 (анимка 11)
-      '/animations/slots_12.json',  // символ 10 (анимка 12)
-      '/animations/slots_13.json',  // символ 11 (анимка 13)
-      '/animations/slots_14.json',  // символ 12 (анимка 14)
-      '/animations/slots_15.json',  // символ 13 (анимка 15)
-      '/animations/slots_16.json',  // символ 14 (анимка 16)
-      '/animations/slots_17.json',  // символ 15 (анимка 17)
-      '/animations/slots_18.json',  // символ 16 (анимка 18)
-      '/animations/slots_19.json',  // дополнительно (анимка 19)
-      '/animations/slots_20.json'   // дополнительно (анимка 20)
-    ],
-    // Символы для результатов (лимон, виноград, BAR, 777)
-    results: {
-      'lemon': '/animations/slots_3.json',   // 🍋 Лимон (анимка 3)
-      'grape': '/animations/slots_4.json',   // 🍇 Виноград (анимка 4)
-      'bar': '/animations/slots_5.json',     // BAR (анимка 5)
-      'seven': '/animations/slots_6.json'    // 7️⃣ 777 (анимка 6)
+    base: '/animations/slots_2.json',           // Основание с ручкой (анимка 2)
+
+    // Барабан 1 (левый)
+    reel1: {
+      spin: '/animations/slots_8.json',        // Анимация вращения барабана 1
+      symbols: {
+        '7️⃣': '/animations/slots_4.json',      // 4 = семёрка
+        'BAR': '/animations/slots_5.json',      // 5 = bar
+        '🍇': '/animations/slots_6.json',       // 6 = виноград
+        '🍋': '/animations/slots_7.json'        // 7 = лимон
+      }
+    },
+
+    // Барабан 2 (центр)
+    reel2: {
+      spin: '/animations/slots_14.json',       // Анимация вращения барабана 2
+      symbols: {
+        '7️⃣': '/animations/slots_10.json',     // 10 = семёрка
+        'BAR': '/animations/slots_11.json',     // 11 = bar
+        '🍇': '/animations/slots_12.json',      // 12 = виноград
+        '🍋': '/animations/slots_13.json'       // 13 = лимон
+      }
+    },
+
+    // Барабан 3 (правый)
+    reel3: {
+      spin: '/animations/slots_20.json',       // Анимация вращения барабана 3
+      symbols: {
+        '7️⃣': '/animations/slots_16.json',     // 16 = семёрка
+        'BAR': '/animations/slots_17.json',     // 17 = bar
+        '🍇': '/animations/slots_18.json',      // 18 = виноград
+        '🍋': '/animations/slots_19.json'       // 19 = лимон
+      }
     }
+  }
   }
 };
 

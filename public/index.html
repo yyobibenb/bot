@@ -781,19 +781,30 @@
 
         <!-- Slots Display -->
         <div class="dice-display-main">
-          <!-- Lottie слот-машина (барабан + основание + символы) -->
+          <!-- Lottie слот-машина (основание + три барабана) -->
           <div id="slots-machine-container" style="position: relative; width: 100%; max-width: 400px; height: 380px; margin: 0 auto; display: block;">
             <!-- Основание с ручкой (нижний элемент, анимка 2) -->
             <div id="slots-base-container" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 380px; z-index: 1;"></div>
 
-            <!-- Барабан (верхний элемент, анимка 1) - центрирован в основании -->
-            <div id="slots-drum-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 250px; z-index: 2;"></div>
+            <!-- Три барабана (поверх основания) -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 12px; z-index: 10; margin-top: -10px;">
+              <!-- Барабан 1 (левый) -->
+              <div id="slot-reel-1" style="width: 85px; height: 85px; position: relative;">
+                <div id="slot-spin-1" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
+                <div id="slot-symbol-1" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;"></div>
+              </div>
 
-            <!-- Символы внутри барабана (поверх барабана) -->
-            <div id="slots-symbols-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 12px; z-index: 10; margin-top: -10px;">
-              <div id="slot-symbol-1" style="width: 85px; height: 85px;"></div>
-              <div id="slot-symbol-2" style="width: 85px; height: 85px;"></div>
-              <div id="slot-symbol-3" style="width: 85px; height: 85px;"></div>
+              <!-- Барабан 2 (центр) -->
+              <div id="slot-reel-2" style="width: 85px; height: 85px; position: relative;">
+                <div id="slot-spin-2" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
+                <div id="slot-symbol-2" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;"></div>
+              </div>
+
+              <!-- Барабан 3 (правый) -->
+              <div id="slot-reel-3" style="width: 85px; height: 85px; position: relative;">
+                <div id="slot-spin-3" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
+                <div id="slot-symbol-3" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;"></div>
+              </div>
             </div>
           </div>
 
