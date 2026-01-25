@@ -2693,6 +2693,85 @@ function launchDartsConfetti() {
 
 // ========== SLOTS GAME ==========
 
+// Slots Lottie animations
+window.slotsAnimations = {
+  drum: null,
+  base: null,
+  symbol1: null,
+  symbol2: null,
+  symbol3: null
+};
+
+// Map symbols to animation files
+function getSlotSymbolAnimation(symbol) {
+  const symbolMap = {
+    '🍋': 'lemon',
+    '🍇': 'grape',
+    'BAR': 'bar',
+    '7️⃣': 'seven'
+  };
+
+  const symbolKey = symbolMap[symbol] || 'lemon';
+  return lottieAnimations.slots?.results?.[symbolKey];
+}
+
+// Initialize slots animations
+function initSlotsAnimations() {
+  const drumContainer = document.getElementById('slots-lottie-container');
+  const emojiContainer = document.getElementById('slots-emoji-container');
+
+  // Проверяем, доступны ли Lottie анимации
+  if (typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.drum) {
+    // Скрываем emoji, показываем Lottie контейнер
+    emojiContainer.style.display = 'none';
+    drumContainer.style.display = 'block';
+
+    // Загружаем анимацию барабана
+    if (window.slotsAnimations.drum) {
+      window.slotsAnimations.drum.destroy();
+    }
+
+    window.slotsAnimations.drum = lottie.loadAnimation({
+      container: drumContainer,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: lottieAnimations.slots.drum
+    });
+
+    return true;
+  }
+
+  // Fallback на emoji
+  emojiContainer.style.display = 'block';
+  drumContainer.style.display = 'none';
+  return false;
+}
+
+// Cleanup slots animations
+function cleanupSlotsAnimations() {
+  if (window.slotsAnimations.drum) {
+    window.slotsAnimations.drum.destroy();
+    window.slotsAnimations.drum = null;
+  }
+  if (window.slotsAnimations.base) {
+    window.slotsAnimations.base.destroy();
+    window.slotsAnimations.base = null;
+  }
+  if (window.slotsAnimations.symbol1) {
+    window.slotsAnimations.symbol1.destroy();
+    window.slotsAnimations.symbol1 = null;
+  }
+  if (window.slotsAnimations.symbol2) {
+    window.slotsAnimations.symbol2.destroy();
+    window.slotsAnimations.symbol2 = null;
+  }
+  if (window.slotsAnimations.symbol3) {
+    window.slotsAnimations.symbol3.destroy();
+    window.slotsAnimations.symbol3 = null;
+  }
+}
+
 // Open Slots Game
 function openSlotsGame() {
   if (window.tg && window.tg.HapticFeedback) {
@@ -2718,6 +2797,9 @@ function openSlotsGame() {
   document.getElementById('slot-1').textContent = '🍋';
   document.getElementById('slot-2').textContent = '🍇';
   document.getElementById('slot-3').textContent = '🍋';
+
+  // Initialize Lottie animations
+  initSlotsAnimations();
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('slots-game-screen').classList.add('active');
@@ -2780,10 +2862,84 @@ async function playSlotsGame() {
 
     setTimeout(() => {
       if (data.success) {
-        // Show result
+        // Show result on emoji display
         slot1.textContent = data.result[0];
         slot2.textContent = data.result[1];
         slot3.textContent = data.result[2];
+
+        // Try to show Lottie animations if available
+        const lottieContainer = document.getElementById('slots-lottie-container');
+        const emojiContainer = document.getElementById('slots-emoji-container');
+
+        if (typeof lottie !== 'undefined' && lottieAnimations.slots && lottieAnimations.slots.results) {
+          // Create symbols container overlay for results
+          const symbolsOverlay = document.createElement('div');
+          symbolsOverlay.id = 'slots-result-overlay';
+          symbolsOverlay.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 15px; z-index: 10; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 16px;';
+
+          const symbol1Container = document.createElement('div');
+          symbol1Container.style.cssText = 'width: 80px; height: 80px;';
+
+          const symbol2Container = document.createElement('div');
+          symbol2Container.style.cssText = 'width: 80px; height: 80px;';
+
+          const symbol3Container = document.createElement('div');
+          symbol3Container.style.cssText = 'width: 80px; height: 80px;';
+
+          symbolsOverlay.appendChild(symbol1Container);
+          symbolsOverlay.appendChild(symbol2Container);
+          symbolsOverlay.appendChild(symbol3Container);
+
+          lottieContainer.appendChild(symbolsOverlay);
+
+          // Load animations for each symbol
+          const anim1Path = getSlotSymbolAnimation(data.result[0]);
+          const anim2Path = getSlotSymbolAnimation(data.result[1]);
+          const anim3Path = getSlotSymbolAnimation(data.result[2]);
+
+          if (anim1Path) {
+            lottie.loadAnimation({
+              container: symbol1Container,
+              renderer: 'svg',
+              loop: true,
+              autoplay: true,
+              path: anim1Path
+            });
+          } else {
+            symbol1Container.innerHTML = `<div style="font-size: 60px; line-height: 80px; text-align: center;">${data.result[0]}</div>`;
+          }
+
+          if (anim2Path) {
+            lottie.loadAnimation({
+              container: symbol2Container,
+              renderer: 'svg',
+              loop: true,
+              autoplay: true,
+              path: anim2Path
+            });
+          } else {
+            symbol2Container.innerHTML = `<div style="font-size: 60px; line-height: 80px; text-align: center;">${data.result[1]}</div>`;
+          }
+
+          if (anim3Path) {
+            lottie.loadAnimation({
+              container: symbol3Container,
+              renderer: 'svg',
+              loop: true,
+              autoplay: true,
+              path: anim3Path
+            });
+          } else {
+            symbol3Container.innerHTML = `<div style="font-size: 60px; line-height: 80px; text-align: center;">${data.result[2]}</div>`;
+          }
+
+          // Show overlay for 3 seconds, then remove
+          setTimeout(() => {
+            if (symbolsOverlay.parentNode) {
+              symbolsOverlay.remove();
+            }
+          }, 3000);
+        }
 
         // Update balance
         if (data.newBalance !== undefined) {
@@ -4285,6 +4441,36 @@ const lottieAnimations = {
       '/animations/darts-v4-5.json',      // результат 3 - красное (файл darts-v4-5 показывает красное)
       '/animations/dartscenter.json'      // результат 4 - центр
     ]
+  },
+  slots: {
+    drum: '/animations/slots/drum.json',           // Барабан (анимка 1)
+    base: '/animations/slots/base.json',           // Основание с ручкой (анимка 2)
+    symbols: [
+      null, // индекс 0 не используется
+      '/animations/slots/symbol_1.json',   // символ 1
+      '/animations/slots/symbol_2.json',   // символ 2
+      '/animations/slots/symbol_3.json',   // символ 3
+      '/animations/slots/symbol_4.json',   // символ 4
+      '/animations/slots/symbol_5.json',   // символ 5
+      '/animations/slots/symbol_6.json',   // символ 6
+      '/animations/slots/symbol_7.json',   // символ 7
+      '/animations/slots/symbol_8.json',   // символ 8
+      '/animations/slots/symbol_9.json',   // символ 9
+      '/animations/slots/symbol_10.json',  // символ 10
+      '/animations/slots/symbol_11.json',  // символ 11
+      '/animations/slots/symbol_12.json',  // символ 12
+      '/animations/slots/symbol_13.json',  // символ 13
+      '/animations/slots/symbol_14.json',  // символ 14
+      '/animations/slots/symbol_15.json',  // символ 15
+      '/animations/slots/symbol_16.json'   // символ 16
+    ],
+    // Символы для результатов (лимон, виноград, BAR, 777)
+    results: {
+      'lemon': '/animations/slots/symbol_1.json',  // 🍋 Лимон
+      'grape': '/animations/slots/symbol_2.json',  // 🍇 Виноград
+      'bar': '/animations/slots/symbol_3.json',    // BAR
+      'seven': '/animations/slots/symbol_4.json'   // 7️⃣ 777
+    }
   }
 };
 
@@ -5121,30 +5307,161 @@ async function cancelDuel(duelId) {
   }
 }
 
-// Показать результат дуэли
+// Показать результат дуэли с Lottie анимациями
 function showDuelResult(data) {
   const isWin = data.winnerId === window.currentUser.id;
   const isDraw = data.winnerId === 0;
 
   const overlay = document.createElement('div');
   overlay.className = 'duel-result-overlay';
-  overlay.innerHTML = '<div class="duel-result-card"><div class="duel-result-title">' +
-    (isDraw ? '🤝 Ничья!' : (isWin ? '🎉 Победа!' : '😔 Поражение')) +
-    '</div><div class="duel-result-players"><div class="duel-result-player"><div class="duel-result-dice">' +
-    getDiceEmoji(data.creatorRoll) + '</div><div class="duel-result-player-name">Создатель</div>' +
-    '<div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">' + data.creatorRoll + '</div></div>' +
-    '<div class="duel-result-vs">VS</div><div class="duel-result-player"><div class="duel-result-dice">' +
-    getDiceEmoji(data.opponentRoll) + '</div><div class="duel-result-player-name">Вы</div>' +
-    '<div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">' + data.opponentRoll + '</div></div></div>' +
-    (!isDraw ? ('<div class="duel-result-winner ' + (isWin ? 'win' : 'loss') + '">' +
-      (isWin ? 'Вы выиграли!' : 'Вы проиграли') + '</div>' +
-      (isWin ? '<div class="duel-result-amount">+' + data.winAmount.toFixed(2) + ' USDT</div>' : ''))
-    : '<div class="duel-result-winner" style="color: var(--text-secondary);">Ставки возвращены</div>') +
-    '<div style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Комиссия казино: ' +
-    data.commission.toFixed(2) + ' USDT</div>' +
-    '<button class="duel-result-close-btn" onclick="closeDuelResult()">Закрыть</button></div>';
 
+  // Создаём структуру с контейнерами для анимаций
+  const resultCard = document.createElement('div');
+  resultCard.className = 'duel-result-card';
+
+  // Заголовок
+  const title = document.createElement('div');
+  title.className = 'duel-result-title';
+  title.textContent = isDraw ? '🤝 Ничья!' : (isWin ? '🎉 Победа!' : '😔 Поражение');
+  resultCard.appendChild(title);
+
+  // Контейнер для игроков
+  const playersContainer = document.createElement('div');
+  playersContainer.className = 'duel-result-players';
+
+  // Игрок 1 - Создатель
+  const player1Container = document.createElement('div');
+  player1Container.className = 'duel-result-player';
+
+  const player1AnimContainer = document.createElement('div');
+  player1AnimContainer.className = 'duel-result-dice';
+  player1AnimContainer.style.cssText = 'width: 80px; height: 80px; margin: 0 auto;';
+
+  const player1Name = document.createElement('div');
+  player1Name.className = 'duel-result-player-name';
+  player1Name.textContent = 'Создатель';
+
+  const player1Score = document.createElement('div');
+  player1Score.style.cssText = 'font-size: 24px; font-weight: 700; color: var(--text-primary);';
+  player1Score.textContent = data.creatorRoll;
+
+  player1Container.appendChild(player1AnimContainer);
+  player1Container.appendChild(player1Name);
+  player1Container.appendChild(player1Score);
+
+  // VS
+  const vsElement = document.createElement('div');
+  vsElement.className = 'duel-result-vs';
+  vsElement.textContent = 'VS';
+
+  // Игрок 2 - Вы
+  const player2Container = document.createElement('div');
+  player2Container.className = 'duel-result-player';
+
+  const player2AnimContainer = document.createElement('div');
+  player2AnimContainer.className = 'duel-result-dice';
+  player2AnimContainer.style.cssText = 'width: 80px; height: 80px; margin: 0 auto;';
+
+  const player2Name = document.createElement('div');
+  player2Name.className = 'duel-result-player-name';
+  player2Name.textContent = 'Вы';
+
+  const player2Score = document.createElement('div');
+  player2Score.style.cssText = 'font-size: 24px; font-weight: 700; color: var(--text-primary);';
+  player2Score.textContent = data.opponentRoll;
+
+  player2Container.appendChild(player2AnimContainer);
+  player2Container.appendChild(player2Name);
+  player2Container.appendChild(player2Score);
+
+  playersContainer.appendChild(player1Container);
+  playersContainer.appendChild(vsElement);
+  playersContainer.appendChild(player2Container);
+  resultCard.appendChild(playersContainer);
+
+  // Результат
+  if (!isDraw) {
+    const winnerDiv = document.createElement('div');
+    winnerDiv.className = 'duel-result-winner ' + (isWin ? 'win' : 'loss');
+    winnerDiv.textContent = isWin ? 'Вы выиграли!' : 'Вы проиграли';
+    resultCard.appendChild(winnerDiv);
+
+    if (isWin) {
+      const amountDiv = document.createElement('div');
+      amountDiv.className = 'duel-result-amount';
+      amountDiv.textContent = '+' + data.winAmount.toFixed(2) + ' USDT';
+      resultCard.appendChild(amountDiv);
+    }
+  } else {
+    const drawDiv = document.createElement('div');
+    drawDiv.className = 'duel-result-winner';
+    drawDiv.style.color = 'var(--text-secondary)';
+    drawDiv.textContent = 'Ставки возвращены';
+    resultCard.appendChild(drawDiv);
+  }
+
+  // Комиссия
+  const commissionDiv = document.createElement('div');
+  commissionDiv.style.cssText = 'text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 16px;';
+  commissionDiv.textContent = 'Комиссия казино: ' + data.commission.toFixed(2) + ' USDT';
+  resultCard.appendChild(commissionDiv);
+
+  // Кнопка закрытия
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'duel-result-close-btn';
+  closeBtn.textContent = 'Закрыть';
+  closeBtn.onclick = closeDuelResult;
+  resultCard.appendChild(closeBtn);
+
+  overlay.appendChild(resultCard);
   document.body.appendChild(overlay);
+
+  // Загружаем Lottie анимации
+  const animationConfig = lottieAnimations.dice;
+  if (animationConfig && animationConfig.faces && typeof lottie !== 'undefined') {
+    // Анимация для создателя
+    if (animationConfig.faces[data.creatorRoll]) {
+      lottie.loadAnimation({
+        container: player1AnimContainer,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: animationConfig.faces[data.creatorRoll]
+      });
+    } else {
+      player1AnimContainer.innerHTML = '<div style="font-size: 60px;">' + getDiceEmoji(data.creatorRoll) + '</div>';
+    }
+
+    // Анимация для вас
+    if (animationConfig.faces[data.opponentRoll]) {
+      lottie.loadAnimation({
+        container: player2AnimContainer,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: animationConfig.faces[data.opponentRoll]
+      });
+    } else {
+      player2AnimContainer.innerHTML = '<div style="font-size: 60px;">' + getDiceEmoji(data.opponentRoll) + '</div>';
+    }
+
+    // Подсветка победителя
+    if (!isDraw) {
+      if (isWin) {
+        player2AnimContainer.style.border = '3px solid #4CAF50';
+        player2AnimContainer.style.borderRadius = '10px';
+        player2AnimContainer.style.boxShadow = '0 0 20px rgba(76, 175, 80, 0.6)';
+      } else {
+        player1AnimContainer.style.border = '3px solid #4CAF50';
+        player1AnimContainer.style.borderRadius = '10px';
+        player1AnimContainer.style.boxShadow = '0 0 20px rgba(76, 175, 80, 0.6)';
+      }
+    }
+  } else {
+    // Fallback на эмодзи
+    player1AnimContainer.innerHTML = '<div style="font-size: 60px;">' + getDiceEmoji(data.creatorRoll) + '</div>';
+    player2AnimContainer.innerHTML = '<div style="font-size: 60px;">' + getDiceEmoji(data.opponentRoll) + '</div>';
+  }
 }
 
 // Закрыть результат дуэли
