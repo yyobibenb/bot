@@ -2972,29 +2972,47 @@ function cleanupSlotsAnimations() {
 // Global variable to store selected slot type
 window.selectedSlotType = null;
 
-// Open Slots Game - Show type selection first
+// Open Slots Game - Сразу открываем игру без выбора типа
 function openSlotsGame() {
   if (window.tg && window.tg.HapticFeedback) {
     window.tg.HapticFeedback.impactOccurred('medium');
   }
 
-  // Update slots type selection screen balance and avatar
+  // Убираем выбор типа, открываем сразу игру с любыми комбинациями
+  window.selectedSlotType = null; // Все типы
+
+  // Update slots screen balance and avatar
   if (window.currentUser) {
     const balance = document.getElementById('balance').textContent || '0.00';
-    document.getElementById('slots-type-balance-amount').textContent = balance;
+    document.getElementById('slots-balance-amount').textContent = balance;
 
     const mainAvatar = document.getElementById('avatar');
-    const slotsTypeAvatar = document.getElementById('slots-type-avatar');
+    const slotsAvatar = document.getElementById('slots-avatar');
 
     if (mainAvatar.querySelector('img')) {
-      slotsTypeAvatar.innerHTML = mainAvatar.innerHTML;
+      slotsAvatar.innerHTML = mainAvatar.innerHTML;
     } else {
-      slotsTypeAvatar.textContent = mainAvatar.textContent;
+      slotsAvatar.textContent = mainAvatar.textContent;
     }
   }
 
+  // Обновляем заголовок
+  const titleElement = document.getElementById('slots-mode-title');
+  titleElement.textContent = '🎰 Слоты (до x70)';
+
+  // Устанавливаем начальные символы на 777
+  document.getElementById('slot-1').textContent = '7️⃣';
+  document.getElementById('slot-2').textContent = '7️⃣';
+  document.getElementById('slot-3').textContent = '7️⃣';
+
+  // Initialize Lottie animations
+  initSlotsAnimations();
+
+  // Load wins from localStorage
+  loadSlotsWinsFromStorage();
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('slots-type-screen').classList.add('active');
+  document.getElementById('slots-game-screen').classList.add('active');
 }
 
 // Select slot type and open game
