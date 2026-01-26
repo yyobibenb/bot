@@ -731,6 +731,9 @@ function openPlayScreen(choice, modeName, modeLabel, multiplier) {
   // Reset dice emoji
   document.getElementById('dice-emoji').textContent = '🎲';
 
+  // Load wins history
+  loadDiceWinsFromStorage();
+
   // Open play screen
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('dice-play-screen').classList.add('active');
@@ -1471,6 +1474,62 @@ function addWinToHistory(amount, multiplier) {
 
   // Add to top of list
   winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveDiceWinToStorage(amount, multiplier, timeStr);
+}
+
+// Save dice win to localStorage
+function saveDiceWinToStorage(amount, multiplier, timeStr) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `dice_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving dice win to localStorage:', error);
+  }
+}
+
+// Load dice wins from localStorage
+function loadDiceWinsFromStorage() {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `dice_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('wins-list');
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading dice wins from localStorage:', error);
+  }
 }
 
 // Confetti animation
@@ -1608,6 +1667,9 @@ function openBowlingPlayScreen(mode, modeLabel, multiplier) {
 
   // Reset bowling emoji
   document.getElementById('bowling-emoji').textContent = '🎳';
+
+  // Load wins history
+  loadBowlingWinsFromStorage();
 
   // Open play screen
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1799,6 +1861,62 @@ function addBowlingWinToHistory(amount, multiplier) {
 
   // Add to top of list
   winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveBowlingWinToStorage(amount, multiplier, timeStr);
+}
+
+// Save bowling win to localStorage
+function saveBowlingWinToStorage(amount, multiplier, timeStr) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `bowling_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving bowling win to localStorage:', error);
+  }
+}
+
+// Load bowling wins from localStorage
+function loadBowlingWinsFromStorage() {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `bowling_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('bowling-wins-list');
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading bowling wins from localStorage:', error);
+  }
 }
 
 // Bowling confetti animation
@@ -1923,6 +2041,9 @@ function openFootballPlayScreen(mode, modeLabel, multiplier) {
 
   // Reset football emoji
   document.getElementById('football-emoji').textContent = '⚽';
+
+  // Load wins history
+  loadFootballWinsFromStorage();
 
   // Open play screen
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2122,6 +2243,62 @@ function addFootballWinToHistory(amount, multiplier) {
 
   // Add to top of list
   winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveFootballWinToStorage(amount, multiplier, timeStr);
+}
+
+// Save football win to localStorage
+function saveFootballWinToStorage(amount, multiplier, timeStr) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `football_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving football win to localStorage:', error);
+  }
+}
+
+// Load football wins from localStorage
+function loadFootballWinsFromStorage() {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `football_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('football-wins-list');
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading football wins from localStorage:', error);
+  }
 }
 
 // Football confetti animation
@@ -2246,6 +2423,9 @@ function openBasketballPlayScreen(mode, modeLabel, multiplier) {
 
   // Reset basketball emoji
   document.getElementById('basketball-emoji').textContent = '🏀';
+
+  // Load wins history
+  loadBasketballWinsFromStorage();
 
   // Open play screen
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2439,6 +2619,62 @@ function addBasketballWinToHistory(amount, multiplier) {
 
   // Add to top of list
   winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveBasketballWinToStorage(amount, multiplier, timeStr);
+}
+
+// Save basketball win to localStorage
+function saveBasketballWinToStorage(amount, multiplier, timeStr) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `basketball_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving basketball win to localStorage:', error);
+  }
+}
+
+// Load basketball wins from localStorage
+function loadBasketballWinsFromStorage() {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `basketball_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('basketball-wins-list');
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading basketball wins from localStorage:', error);
+  }
 }
 
 // Basketball confetti animation
@@ -2566,6 +2802,9 @@ function openDartsPlayScreen(mode, modeLabel, multiplier) {
 
   // Reset darts emoji
   document.getElementById('darts-emoji').textContent = '🎯';
+
+  // Load wins history
+  loadDartsWinsFromStorage();
 
   // Open play screen
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2773,6 +3012,62 @@ function addDartsWinToHistory(amount, multiplier) {
 
   // Add to top of list
   winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveDartsWinToStorage(amount, multiplier, timeStr);
+}
+
+// Save darts win to localStorage
+function saveDartsWinToStorage(amount, multiplier, timeStr) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `darts_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving darts win to localStorage:', error);
+  }
+}
+
+// Load darts wins from localStorage
+function loadDartsWinsFromStorage() {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `darts_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('darts-wins-list');
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading darts wins from localStorage:', error);
+  }
 }
 
 // Darts confetti animation
@@ -3567,6 +3862,9 @@ function openRPSSoloGame() {
     btn.style.border = '1px solid var(--glass-border)';
   });
 
+  // Load wins history
+  loadRPSWinsFromStorage();
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('rps-game-screen').classList.add('active');
 }
@@ -4017,6 +4315,62 @@ function addRPSWinToHistory(amount, multiplier) {
 
   // Add to top of list
   winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveRPSWinToStorage(amount, multiplier, timeStr);
+}
+
+// Save RPS win to localStorage
+function saveRPSWinToStorage(amount, multiplier, timeStr) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `rps_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving RPS win to localStorage:', error);
+  }
+}
+
+// Load RPS wins from localStorage
+function loadRPSWinsFromStorage() {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `rps_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('rps-wins-list');
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading RPS wins from localStorage:', error);
+  }
 }
 
 // RPS confetti animation

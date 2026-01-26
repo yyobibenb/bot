@@ -1996,8 +1996,10 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  padding-right: 20px;
 }
 
 /* Компактные кнопки - меньше и ближе друг к другу */
@@ -2006,6 +2008,7 @@ body {
   min-width: 160px;
   padding: 14px 20px;
   font-size: 16px;
+  height: fit-content;
 }
 
 /* Для grid layout (числа) - тоже компактнее */
