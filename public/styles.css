@@ -1121,6 +1121,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 20px;
+  margin-top: 24px;
   animation: slideUp 0.5s ease;
 }
 
@@ -1724,7 +1725,25 @@ body {
 
 .fullscreen-overlay.active {
   display: flex;
+  flex-direction: column;
   opacity: 1;
+}
+
+.fullscreen-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(7, 28, 21, 0.95) 0%, rgba(7, 28, 21, 0.7) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  animation: fadeIn 0.3s ease;
 }
 
 .fullscreen-content {
@@ -1734,35 +1753,10 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 24px 40px;
+  padding: 100px 24px 40px;
   overflow-y: auto;
 }
 
-.fullscreen-close-btn {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--text-primary);
-  font-size: 32px;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-  z-index: 10;
-}
-
-.fullscreen-close-btn:active {
-  transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.15);
-}
 
 .fullscreen-title {
   font-size: 28px;
@@ -2024,13 +2018,13 @@ body {
 
 /* Уменьшенные размеры шрифта для компактного режима */
 .fullscreen-choices-compact .fullscreen-choice-btn-label {
-  font-size: 13px;
+  font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .fullscreen-choices-compact .fullscreen-choice-btn-coef {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   flex-shrink: 0;
 }

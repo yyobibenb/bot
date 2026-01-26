@@ -5776,6 +5776,21 @@ function openFullscreenMode(game, mode, title, multiplier) {
     }
   }
 
+  // Обновить баланс и аватар в fullscreen заголовке
+  if (window.currentUser) {
+    const balanceEl = document.getElementById('fullscreen-balance-amount');
+    const avatarEl = document.getElementById('fullscreen-avatar');
+
+    if (balanceEl) {
+      balanceEl.textContent = parseFloat(window.currentUser.balance || 0).toFixed(2);
+    }
+
+    if (avatarEl) {
+      const firstName = window.currentUser.first_name || window.currentUser.username || 'User';
+      avatarEl.textContent = firstName.charAt(0).toUpperCase();
+    }
+  }
+
   // Инициализировать Lottie анимацию
   initLottieAnimation(game);
 

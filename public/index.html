@@ -1410,7 +1410,16 @@
 
   <!-- Fullscreen Game Overlay -->
   <div id="fullscreen-overlay" class="fullscreen-overlay">
-    <button class="fullscreen-close-btn" onclick="closeFullscreenMode()">×</button>
+    <!-- Header with Balance and Avatar -->
+    <div class="fullscreen-header">
+      <button class="back-btn-small" onclick="closeFullscreenMode()">← Назад</button>
+      <div class="dice-header-right">
+        <div class="dice-balance">
+          <span id="fullscreen-balance-amount">0.00</span> USDT
+        </div>
+        <div id="fullscreen-avatar" class="dice-avatar-small">?</div>
+      </div>
+    </div>
 
     <div class="fullscreen-content">
       <!-- Game Title -->
