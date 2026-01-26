@@ -10,6 +10,7 @@ export interface GameResult {
   newBalance: number;
   multiplier: number;
   details?: any;
+  winType?: string;
 }
 
 export class OtherGamesService {
@@ -35,6 +36,7 @@ export class OtherGamesService {
     const isWin = result === 6; // Strike = все 6 кеглей
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎳 Страйк! Все 6 кеглей` : "";
 
     return this.processGame(
       userId,
@@ -46,7 +48,8 @@ export class OtherGamesService {
       "strike",
       isWin,
       multiplier,
-      { pins: result }
+      { pins: result },
+      winType
     );
   }
 
@@ -66,6 +69,7 @@ export class OtherGamesService {
     const isWin = userRoll > casinoRoll;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎳 Дуэль: ${userRoll} vs ${casinoRoll}` : "";
 
     return this.processGame(
       userId,
@@ -77,7 +81,8 @@ export class OtherGamesService {
       `user_${userRoll}`,
       isWin,
       multiplier,
-      { userPins: userRoll, casinoPins: casinoRoll }
+      { userPins: userRoll, casinoPins: casinoRoll },
+      winType
     );
   }
 
@@ -105,6 +110,7 @@ export class OtherGamesService {
     const isWin = result === 3; // 3 = гол (попал)
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "⚽ ГОЛ!" : "";
 
     return this.processGame(
       userId,
@@ -116,7 +122,8 @@ export class OtherGamesService {
       "goal",
       isWin,
       multiplier,
-      { score: result === 3 ? "⚽ ГОЛ!" : "❌ Мимо" }
+      { score: result === 3 ? "⚽ ГОЛ!" : "❌ Мимо" },
+      winType
     );
   }
 
@@ -135,6 +142,7 @@ export class OtherGamesService {
     const isWin = result === 1; // 1 = мимо (не попал)
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "⚽ Мимо - угадал!" : "";
 
     return this.processGame(
       userId,
@@ -146,7 +154,8 @@ export class OtherGamesService {
       "miss",
       isWin,
       multiplier,
-      { score: result === 3 ? "⚽ ГОЛ!" : "❌ Мимо" }
+      { score: result === 3 ? "⚽ ГОЛ!" : "❌ Мимо" },
+      winType
     );
   }
 
@@ -165,6 +174,7 @@ export class OtherGamesService {
     const isWin = result === 1; // 1 = не попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "⚽ Не попал - угадал!" : "";
 
     return this.processGame(
       userId,
@@ -176,7 +186,8 @@ export class OtherGamesService {
       "not_hit",
       isWin,
       multiplier,
-      { score: result === 1 ? "❌ Не попал!" : "⚽ ПОПАЛ!" }
+      { score: result === 1 ? "❌ Не попал!" : "⚽ ПОПАЛ!" },
+      winType
     );
   }
 
@@ -195,6 +206,7 @@ export class OtherGamesService {
     const isWin = result === 3; // 3 = попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "⚽ ПОПАЛ!" : "";
 
     return this.processGame(
       userId,
@@ -206,7 +218,8 @@ export class OtherGamesService {
       "hit",
       isWin,
       multiplier,
-      { score: result === 3 ? "⚽ ПОПАЛ!" : "❌ Не попал!" }
+      { score: result === 3 ? "⚽ ПОПАЛ!" : "❌ Не попал!" },
+      winType
     );
   }
 
@@ -226,6 +239,7 @@ export class OtherGamesService {
     const isWin = userKick > casinoKick;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `⚽ Дуэль: ${userKick > 1 ? "ГОЛ" : "Мимо"} vs ${casinoKick > 1 ? "ГОЛ" : "Мимо"}` : "";
 
     return this.processGame(
       userId,
@@ -237,7 +251,8 @@ export class OtherGamesService {
       `user_${userKick}`,
       isWin,
       multiplier,
-      { userKick, casinoKick }
+      { userKick, casinoKick },
+      winType
     );
   }
 
@@ -265,6 +280,7 @@ export class OtherGamesService {
     const isWin = result === 5; // 5 = попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🏀 Попал!" : "";
 
     return this.processGame(
       userId,
@@ -276,7 +292,8 @@ export class OtherGamesService {
       "goal",
       isWin,
       multiplier,
-      { score: result === 5 ? "🏀 Попал!" : "❌ Промах" }
+      { score: result === 5 ? "🏀 Попал!" : "❌ Промах" },
+      winType
     );
   }
 
@@ -295,6 +312,7 @@ export class OtherGamesService {
     const isWin = result === 3; // 3 = промах
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🏀 Промах - угадал!" : "";
 
     return this.processGame(
       userId,
@@ -306,7 +324,8 @@ export class OtherGamesService {
       "miss",
       isWin,
       multiplier,
-      { score: result === 5 ? "🏀 Попал!" : "❌ Промах" }
+      { score: result === 5 ? "🏀 Попал!" : "❌ Промах" },
+      winType
     );
   }
 
@@ -325,6 +344,7 @@ export class OtherGamesService {
     const isWin = result === 3; // 3 = не попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🏀 Не попал - угадал!" : "";
 
     return this.processGame(
       userId,
@@ -336,7 +356,8 @@ export class OtherGamesService {
       "not_hit",
       isWin,
       multiplier,
-      { score: result === 3 ? "❌ Не попал!" : "🏀 ПОПАЛ!" }
+      { score: result === 3 ? "❌ Не попал!" : "🏀 ПОПАЛ!" },
+      winType
     );
   }
 
@@ -355,6 +376,7 @@ export class OtherGamesService {
     const isWin = result === 5; // 5 = попал
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🏀 ПОПАЛ!" : "";
 
     return this.processGame(
       userId,
@@ -366,7 +388,8 @@ export class OtherGamesService {
       "hit",
       isWin,
       multiplier,
-      { score: result === 5 ? "🏀 ПОПАЛ!" : "❌ Не попал!" }
+      { score: result === 5 ? "🏀 ПОПАЛ!" : "❌ Не попал!" },
+      winType
     );
   }
 
@@ -386,6 +409,7 @@ export class OtherGamesService {
     const isWin = userShot > casinoShot;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🏀 Дуэль: ${userShot === 5 ? "Попал" : "Промах"} vs ${casinoShot === 5 ? "Попал" : "Промах"}` : "";
 
     return this.processGame(
       userId,
@@ -397,7 +421,8 @@ export class OtherGamesService {
       `user_${userShot}`,
       isWin,
       multiplier,
-      { userShot, casinoShot }
+      { userShot, casinoShot },
+      winType
     );
   }
 
@@ -424,6 +449,7 @@ export class OtherGamesService {
     const isWin = result === 3;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🎯 Красное!" : "";
 
     return this.processGame(
       userId,
@@ -435,7 +461,8 @@ export class OtherGamesService {
       "red",
       isWin,
       multiplier,
-      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" },
+      winType
     );
   }
 
@@ -454,6 +481,7 @@ export class OtherGamesService {
     const isWin = result === 2;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🎯 Белое!" : "";
 
     return this.processGame(
       userId,
@@ -465,7 +493,8 @@ export class OtherGamesService {
       "white",
       isWin,
       multiplier,
-      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" },
+      winType
     );
   }
 
@@ -484,6 +513,7 @@ export class OtherGamesService {
     const isWin = result === 4;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🎯 Центр!" : "";
 
     return this.processGame(
       userId,
@@ -495,7 +525,8 @@ export class OtherGamesService {
       "center",
       isWin,
       multiplier,
-      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" },
+      winType
     );
   }
 
@@ -514,6 +545,7 @@ export class OtherGamesService {
     const isWin = result === 1;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? "🎯 Мимо - угадал!" : "";
 
     return this.processGame(
       userId,
@@ -525,7 +557,8 @@ export class OtherGamesService {
       "miss",
       isWin,
       multiplier,
-      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" }
+      { zone: result === 4 ? "🎯 Центр!" : result === 3 ? "🔴 Красное" : result === 2 ? "⚪ Белое" : "❌ Мимо" },
+      winType
     );
   }
 
@@ -540,7 +573,8 @@ export class OtherGamesService {
     userChoice: string,
     isWin: boolean,
     multiplier: number,
-    details?: any
+    details?: any,
+    winType?: string
   ): Promise<GameResult> {
     const client = await pool.connect();
     try {
@@ -609,7 +643,8 @@ export class OtherGamesService {
         winAmount,
         newBalance: newBalance ? parseFloat(newBalance.balance.toString()) : 0,
         multiplier,
-        details
+        details,
+        winType
       };
     } catch (error) {
       await client.query("ROLLBACK");

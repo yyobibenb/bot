@@ -904,7 +904,10 @@ async function playDiceGame() {
           }
 
           if (window.tg) {
-            window.tg.showAlert(`🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`);
+            const msg = data.winType
+              ? `🎉 Поздравляем!\n\n${data.winType}\nВыигрыш: ${data.winAmount.toFixed(2)} USDT`
+              : `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!`;
+            window.tg.showAlert(msg);
           }
 
           // Add to wins history
@@ -1070,7 +1073,10 @@ async function playDiceFromCard(mode, multiplier) {
 
           // Показываем сообщение о выигрыше
           if (window.tg) {
-            window.tg.showAlert(`🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`);
+            const msg = data.winType
+              ? `🎉 Выигрыш!\n\n${data.winType}\n+${data.win_amount.toFixed(2)}$`
+              : `🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`;
+            window.tg.showAlert(msg);
           } else {
             alert(`🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`);
           }
@@ -1157,7 +1163,10 @@ async function playBowlingFromCard(mode, multiplier) {
             window.tg.HapticFeedback.notificationOccurred('success');
           }
           if (window.tg) {
-            window.tg.showAlert(`🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`);
+            const msg = data.winType
+              ? `🎉 Выигрыш!\n\n${data.winType}\n+${data.win_amount.toFixed(2)}$`
+              : `🎉 Выигрыш! +${data.win_amount.toFixed(2)}$`;
+            window.tg.showAlert(msg);
           }
         } else {
           if (window.tg && window.tg.HapticFeedback) {
@@ -3297,7 +3306,9 @@ async function playSlotsGame() {
 
           launchSlotsConfetti();
 
-          const resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\n${data.result[0]} ${data.result[1]} ${data.result[2]}\nx${data.multiplier}`;
+          const resultMsg = data.winType
+            ? `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\n${data.winType}\nx${data.multiplier}`
+            : `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\n${data.result[0]} ${data.result[1]} ${data.result[2]}\nx${data.multiplier}`;
 
           if (window.tg) {
             window.tg.showAlert(resultMsg);
@@ -3915,7 +3926,9 @@ async function playRPSGame() {
             }, 5000);
           }
 
-          const resultMsg = `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`;
+          const resultMsg = data.winType
+            ? `🎉 Поздравляем!\n\n${data.winType}\nВыигрыш: ${data.winAmount.toFixed(2)} USDT`
+            : `🎉 Поздравляем! Вы выиграли ${data.winAmount.toFixed(2)} USDT!\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`;
 
           if (window.tg) {
             window.tg.showAlert(resultMsg);
@@ -3935,7 +3948,8 @@ async function playRPSGame() {
           }
 
           if (window.tg) {
-            window.tg.showAlert(`Ничья! Ставка возвращена.\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`);
+            const drawMsg = data.winType || `Ничья! Ставка возвращена.\n\nВы: ${choiceEmojis[data.userChoice]}\nБот: ${choiceEmojis[data.botChoice]}`;
+            window.tg.showAlert(drawMsg);
           }
         } else {
           // Loss - user loses, bot wins

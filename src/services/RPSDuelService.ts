@@ -22,6 +22,7 @@ export interface RPSDuelResult {
   creatorBalance: number;
   opponentBalance: number;
   isDraw: boolean;
+  winType?: string;
 }
 
 export class RPSDuelService {
@@ -226,6 +227,16 @@ export class RPSDuelService {
 
       await client.query("COMMIT");
 
+      // Генерируем winType
+      const choiceEmojis: {[key: string]: string} = { rock: "🪨", paper: "📄", scissors: "✂️" };
+      let winType = "";
+      if (isDraw) {
+        winType = "🤝 Ничья - ставки возвращены";
+      } else if (winnerId) {
+        const winnerChoice = winnerId === duel.creator_id ? creatorChoice : choice;
+        winType = `🪨 Победа: ${choiceEmojis[winnerChoice] || winnerChoice}`;
+      }
+
       return {
         success: true,
         duelId,
@@ -236,7 +247,8 @@ export class RPSDuelService {
         commission,
         creatorBalance: parseFloat(creatorBalanceResult.rows[0].balance),
         opponentBalance: parseFloat(opponentBalanceResult.rows[0].balance),
-        isDraw
+        isDraw,
+        winType
       };
     } catch (error) {
       await client.query("ROLLBACK");

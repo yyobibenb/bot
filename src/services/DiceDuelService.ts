@@ -21,6 +21,7 @@ export interface DuelResult {
   commission: number;
   creatorBalance: number;
   opponentBalance: number;
+  winType?: string;
 }
 
 export class DiceDuelService {
@@ -187,7 +188,8 @@ export class DiceDuelService {
           winAmount: 0,
           commission: 0,
           creatorBalance: creatorBalance ? parseFloat(creatorBalance.balance.toString()) : 0,
-          opponentBalance: opponentBalance ? parseFloat(opponentBalance.balance.toString()) : 0
+          opponentBalance: opponentBalance ? parseFloat(opponentBalance.balance.toString()) : 0,
+          winType: `🎲 Ничья: ${creatorRoll} vs ${opponentRoll}`
         };
       }
 
@@ -288,7 +290,8 @@ export class DiceDuelService {
         winAmount,
         commission,
         creatorBalance: creatorBalance ? parseFloat(creatorBalance.balance.toString()) : 0,
-        opponentBalance: opponentBalance ? parseFloat(opponentBalance.balance.toString()) : 0
+        opponentBalance: opponentBalance ? parseFloat(opponentBalance.balance.toString()) : 0,
+        winType: `🎲 Дуэль: ${creatorRoll} vs ${opponentRoll}`
       };
     } catch (error) {
       await client.query("ROLLBACK");

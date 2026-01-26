@@ -166,7 +166,7 @@ export class OtherGamesDuelService {
   static async playDuel(
     user_id: number,
     duel_id: number
-  ): Promise<{ success: boolean; result?: number; winner?: string; error?: string; completed?: boolean }> {
+  ): Promise<{ success: boolean; result?: number; winner?: string; error?: string; completed?: boolean; winType?: string }> {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -260,11 +260,23 @@ export class OtherGamesDuelService {
 
         await client.query("COMMIT");
 
+        // Генерируем winType
+        const gameEmoji = duel.game_type === 'bowling' ? '🎳' : duel.game_type === 'football' ? '⚽' : '🏀';
+        let winType = "";
+        if (winner_id === updated.creator_id) {
+          winType = `${gameEmoji} Дуэль: ${updated.creator_result} vs ${updated.opponent_result}`;
+        } else if (winner_id === updated.opponent_id) {
+          winType = `${gameEmoji} Дуэль: ${updated.creator_result} vs ${updated.opponent_result}`;
+        } else {
+          winType = `${gameEmoji} Ничья: ${updated.creator_result} vs ${updated.opponent_result}`;
+        }
+
         return {
           success: true,
           result: playerResult,
           winner: winner_id === updated.creator_id ? "creator" : winner_id === updated.opponent_id ? "opponent" : "draw",
-          completed: true
+          completed: true,
+          winType
         };
       }
 

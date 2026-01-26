@@ -10,6 +10,7 @@ export interface DiceGameResult {
   winAmount: number;
   newBalance: number;
   multiplier: number;
+  winType?: string;
 }
 
 export class DiceGameService {
@@ -77,8 +78,9 @@ export class DiceGameService {
     const isWin = choice === "higher" ? result > 3 : result < 4;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 ${result} - ${choice === "higher" ? "Больше 3" : "Меньше 4"}` : "";
 
-    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), choice, isWin, multiplier);
+    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), choice, isWin, multiplier, winType);
   }
 
   // Четное/Нечетное (1.84x)
@@ -100,8 +102,9 @@ export class DiceGameService {
     const isWin = choice === "even" ? result % 2 === 0 : result % 2 !== 0;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 ${result} - ${choice === "even" ? "Четное" : "Нечетное"}` : "";
 
-    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), choice, isWin, multiplier);
+    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), choice, isWin, multiplier, winType);
   }
 
   // Грань - угадать точное число (5.52x)
@@ -124,8 +127,9 @@ export class DiceGameService {
     const isWin = result === choice;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 ${result} - Угадал грань!` : "";
 
-    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), choice.toString(), isWin, multiplier);
+    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), choice.toString(), isWin, multiplier, winType);
   }
 
   // Сектор (2.76x)
@@ -151,8 +155,9 @@ export class DiceGameService {
 
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 ${result} - Сектор ${sector}` : "";
 
-    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), `sector_${sector}`, isWin, multiplier);
+    return this.processGame(userId, game.id, gameMode.id, betAmount, winAmount, result.toString(), `sector_${sector}`, isWin, multiplier, winType);
   }
 
   // Дуэль с казино (1.84x)
@@ -171,6 +176,7 @@ export class DiceGameService {
     const isWin = userRoll > casinoRoll;
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 Дуэль: ${userRoll} vs ${casinoRoll}` : "";
 
     return this.processGame(
       userId,
@@ -181,7 +187,8 @@ export class DiceGameService {
       `${userRoll} vs ${casinoRoll}`,
       `user_${userRoll}`,
       isWin,
-      multiplier
+      multiplier,
+      winType
     );
   }
 
@@ -209,6 +216,7 @@ export class DiceGameService {
 
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 Двойная ${choice === "higher" ? "больше 3" : "меньше 4"}: ${roll1}, ${roll2}` : "";
 
     const result = await this.processGame(
       userId,
@@ -219,7 +227,8 @@ export class DiceGameService {
       `${roll1}, ${roll2}`,
       `${choice}_2x`,
       isWin,
-      multiplier
+      multiplier,
+      winType
     );
 
     return { rolls: [roll1, roll2], result };
@@ -250,6 +259,7 @@ export class DiceGameService {
 
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 Тройная ${choice === "higher" ? "больше 3" : "меньше 4"}: ${roll1}, ${roll2}, ${roll3}` : "";
 
     const result = await this.processGame(
       userId,
@@ -260,7 +270,8 @@ export class DiceGameService {
       `${roll1}, ${roll2}, ${roll3}`,
       `${choice}_3x`,
       isWin,
-      multiplier
+      multiplier,
+      winType
     );
 
     return { rolls: [roll1, roll2, roll3], result };
@@ -289,6 +300,7 @@ export class DiceGameService {
     const isWin = roll1 === choices[0] && roll2 === choices[1] && roll3 === choices[2];
     const multiplier = gameMode.multiplier;
     const winAmount = isWin ? betAmount * multiplier : 0;
+    const winType = isWin ? `🎲 Угадал последовательность: ${roll1}, ${roll2}, ${roll3}!` : "";
 
     const result = await this.processGame(
       userId,
@@ -299,7 +311,8 @@ export class DiceGameService {
       `${roll1}, ${roll2}, ${roll3}`,
       choices.join(", "),
       isWin,
-      multiplier
+      multiplier,
+      winType
     );
 
     return { rolls: [roll1, roll2, roll3], result };
@@ -315,7 +328,8 @@ export class DiceGameService {
     result: string,
     userChoice: string,
     isWin: boolean,
-    multiplier: number
+    multiplier: number,
+    winType?: string
   ): Promise<DiceGameResult> {
     const client = await pool.connect();
     try {
@@ -384,7 +398,8 @@ export class DiceGameService {
         isWin,
         winAmount,
         newBalance: newBalance ? parseFloat(newBalance.balance.toString()) : 0,
-        multiplier
+        multiplier,
+        winType
       };
     } catch (error) {
       await client.query("ROLLBACK");

@@ -14,6 +14,8 @@ interface RPSResult {
   winAmount: number;
   newBalance: number;
   result: string;
+  winType?: string;
+  multiplier?: number;
 }
 
 export class RPSGameService {
@@ -191,6 +193,14 @@ export class RPSGameService {
       );
       const newBalance = parseFloat(newBalanceResult.rows[0].balance);
 
+      // Генерируем winType
+      let winType = "";
+      if (isWin) {
+        winType = `🪨 ${userChoice === "rock" ? "Камень" : userChoice === "paper" ? "Бумага" : "Ножницы"} победил!`;
+      } else if (isDraw) {
+        winType = "🤝 Ничья - ставка возвращена";
+      }
+
       return {
         success: true,
         win: isWin,
@@ -201,6 +211,8 @@ export class RPSGameService {
         winAmount,
         newBalance,
         result: isDraw ? "draw" : isWin ? "win" : "lose",
+        winType,
+        multiplier: this.MULTIPLIER
       };
     } catch (error) {
       await client.query("ROLLBACK");
