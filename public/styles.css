@@ -1968,11 +1968,12 @@ body {
 /* Контейнер для ставки и кнопок выбора (горизонтально) */
 .fullscreen-bet-and-choices {
   width: 100%;
-  max-width: 400px;
-  margin-bottom: 24px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 /* Компактный инпут ставки */
@@ -1988,18 +1989,18 @@ body {
   outline: none;
   text-align: center;
   backdrop-filter: blur(10px);
+  flex-shrink: 0;
 }
 
 /* Компактные кнопки выбора */
 .fullscreen-choices-compact {
-  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
   gap: 10px;
   flex-wrap: nowrap;
-  padding-right: 20px;
+  flex: 1;
 }
 
 /* Компактные кнопки - меньше и ближе друг к другу */
