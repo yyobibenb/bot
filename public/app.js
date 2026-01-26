@@ -4373,6 +4373,92 @@ function loadRPSWinsFromStorage() {
   }
 }
 
+// Fullscreen wins functions
+function addFullscreenWinToHistory(game, amount, multiplier) {
+  const winsList = document.getElementById('fullscreen-wins-list');
+
+  if (!winsList) return;
+
+  // Remove empty message if exists
+  const emptyMsg = winsList.querySelector('.wins-empty');
+  if (emptyMsg) {
+    emptyMsg.remove();
+  }
+
+  // Create new win item
+  const winItem = document.createElement('div');
+  winItem.className = 'win-item';
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  winItem.innerHTML = `
+    <div class="win-item-amount">+ ${amount.toFixed(2)}$ (x${multiplier})</div>
+    <div class="win-item-time">${timeStr}</div>
+  `;
+
+  // Add to top of list
+  winsList.insertBefore(winItem, winsList.firstChild);
+
+  // Save to localStorage
+  saveFullscreenWinToStorage(game, amount, multiplier, timeStr);
+}
+
+// Save fullscreen win to localStorage
+function saveFullscreenWinToStorage(game, amount, multiplier, timeStr) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `${game}_wins_${userId}`;
+    let wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    wins.unshift({
+      amount: amount,
+      multiplier: multiplier,
+      time: timeStr,
+      timestamp: Date.now()
+    });
+
+    if (wins.length > 50) {
+      wins = wins.slice(0, 50);
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(wins));
+  } catch (error) {
+    console.error('Error saving fullscreen win to localStorage:', error);
+  }
+}
+
+// Load fullscreen wins from localStorage
+function loadFullscreenWinsFromStorage(game) {
+  try {
+    const userId = window.currentUser ? window.currentUser.id : 'guest';
+    const storageKey = `${game}_wins_${userId}`;
+    const wins = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    const winsList = document.getElementById('fullscreen-wins-list');
+    if (!winsList) return;
+
+    winsList.innerHTML = '';
+
+    if (wins.length === 0) {
+      winsList.innerHTML = '<div class="wins-empty">Пока нет выигрышей</div>';
+      return;
+    }
+
+    wins.forEach(win => {
+      const winItem = document.createElement('div');
+      winItem.className = 'win-item';
+      winItem.innerHTML = `
+        <div class="win-item-amount">+ ${win.amount.toFixed(2)}$ (x${win.multiplier})</div>
+        <div class="win-item-time">${win.time}</div>
+      `;
+      winsList.appendChild(winItem);
+    });
+  } catch (error) {
+    console.error('Error loading fullscreen wins from localStorage:', error);
+  }
+}
+
 // RPS confetti animation
 function launchRPSConfetti() {
   const canvas = document.getElementById('rps-confetti-canvas');
@@ -5693,6 +5779,9 @@ function openFullscreenMode(game, mode, title, multiplier) {
   // Инициализировать Lottie анимацию
   initLottieAnimation(game);
 
+  // Load wins history
+  loadFullscreenWinsFromStorage(game);
+
   // Показать overlay
   const overlay = document.getElementById('fullscreen-overlay');
   overlay.style.display = 'flex';
@@ -5903,6 +5992,11 @@ async function playFromFullscreen() {
     // Обновить баланс
     if (actualData.newBalance !== undefined) {
       document.getElementById('balance').textContent = actualData.newBalance.toFixed(2);
+    }
+
+    // Сохранить выигрыш если выиграл
+    if (actualData.isWin && actualData.winAmount) {
+      addFullscreenWinToHistory(game, actualData.winAmount, multiplier);
     }
 
     // Закрыть overlay

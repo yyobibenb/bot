@@ -1446,7 +1446,18 @@
       <button id="fullscreen-play-btn" class="fullscreen-play-btn" onclick="playFromFullscreen()">
         ИГРАТЬ
       </button>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="fullscreen-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
     </div>
+
+    <!-- Confetti Canvas for Win Animation -->
+    <canvas id="fullscreen-confetti-canvas" class="confetti-canvas"></canvas>
   </div>
 
   <!-- Bottom Navigation -->
