@@ -5231,7 +5231,11 @@ function openFullscreenMode(game, mode, title, multiplier) {
   const choicesContainer = document.getElementById('fullscreen-choices');
   choicesContainer.innerHTML = '';
 
+  // Применить компактный класс для нового дизайна
+  choicesContainer.className = 'fullscreen-choices-compact';
+
   if (config.layout === 'list') {
+    // Оставляем только компактный класс для list layout
     choicesContainer.classList.remove('grid');
     config.choices.forEach(choice => {
       const btn = document.createElement('button');
@@ -5244,7 +5248,7 @@ function openFullscreenMode(game, mode, title, multiplier) {
       choicesContainer.appendChild(btn);
     });
   } else if (config.layout === 'grid') {
-    choicesContainer.classList.add('grid');
+    choicesContainer.className = 'fullscreen-choices-compact grid';
     config.choices.forEach(choice => {
       const btn = document.createElement('button');
       btn.className = 'fullscreen-choice-btn';

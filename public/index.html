@@ -1001,32 +1001,35 @@
         <!-- Mode Title -->
         <h3 style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🪨📄✂️ Камень-Ножницы-Бумага (x2.76)</h3>
 
-        <!-- RPS Display -->
-        <div class="dice-display-main">
-          <div style="display: flex; justify-content: space-around; font-size: 48px; margin-bottom: 16px;">
+        <!-- RPS Display (новый дизайн) -->
+        <div class="fullscreen-game-display" style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-around; align-items: center; font-size: 48px; width: 100%;">
             <div id="rps-user-choice">❓</div>
-            <div style="font-size: 24px; align-self: center;">VS</div>
+            <div style="font-size: 24px;">VS</div>
             <div id="rps-bot-choice">❓</div>
           </div>
         </div>
 
-        <!-- Choice Buttons -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-          <button class="dice-choice-btn" onclick="selectRPSChoice('rock')" id="rps-btn-rock">
-            🪨 Камень
-          </button>
-          <button class="dice-choice-btn" onclick="selectRPSChoice('paper')" id="rps-btn-paper">
-            📄 Бумага
-          </button>
-          <button class="dice-choice-btn" onclick="selectRPSChoice('scissors')" id="rps-btn-scissors">
-            ✂️ Ножницы
-          </button>
-        </div>
+        <!-- Layout для ставки и выбора -->
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+          <!-- Bet Amount -->
+          <div style="text-align: center;">
+            <input type="number" id="rps-bet-input" class="fullscreen-bet-input-compact" placeholder="10" min="0.1" step="0.1" value="10">
+            <span style="font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-left: 4px;">$</span>
+          </div>
 
-        <!-- Bet Amount -->
-        <div class="dice-bet-input-section">
-          <input type="number" id="rps-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
-          <span class="dice-bet-currency">$</span>
+          <!-- Choice Buttons -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            <button class="dice-choice-btn" onclick="selectRPSChoice('rock')" id="rps-btn-rock">
+              🪨 Камень
+            </button>
+            <button class="dice-choice-btn" onclick="selectRPSChoice('paper')" id="rps-btn-paper">
+              📄 Бумага
+            </button>
+            <button class="dice-choice-btn" onclick="selectRPSChoice('scissors')" id="rps-btn-scissors">
+              ✂️ Ножницы
+            </button>
+          </div>
         </div>
 
         <!-- Play Button -->
@@ -1414,19 +1417,29 @@
       <h2 id="fullscreen-title" class="fullscreen-title">🎲 Больше / Меньше</h2>
       <div id="fullscreen-multiplier" class="fullscreen-multiplier">x1.89</div>
 
-      <!-- Lottie Animation Container -->
-      <div id="fullscreen-lottie" class="fullscreen-lottie-container"></div>
+      <!-- Game Display Area (как в слотах) -->
+      <div class="fullscreen-game-display">
+        <!-- Lottie Animation Container -->
+        <div id="fullscreen-lottie" class="fullscreen-lottie-container"></div>
 
-      <!-- Choice Buttons Container (динамически заполняется) -->
-      <div id="fullscreen-choices" class="fullscreen-choices"></div>
-
-      <!-- Bet Input -->
-      <div class="fullscreen-bet-section">
-        <input type="number" id="fullscreen-bet-input" class="fullscreen-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+        <!-- Emoji Display (для отображения результата) -->
+        <div id="fullscreen-emoji-display" class="fullscreen-emoji-display" style="display: none;">
+          <span id="fullscreen-emoji-result" style="font-size: 64px;">🎲</span>
+        </div>
       </div>
 
-      <div style="text-align: center; font-size: 14px; color: var(--text-secondary); font-weight: 600; margin: 12px 0 16px 0;">
-        USDT
+      <!-- Layout для кнопок выбора и ставки -->
+      <div class="fullscreen-bet-and-choices">
+        <!-- Bet Input and Amount Display -->
+        <div class="fullscreen-bet-section-inline">
+          <div style="text-align: center; margin-bottom: 8px;">
+            <input type="number" id="fullscreen-bet-input" class="fullscreen-bet-input-compact" placeholder="10" min="0.1" step="0.1" value="10">
+            <span style="font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-left: 4px;">$</span>
+          </div>
+        </div>
+
+        <!-- Choice Buttons Container (динамически заполняется) -->
+        <div id="fullscreen-choices" class="fullscreen-choices-compact"></div>
       </div>
 
       <!-- Play Button -->
