@@ -1124,11 +1124,6 @@ body {
   animation: slideUp 0.5s ease;
 }
 
-/* Отступ для выигрышей в fullscreen режиме */
-.fullscreen-content .dice-wins-section {
-  margin-top: 24px;
-}
-
 .wins-title {
   font-size: 18px;
   font-weight: 700;
@@ -2018,9 +2013,9 @@ body {
 /* Компактные кнопки - меньше и ближе друг к другу */
 .fullscreen-choices-compact .fullscreen-choice-btn {
   flex: 0 0 auto;
-  min-width: 125px;
-  max-width: 160px;
-  padding: 12px 16px;
+  min-width: 110px;
+  max-width: 150px;
+  padding: 12px 14px;
   font-size: 14px;
   height: fit-content;
   white-space: nowrap;
