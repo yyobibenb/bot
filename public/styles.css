@@ -1965,14 +1965,12 @@ body {
   gap: 12px;
 }
 
-/* Контейнер для ставки и кнопок выбора (горизонтально) */
+/* Контейнер для ставки и кнопок выбора (вертикально) */
 .fullscreen-bet-and-choices {
   width: 100%;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 16px;
 }
 
@@ -1989,18 +1987,17 @@ body {
   outline: none;
   text-align: center;
   backdrop-filter: blur(10px);
-  flex-shrink: 0;
 }
 
 /* Компактные кнопки выбора */
 .fullscreen-choices-compact {
+  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
   gap: 10px;
   flex-wrap: nowrap;
-  flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
