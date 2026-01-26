@@ -5350,8 +5350,8 @@ const gameModeConfig = {
   dice: {
     'higher-lower': {
       choices: [
-        { value: 'higher', label: 'Больше 3', coef: 'x1.89' },
-        { value: 'lower', label: 'Меньше 4', coef: 'x1.89' }
+        { value: 'lower', label: 'Меньше 4', coef: 'x1.89' },
+        { value: 'higher', label: 'Больше 3', coef: 'x1.89' }
       ],
       layout: 'list'
     },
@@ -5375,15 +5375,15 @@ const gameModeConfig = {
     },
     '2x2': {
       choices: [
-        { value: 'higher', label: 'Больше 2X', coef: 'x3.68' },
-        { value: 'lower', label: 'Меньше 2X', coef: 'x3.68' }
+        { value: 'lower', label: 'Меньше 2X', coef: 'x3.68' },
+        { value: 'higher', label: 'Больше 2X', coef: 'x3.68' }
       ],
       layout: 'list'
     },
     '3x3': {
       choices: [
-        { value: 'higher', label: 'Больше 3X', coef: 'x5.52' },
-        { value: 'lower', label: 'Меньше 3X', coef: 'x5.52' }
+        { value: 'lower', label: 'Меньше 3X', coef: 'x5.52' },
+        { value: 'higher', label: 'Больше 3X', coef: 'x5.52' }
       ],
       layout: 'list'
     },
