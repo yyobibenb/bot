@@ -2024,8 +2024,8 @@ body {
 }
 
 .fullscreen-choices-compact .fullscreen-choice-btn-coef {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   flex-shrink: 0;
 }
 
@@ -2054,11 +2054,12 @@ body {
   }
 
   .fullscreen-choices-compact .fullscreen-choice-btn-label {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .fullscreen-choices-compact .fullscreen-choice-btn-coef {
-    font-size: 13px;
+    font-size: 15px;
+    font-weight: 800;
   }
 
   .fullscreen-bet-input-compact {
