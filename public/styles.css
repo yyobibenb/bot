@@ -1738,7 +1738,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 8px 20px;
   background: linear-gradient(180deg, rgba(7, 28, 21, 0.95) 0%, rgba(7, 28, 21, 0.7) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -1754,7 +1754,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 100px 24px 40px;
+  padding: 70px 24px 40px;
   overflow-y: auto;
 }
 
