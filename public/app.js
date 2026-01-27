@@ -5778,16 +5778,16 @@ function openFullscreenMode(game, mode, title, multiplier) {
 
   // Обновить баланс и аватар в fullscreen заголовке
   if (window.currentUser) {
-    const balanceEl = document.getElementById('fullscreen-balance-amount');
-    const avatarEl = document.getElementById('fullscreen-avatar');
+    const balance = document.getElementById('balance').textContent || '0.00';
+    document.getElementById('fullscreen-balance-amount').textContent = balance;
 
-    if (balanceEl) {
-      balanceEl.textContent = parseFloat(window.currentUser.balance || 0).toFixed(2);
-    }
+    const mainAvatar = document.getElementById('avatar');
+    const fullscreenAvatar = document.getElementById('fullscreen-avatar');
 
-    if (avatarEl) {
-      const firstName = window.currentUser.first_name || window.currentUser.username || 'User';
-      avatarEl.textContent = firstName.charAt(0).toUpperCase();
+    if (mainAvatar.querySelector('img')) {
+      fullscreenAvatar.innerHTML = mainAvatar.innerHTML;
+    } else {
+      fullscreenAvatar.textContent = mainAvatar.textContent;
     }
   }
 
