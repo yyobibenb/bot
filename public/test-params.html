@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тест URL параметров</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .info-box {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+    }
+    .label {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .value {
+      font-size: 14px;
+      color: #FFD700;
+      font-weight: 600;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status.yes {
+      background: rgba(0, 255, 0, 0.3);
+      color: #00ff00;
+    }
+    .status.no {
+      background: rgba(255, 0, 0, 0.3);
+      color: #ff5555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Проверка URL параметров</h1>
+
+    <div class="info-box">
+      <div class="label">Полный URL:</div>
+      <div class="value" id="full-url"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">URL параметры (query string):</div>
+      <div class="value" id="query-string"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Telegram ID (tg_id):</div>
+      <div class="value" id="tg-id"></div>
+    </div>
+
+    <div class="info-box">
+      <div class="label">Данные переданы через URL:</div>
+      <div id="status"></div>
+    </div>
+
+    <div class="info-box" style="background: rgba(0, 150, 255, 0.2); border: 1px solid rgba(0, 150, 255, 0.5);">
+      <div class="label">💡 Новый подход:</div>
+      <div style="font-size: 13px; line-height: 1.5; margin-top: 8px;">
+        Теперь через URL передается только <strong>telegram_id</strong>.<br>
+        Все остальные данные (имя, фото, баланс) загружаются из API автоматически.<br>
+        Это надежнее и проще чем передавать все данные через URL.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Показать полный URL
+    document.getElementById('full-url').textContent = window.location.href;
+
+    // Показать query string
+    const queryString = window.location.search;
+    document.getElementById('query-string').textContent = queryString || '❌ Пусто';
+
+    // Парсим параметры (новый формат - только tg_id)
+    const params = new URLSearchParams(queryString);
+    const tgId = params.get('tg_id');
+
+    // Заполняем данные
+    document.getElementById('tg-id').textContent = tgId || '❌ Нет';
+
+    // Статус
+    const statusDiv = document.getElementById('status');
+    if (tgId) {
+      statusDiv.innerHTML = '<span class="status yes">✅ ДА - Telegram ID передается!</span>';
+    } else {
+      statusDiv.innerHTML = '<span class="status no">❌ НЕТ - Telegram ID не передается</span>';
+    }
+
+    // Логируем в консоль
+    console.log('=== ПРОВЕРКА URL ПАРАМЕТРОВ (НОВЫЙ ФОРМАТ) ===');
+    console.log('Полный URL:', window.location.href);
+    console.log('Query string:', queryString);
+    console.log('Telegram ID (tg_id):', tgId);
+    console.log('');
+    console.log('💡 Новый подход:');
+    console.log('- Через URL передается только tg_id');
+    console.log('- Все остальные данные загружаются из API');
+    console.log('- Это надежнее чем передавать все через URL');
+  </script>
+</body>
+</html>

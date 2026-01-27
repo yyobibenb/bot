@@ -1,50 +1,39 @@
 import dotenv from "dotenv";
-
-const savedDbUrl = process.env.DATABASE_URL;
-const savedPgHost = process.env.PGHOST;
-const savedPgPort = process.env.PGPORT;
-const savedPgUser = process.env.PGUSER;
-const savedPgPass = process.env.PGPASSWORD;
-const savedPgDb = process.env.PGDATABASE;
-
 dotenv.config();
 
-if (savedDbUrl) process.env.DATABASE_URL = savedDbUrl;
-if (savedPgHost) process.env.PGHOST = savedPgHost;
-if (savedPgPort) process.env.PGPORT = savedPgPort;
-if (savedPgUser) process.env.PGUSER = savedPgUser;
-if (savedPgPass) process.env.PGPASSWORD = savedPgPass;
-if (savedPgDb) process.env.PGDATABASE = savedPgDb;
-
-import { db } from "./db/database";
 import { TelegramBotService } from "./bot/telegramBot";
 import { startServer, setTelegramBot } from "./server/app";
+import { initDatabase } from "./database/pool";
+import { runMigrations } from "./database/migrate";
+import { ChannelPostService } from "./services/ChannelPostService";
 
 async function main() {
-  console.log("🚀 Запуск Telegram Гарант-Бота...\n");
-
-  if (db.isConfigured()) {
-    console.log("📊 Инициализация базы данных...");
-    await db.init();
-  } else {
-    console.warn("⚠️  База данных не настроена. Проверьте переменные PGHOST, PGUSER, PGPASSWORD.");
-  }
+  console.log("🚀 Запуск Casino Bot...\n");
 
   if (!process.env.TELEGRAM_BOT_TOKEN) {
-    console.error("❌ TELEGRAM_BOT_TOKEN не установлен в .env файле");
+    console.error("❌ TELEGRAM_BOT_TOKEN не установлен");
     process.exit(1);
   }
 
-  if (!process.env.SESSION_SECRET) {
-    console.warn("⚠️  SESSION_SECRET не установлен. Используем временный ключ.");
-    process.env.SESSION_SECRET = "temporary_secret_key_" + Date.now();
-  }
+  // Инициализация базы данных
+  await initDatabase();
+  await runMigrations();
 
   const bot = new TelegramBotService(process.env.TELEGRAM_BOT_TOKEN);
   bot.start();
-  
-  // Pass bot instance to server for notifications
+
   setTelegramBot(bot);
+
+  // Запускаем сервис канала со ставками
+  if (process.env.CHANNEL_ID) {
+    const TelegramBotConstructor = (await import("node-telegram-bot-api")).default;
+    const botInstance = new TelegramBotConstructor(process.env.TELEGRAM_BOT_TOKEN!, { polling: false });
+    const channelService = new ChannelPostService(botInstance, process.env.CHANNEL_ID);
+    await channelService.startFakePostScheduler();
+    console.log("📢 Канал со ставками запущен");
+  } else {
+    console.log("⚠️  CHANNEL_ID не установлен, канал со ставками отключен");
+  }
 
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   startServer(port);
@@ -52,6 +41,7 @@ async function main() {
   console.log("\n✅ Все сервисы запущены!");
   console.log("📱 Telegram бот готов к работе");
   console.log(`🌐 Mini App доступен на http://localhost:${port}`);
+  console.log(`🎰 Casino Bot v1.0`);
 }
 
 main().catch((error) => {

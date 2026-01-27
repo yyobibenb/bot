@@ -1,21 +1,23 @@
 import express from "express";
-import { userService } from "../services/userService";
-import { dealService } from "../services/dealService";
-import { p2pService } from "../services/p2pService";
-import { QRHelper } from "../utils/qr";
-import { CryptoHelper } from "../utils/crypto";
-import { db } from "../db/database";
 import { TelegramBotService } from "../bot/telegramBot";
-import { tronHelper } from "../utils/tron";
-
-async function getWalletBalance(address: string): Promise<number> {
-  try {
-    return await tronHelper.getUSDTBalance(address);
-  } catch (error) {
-    console.error("Error getting wallet balance:", error);
-    return 0;
-  }
-}
+import { UserModel } from "../models/User";
+import { BalanceModel } from "../models/Balance";
+import { TransactionModel } from "../models/Transaction";
+import { AdminModel } from "../models/Admin";
+import { GameModel } from "../models/Game";
+import { DiceGameService } from "../services/DiceGameService";
+import { DiceDuelService } from "../services/DiceDuelService";
+import { OtherGamesService } from "../services/OtherGamesService";
+import { OtherGamesDuelService } from "../services/OtherGamesDuelService";
+import cryptoService from "../services/CryptoService";
+import cryptoBotService from "../services/CryptoBotService";
+import { DuelService } from "../services/DuelService";
+import { SlotsGameService } from "../services/SlotsGameService";
+import { RPSGameService } from "../services/RPSGameService";
+import { RPSDuelService } from "../services/RPSDuelService";
+import { BroadcastModel } from "../models/Broadcast";
+import { BroadcastService } from "../services/BroadcastService";
+import pool from "../database/pool";
 
 const app = express();
 
@@ -31,9 +33,9 @@ let keepAliveInterval: NodeJS.Timeout | null = null;
 function startKeepAlive(port: number) {
   const PING_INTERVAL = 4 * 60 * 1000;
   const url = process.env.PING_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
-  
+
   console.log(`🔄 Keep-alive запущен, пинг каждые 4 минуты: ${url}/health`);
-  
+
   keepAliveInterval = setInterval(async () => {
     try {
       const response = await fetch(`${url}/health`);
@@ -50,755 +52,2286 @@ app.use(express.json());
 app.use(express.static("public"));
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ 
-    status: "ok", 
+  res.status(200).json({
+    status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
 });
 
-function verifyTelegramAuth(initData: string): { valid: boolean; telegramId?: string; error?: string } {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  
-  if (!botToken) {
-    return { valid: false, error: "Bot token not configured" };
-  }
 
-  if (!CryptoHelper.verifyTelegramWebAppData(initData, botToken)) {
-    return { valid: false, error: "Invalid Telegram data" };
-  }
-
-  try {
-    const urlParams = new URLSearchParams(initData);
-    const userJson = urlParams.get('user');
-    if (!userJson) {
-      return { valid: false, error: "User data not found" };
-    }
-
-    const user = JSON.parse(userJson);
-    return { valid: true, telegramId: user.id.toString() };
-  } catch (error) {
-    return { valid: false, error: "Failed to parse user data" };
-  }
-}
-
+// Serve main page
 app.get("/", (req, res) => {
-  res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Гарант Бот</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- System fonts: SF Pro for iOS native feel -->
-  <style>
-    :root {
-      --primary: #00D26A;
-      --primary-glow: rgba(0, 210, 106, 0.2);
-      --bg-gradient: linear-gradient(145deg, #f8fcf9 0%, #ffffff 100%);
-      --glass: rgba(255, 255, 255, 0.7);
-      --glass-border: rgba(0, 210, 106, 0.1);
-      --success: #00D26A;
-      --danger: #FF4757;
-      --text-primary: #1d1d1f;
-      --text-secondary: #86868b;
-      --text-muted: #a1a1a6;
-    }
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
-    
-    html, body {
-      height: 100%;
-      touch-action: manipulation;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
-      font-weight: 400;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      background: var(--bg-gradient);
-      background-attachment: fixed;
-      color: var(--text-primary);
-      min-height: 100vh;
+  res.sendFile("index.html", { root: "./public" });
+});
+
+// API для сохранения данных пользователя
+app.post("/api/user", async (req, res) => {
+  try {
+    const { telegram_id, username, first_name, last_name, language_code, photo_url, is_premium } = req.body;
+
+    console.log('Received user data:', { telegram_id, username, first_name, last_name, photo_url });
+
+    // Создаем или обновляем пользователя
+    const user = await UserModel.createOrUpdate({
+      telegram_id,
+      username,
+      first_name,
+      last_name,
+      language_code,
+      photo_url,
+      is_premium
+    });
+
+    // Создаем баланс, если его нет
+    let balance = await BalanceModel.getByUserId(user.id);
+    if (!balance) {
+      balance = await BalanceModel.createForUser(user.id);
     }
 
-    h1, h2, h3, h4, h5, h6 {
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
-
-    button {
-      font-family: inherit;
-      font-weight: 500;
-    }
-
-    code, .mono {
-      font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-weight: 500;
-    }
-    
-    .app {
-      padding-bottom: 100px;
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 30% 20%, rgba(0, 210, 106, 0.08) 0%, transparent 50%),
-                  radial-gradient(circle at 70% 80%, rgba(0, 210, 106, 0.05) 0%, transparent 50%);
-      opacity: 0.6;
-      pointer-events: none;
-      z-index: 0;
-    }
-    
-    .container {
-      max-width: 100%;
-      padding: 20px;
-      padding-bottom: 120px;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .glass-card {
-      background: var(--glass);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 20px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
-    }
-
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 100%;
-      background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 100%);
-      pointer-events: none;
-    }
-
-    .glass-card-light {
-      background: rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 210, 106, 0.05);
-      border-radius: 16px;
-      padding: 16px;
-    }
-    
-    .header {
-      text-align: center;
-      padding: 20px 0 30px;
-      color: var(--text-primary);
-    }
-    
-    .header h1 {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text-primary);
-      letter-spacing: -0.03em;
-    }
-    
-    .header p {
-      font-size: 16px;
-      color: var(--text-secondary);
-      font-weight: 400;
-    }
-
-    .main-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .grid-card {
-      background: var(--glass);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.02);
-    }
-
-    .grid-card:active {
-      transform: scale(0.96);
-      background: rgba(0, 210, 106, 0.05);
-      border-color: rgba(0, 210, 106, 0.2);
-    }
-
-    .grid-card-icon {
-      width: 56px;
-      height: 56px;
-      background: #f2f2f7;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      transition: all 0.3s;
-    }
-
-    .grid-card:active .grid-card-icon {
-      background: var(--primary);
-      color: white;
-    }
-
-    .grid-card-text {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-    
-    .balance-card {
-      background: var(--glass);
-      text-align: center;
-      padding: 32px 24px;
-      position: relative;
-      box-shadow: 0 10px 40px -10px rgba(0, 210, 106, 0.1);
-    }
-    
-    .balance-label {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-bottom: 12px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-    }
-    
-    .balance-amount {
-      font-family: -apple-system, system-ui, sans-serif;
-      font-size: 48px;
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1;
-      letter-spacing: -0.04em;
-    }
-    
-    .balance-currency {
-      font-size: 20px;
-      color: var(--text-secondary);
-      margin-left: 4px;
-      font-weight: 600;
-    }
-    
-    .address-box {
-      background: #f2f2f7;
-      border: 1px solid rgba(0, 0, 0, 0.03);
-      border-radius: 14px;
-      padding: 14px;
-      margin-top: 20px;
-      font-family: ui-monospace, 'SF Mono', monospace;
-      font-size: 12px;
-      color: var(--text-primary);
-      word-break: break-all;
-    }
-    
-    .section-title {
-      color: var(--text-primary);
-      font-size: 20px;
-      font-weight: 700;
-      margin: 28px 0 16px;
-      padding-left: 4px;
-      letter-spacing: -0.02em;
-    }
-    
-    .deal-card {
-      background: var(--glass);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.03);
-    }
-    
-    .deal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .deal-amount {
-      font-family: -apple-system, system-ui, sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-    
-    .deal-status {
-      padding: 6px 14px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .status-created { 
-      background: #e5e5ea; 
-      color: #3a3a3c;
-    }
-    .status-awaiting { 
-      background: #fff9e6; 
-      color: #997300;
-    }
-    .status-confirmed { 
-      background: #e8f9f0; 
-      color: var(--success);
-    }
-    .status-completed { 
-      background: #e8f9f0; 
-      color: var(--success);
-    }
-    .status-arbitration {
-      background: #fff2e6;
-      color: #ff9500;
-    }
-    .status-cancelled { 
-      background: #ffebeb; 
-      color: var(--danger);
-    }
-    
-    .deal-desc {
-      color: var(--text-secondary);
-      font-size: 15px;
-      margin-bottom: 18px;
-      line-height: 1.4;
-    }
-    
-    .deal-btn {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 14px;
-      background: var(--primary);
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .deal-btn:active {
-      transform: scale(0.97);
-      opacity: 0.9;
-    }
-    
-    .bottom-nav {
-      position: fixed;
-      bottom: 24px;
-      left: 20px;
-      right: 20px;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 24px;
-      padding: 8px;
-      display: flex;
-      gap: 8px;
-      z-index: 1000;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-    }
-    
-    .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 12px 8px;
-      border-radius: 18px;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .nav-item.active {
-      background: #f2f2f7;
-      color: var(--primary);
-    }
-    
-    .nav-icon svg {
-      width: 24px;
-      height: 24px;
-      stroke: currentColor;
-      stroke-width: 2;
-      fill: none;
-    }
-    
-    .panel-icon {
-      width: 48px;
-      height: 48px;
-      background: #f2f2f7;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    
-    .panel-icon svg {
-      width: 24px;
-      height: 24px;
-      stroke: var(--primary);
-      stroke-width: 2;
-      fill: none;
-    }
-    
-    .security-icon {
-      width: 44px;
-      height: 44px;
-      background: #f2f2f7;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    
-    .security-icon svg {
-      width: 24px;
-      height: 24px;
-      stroke: var(--primary);
-      stroke-width: 2;
-      fill: none;
-    }
-
-    .security-icon.warning svg {
-      stroke: #FF6B6B;
-    }
-    
-    .screen { display: none; }
-    .screen.active { display: block; }
-    
-    .pin-container {
-      min-height: 85vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 20px;
-    }
-
-    .pin-lock-icon {
-      width: 80px;
-      height: 80px;
-      background: #f2f2f7;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      margin-bottom: 24px;
-    }
-    
-    .pin-title {
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    
-    .pin-subtitle {
-      font-size: 15px;
-      color: var(--text-secondary);
-      margin-bottom: 36px;
-      text-align: center;
-    }
-    
-    .pin-dots {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 44px;
-    }
-    
-    .pin-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #e5e5ea;
-      border: none;
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    
-    .pin-dot.filled {
-      background: var(--primary);
-      box-shadow: 0 0 10px var(--primary-glow);
-      transform: scale(1.15);
-    }
-    
-    .pin-dot.error {
-      background: var(--danger);
-      animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      15%, 45%, 75% { transform: translateX(-5px); }
-      30%, 60%, 90% { transform: translateX(5px); }
-    }
-    
-    .pin-dot.success {
-      background: var(--success);
-    }
-    
-    .pin-keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      max-width: 280px;
-    }
-    
-    .pin-key {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      background: #f2f2f7;
-      font-family: -apple-system, system-ui, sans-serif;
-      font-size: 28px;
-      font-weight: 300;
-      color: var(--text-primary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      transition: all 0.2s;
-    }
-    
-    .pin-key:active {
-      transform: scale(0.9);
-      background: #e5e5ea;
-    }
-    
-    .pin-key.empty { 
-      visibility: hidden; 
-    }
-    
-    .pin-key.delete { 
-      font-size: 22px;
-      color: var(--text-secondary);
-      border: none;
-      background: transparent;
-    }
-
-    .pin-key.cancel {
-      font-size: 16px;
-      color: var(--text-secondary);
-      border: none;
-      background: transparent;
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <div id="pin-screen" class="screen active">
-      <div class="pin-container">
-        <div class="pin-lock-icon">🔒</div>
-        <div class="pin-title">Введите PIN</div>
-        <div class="pin-subtitle">Используйте ваш секретный код</div>
-        <div class="pin-dots">
-          <div class="pin-dot"></div>
-          <div class="pin-dot"></div>
-          <div class="pin-dot"></div>
-          <div class="pin-dot"></div>
-        </div>
-        <div class="pin-keypad">
-          <button class="pin-key" onclick="handlePin('1')">1</button>
-          <button class="pin-key" onclick="handlePin('2')">2</button>
-          <button class="pin-key" onclick="handlePin('3')">3</button>
-          <button class="pin-key" onclick="handlePin('4')">4</button>
-          <button class="pin-key" onclick="handlePin('5')">5</button>
-          <button class="pin-key" onclick="handlePin('6')">6</button>
-          <button class="pin-key" onclick="handlePin('7')">7</button>
-          <button class="pin-key" onclick="handlePin('8')">8</button>
-          <button class="pin-key" onclick="handlePin('9')">9</button>
-          <button class="pin-key cancel" onclick="window.close()">Отмена</button>
-          <button class="pin-key" onclick="handlePin('0')">0</button>
-          <button class="pin-key delete" onclick="handlePin('backspace')">⌫</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="main-screen" class="screen">
-      <div class="container">
-        <div class="header">
-          <h1>P2P Гарант</h1>
-          <p>Безопасные USDT сделки</p>
-        </div>
-        
-        <div class="glass-card balance-card">
-          <div class="balance-label">ДОСТУПНЫЙ БАЛАНС</div>
-          <div class="balance-amount"><span id="user-balance">0.00</span><span class="balance-currency">USDT</span></div>
-          <div class="address-box" id="wallet-address">Загрузка адреса...</div>
-        </div>
-
-        <div class="main-grid">
-          <div class="grid-card" onclick="showScreen('deal-create')">
-            <div class="grid-card-icon">🤝</div>
-            <div class="grid-card-text">Новая сделка</div>
-          </div>
-          <div class="grid-card" onclick="showScreen('my-deals')">
-            <div class="grid-card-icon">📋</div>
-            <div class="grid-card-text">Мои сделки</div>
-          </div>
-          <div class="grid-card" onclick="showScreen('wallet')">
-            <div class="grid-card-icon">💰</div>
-            <div class="grid-card-text">Кошелек</div>
-          </div>
-          <div class="grid-card" onclick="showScreen('profile')">
-            <div class="grid-card-icon">👤</div>
-            <div class="grid-card-text">Профиль</div>
-          </div>
-        </div>
-
-        <div class="section-title">Активные сделки</div>
-        <div id="active-deals-container">
-          <!-- Deals loaded dynamically -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Bottom Nav - White glass style -->
-    <nav class="bottom-nav">
-      <button class="nav-item active" onclick="showScreen('main')">
-        <div class="nav-icon">
-          <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-        </div>
-        <span>Главная</span>
-      </button>
-      <button class="nav-item" onclick="showScreen('wallet')">
-        <div class="nav-icon">
-          <svg viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-        </div>
-        <span>Кошелек</span>
-      </button>
-      <button class="nav-item" onclick="showScreen('deal-create')">
-        <div class="nav-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-        </div>
-        <span>Сделка</span>
-      </button>
-      <button class="nav-item" onclick="showScreen('profile')">
-        <div class="nav-icon">
-          <svg viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-        </div>
-        <span>Профиль</span>
-      </button>
-    </nav>
-  </div>
-
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    
-    // Apple-style feedback
-    if (tg.HapticFeedback) {
-      tg.HapticFeedback.impactOccurred('medium');
-    }
-
-    let pin = '';
-    const correctPin = '1234'; // Mock PIN
-
-    function handlePin(value) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-      
-      const dots = document.querySelectorAll('.pin-dot');
-      
-      if (value === 'backspace') {
-        if (pin.length > 0) {
-          pin = pin.slice(0, -1);
-          dots[pin.length].classList.remove('filled');
-        }
-        return;
+    res.json({
+      success: true,
+      balance: parseFloat(balance.balance.toString()),
+      user: {
+        id: user.id,
+        telegram_id: user.telegram_id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        language_code: user.language_code,
+        photo_url: user.photo_url,
+        is_premium: user.is_premium
       }
+    });
+  } catch (error) {
+    console.error("Error saving user:", error);
+    res.status(500).json({ success: false, error: "Failed to save user" });
+  }
+});
 
-      if (pin.length < 4) {
-        pin += value;
-        dots[pin.length - 1].classList.add('filled');
-        
-        if (pin.length === 4) {
-          setTimeout(() => {
-            if (pin === correctPin) {
-              dots.forEach(d => d.classList.add('success'));
-              setTimeout(() => showScreen('main'), 300);
-            } else {
-              dots.forEach(d => d.classList.add('error'));
-              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-              setTimeout(() => {
-                pin = '';
-                dots.forEach(d => {
-                  d.classList.remove('filled', 'error');
-                });
-              }, 600);
-            }
-          }, 200);
-        }
+// API для получения пользователя по telegram_id
+app.get("/api/user/telegram/:telegram_id", async (req, res) => {
+  try {
+    const telegram_id = parseInt(req.params.telegram_id);
+    console.log(`📡 API: Запрос пользователя telegram_id=${telegram_id}`);
+
+    const user = await UserModel.findByTelegramId(telegram_id);
+
+    if (!user) {
+      console.log(`❌ Пользователь ${telegram_id} не найден в БД`);
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    console.log(`✅ Пользователь найден:`, {
+      id: user.id,
+      telegram_id: user.telegram_id,
+      first_name: user.first_name,
+      photo_url: user.photo_url || 'NULL'
+    });
+
+    const balance = await BalanceModel.getByUserId(user.id);
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        telegram_id: user.telegram_id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        language_code: user.language_code,
+        photo_url: user.photo_url,
+        is_premium: user.is_premium
+      },
+      balance: balance ? parseFloat(balance.balance.toString()) : 0
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch user" });
+  }
+});
+
+// API для получения списка игр
+app.get("/api/games", async (req, res) => {
+  try {
+    const games = await GameModel.getAllGames();
+    res.json({ success: true, games });
+  } catch (error) {
+    console.error("Error fetching games:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch games" });
+  }
+});
+
+// API для получения режимов игры
+app.get("/api/games/:gameId/modes", async (req, res) => {
+  try {
+    const gameId = parseInt(req.params.gameId);
+    const modes = await GameModel.getGameModes(gameId);
+    res.json({ success: true, modes });
+  } catch (error) {
+    console.error("Error fetching game modes:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch game modes" });
+  }
+});
+
+// API для игры в кубик - Больше/Меньше
+app.post("/api/games/dice/higher-lower", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (choice !== "higher" && choice !== "lower") {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await DiceGameService.playHigherLower(user_id, bet_amount, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Четное/Нечетное
+app.post("/api/games/dice/even-odd", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (choice !== "even" && choice !== "odd") {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await DiceGameService.playEvenOdd(user_id, bet_amount, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Грань (точное число)
+app.post("/api/games/dice/exact-number", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || choice === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playExactNumber(user_id, bet_amount, parseInt(choice));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Сектор
+app.post("/api/games/dice/sector", async (req, res) => {
+  try {
+    const { user_id, bet_amount, sector } = req.body;
+
+    if (!user_id || !bet_amount || !sector) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const sectorNum = parseInt(sector);
+    if (sectorNum !== 1 && sectorNum !== 2 && sectorNum !== 3) {
+      return res.status(400).json({ success: false, error: "Invalid sector. Must be 1, 2, or 3" });
+    }
+
+    const result = await DiceGameService.playSector(user_id, bet_amount, sectorNum as 1 | 2 | 3);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Дуэль
+app.post("/api/games/dice/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - 2X2
+app.post("/api/games/dice/double", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playDouble(user_id, bet_amount, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - 3X3
+app.post("/api/games/dice/triple", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceGameService.playTriple(user_id, bet_amount, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// API для игры в кубик - Подряд (3 числа)
+app.post("/api/games/dice/sequence", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choices } = req.body;
+
+    if (!user_id || !bet_amount || !choices || choices.length !== 3) {
+      return res.status(400).json({ success: false, error: "Missing required fields or invalid choices" });
+    }
+
+    const result = await DiceGameService.playSequence(user_id, bet_amount, choices);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing dice:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========================================
+// DICE DUELS (PVP) - Дуэли между игроками
+// ========================================
+
+// Создать дуэль
+app.post("/api/games/dice/duel/create", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (bet_amount < 1) {
+      return res.status(400).json({ success: false, error: "Bet amount must be at least 1 USDT" });
+    }
+
+    const result = await DiceDuelService.createDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+// Присоединиться к дуэли
+app.post("/api/games/dice/duel/join", async (req, res) => {
+  try {
+    const { duel_id, user_id } = req.body;
+
+    if (!duel_id || !user_id) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceDuelService.joinDuel(duel_id, user_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+// Получить список открытых дуэлей
+app.get("/api/games/dice/duel/list", async (req, res) => {
+  try {
+    const duels = await DiceDuelService.getAvailableDuels();
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error fetching duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to fetch duels" });
+  }
+});
+
+// Отменить дуэль
+app.post("/api/games/dice/duel/cancel", async (req, res) => {
+  try {
+    const { duel_id, user_id } = req.body;
+
+    if (!duel_id || !user_id) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DiceDuelService.cancelDuel(duel_id, user_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
+  }
+});
+
+// API для получения истории игр пользователя
+app.get("/api/user/:userId/history", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const history = await GameModel.getUserGameHistory(userId);
+    res.json({ success: true, history });
+  } catch (error) {
+    console.error("Error fetching game history:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch game history" });
+  }
+});
+
+// API для получения баланса пользователя
+app.get("/api/user/:userId/balance", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const balance = await BalanceModel.getByUserId(userId);
+
+    if (!balance) {
+      return res.status(404).json({ success: false, error: "Balance not found" });
+    }
+
+    res.json({
+      success: true,
+      balance: parseFloat(balance.balance.toString()),
+      total_deposited: parseFloat(balance.total_deposited.toString()),
+      total_withdrawn: parseFloat(balance.total_withdrawn.toString())
+    });
+  } catch (error) {
+    console.error("Error fetching balance:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch balance" });
+  }
+});
+
+// ========== БОУЛИНГ API ==========
+
+app.post("/api/games/bowling/strike", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBowlingStrike(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing bowling:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/bowling/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBowlingDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing bowling:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== ФУТБОЛ API ==========
+
+app.post("/api/games/football/goal", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballGoal(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing football:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/football/miss", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballMiss(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing football:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/football/not-hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballNotHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing football not-hit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/football/hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing football hit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/football/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playFootballDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing football:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== БАСКЕТБОЛ API ==========
+
+app.post("/api/games/basketball/goal", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballGoal(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/basketball/miss", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballMiss(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/basketball/not-hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballNotHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball not-hit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/basketball/hit", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballHit(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball hit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/basketball/duel", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playBasketballDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing basketball duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== СЛОТЫ API ==========
+
+app.post("/api/games/slots/play", async (req, res) => {
+  try {
+    const { user_id, bet_amount, selected_type } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await SlotsGameService.playSlots(user_id, bet_amount, selected_type);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing slots:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== КАМЕНЬ-НОЖНИЦЫ-БУМАГА API ==========
+
+app.post("/api/games/rps/play", async (req, res) => {
+  try {
+    const { user_id, bet_amount, choice } = req.body;
+    if (!user_id || !bet_amount || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (!["rock", "paper", "scissors", "random"].includes(choice)) {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await RPSGameService.playRPS(user_id, bet_amount, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing RPS:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ========== КНБ ДУЭЛИ API ==========
+
+app.post("/api/games/rps/duel/create", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await RPSDuelService.createDuel(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating RPS duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+app.get("/api/games/rps/duel/list/:user_id", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.user_id);
+    if (!userId) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const duels = await RPSDuelService.getAvailableDuels(userId);
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting RPS duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duels" });
+  }
+});
+
+app.post("/api/games/rps/duel/join", async (req, res) => {
+  try {
+    const { user_id, duel_id, choice } = req.body;
+    if (!user_id || !duel_id || !choice) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (!["rock", "paper", "scissors"].includes(choice)) {
+      return res.status(400).json({ success: false, error: "Invalid choice" });
+    }
+
+    const result = await RPSDuelService.joinDuel(user_id, duel_id, choice);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining RPS duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+app.post("/api/games/rps/duel/cancel", async (req, res) => {
+  try {
+    const { user_id, duel_id } = req.body;
+    if (!user_id || !duel_id) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await RPSDuelService.cancelDuel(user_id, duel_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling RPS duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
+  }
+});
+
+// ========== ДАРТС API ==========
+
+app.post("/api/games/darts/red", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsRed(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/darts/white", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsWhite(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/darts/center", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsCenter(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+app.post("/api/games/darts/miss", async (req, res) => {
+  try {
+    const { user_id, bet_amount } = req.body;
+    if (!user_id || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+    const result = await OtherGamesService.playDartsMiss(user_id, bet_amount);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing darts:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play game" });
+  }
+});
+
+// ============================================
+// WITHDRAWAL API (via @send bot)
+// ============================================
+
+app.post("/api/withdraw", async (req, res) => {
+  try {
+    const { user_id, telegram_id, amount } = req.body;
+
+    console.log(`💸 Запрос на вывод: user_id=${user_id}, telegram_id=${telegram_id}, amount=${amount}`);
+
+    if (!user_id || !telegram_id || !amount) {
+      console.error("❌ Отсутствуют обязательные поля");
+      return res.status(400).json({ success: false, error: "Отсутствуют обязательные поля" });
+    }
+
+    const withdrawAmount = parseFloat(amount);
+
+    if (isNaN(withdrawAmount) || withdrawAmount < 10) {
+      console.error("❌ Некорректная сумма вывода:", withdrawAmount);
+      return res.status(400).json({ success: false, error: "Минимальная сумма вывода: 10 USDT" });
+    }
+
+    // Проверяем баланс
+    const balance = await BalanceModel.getBalance(user_id);
+    console.log(`💰 Текущий баланс пользователя ${user_id}:`, balance?.balance);
+
+    if (!balance || balance.balance < withdrawAmount) {
+      console.error("❌ Недостаточно средств");
+      return res.status(400).json({ success: false, error: "Недостаточно средств" });
+    }
+
+    // Получаем пользователя
+    const user = await UserModel.getUserById(user_id);
+    if (!user) {
+      console.error("❌ Пользователь не найден");
+      return res.status(400).json({ success: false, error: "Пользователь не найден" });
+    }
+
+    // Создаем транзакцию
+    await TransactionModel.createTransaction(
+      user_id,
+      "withdrawal",
+      withdrawAmount,
+      "pending"
+    );
+    console.log(`✅ Транзакция на вывод создана`);
+
+    // Вычитаем с баланса
+    await BalanceModel.subtractBalance(user_id, withdrawAmount);
+    console.log(`✅ Баланс обновлен`);
+
+    // Получаем новый баланс
+    const newBalance = await BalanceModel.getBalance(user_id);
+    console.log(`💰 Новый баланс:`, newBalance?.balance);
+
+    // Отправляем уведомление админу
+    if (telegramBot) {
+      const adminId = 5855297931;
+      try {
+        await telegramBot.sendMessage(
+          adminId,
+          `🔔 **Новая заявка на вывод**\n\nПользователь: ${user.first_name} (ID: ${telegram_id})\nСумма: ${withdrawAmount} USDT\n\n💸 Используйте @send для отправки средств пользователю по ID: \`${telegram_id}\``,
+          { parse_mode: "Markdown" }
+        );
+        console.log(`✅ Уведомление админу отправлено`);
+      } catch (err) {
+        console.error("❌ Не удалось отправить уведомление админу:", err);
       }
     }
 
-    function showScreen(screenId) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-      
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      const target = document.getElementById(screenId + '-screen');
-      if (target) target.classList.add('active');
-      
-      // Update nav active state
-      document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('onclick').includes(screenId)) {
-          item.classList.add('active');
-        }
+    res.json({
+      success: true,
+      newBalance: newBalance?.balance || 0,
+      message: "Заявка на вывод создана"
+    });
+  } catch (error: any) {
+    console.error("❌ Ошибка при обработке вывода:", error);
+    res.status(500).json({ success: false, error: error.message || "Не удалось обработать заявку" });
+  }
+});
+
+// ============================================
+// CRYPTOBOT API ENDPOINTS
+// ============================================
+
+// Создать инвойс для пополнения (CryptoBot)
+app.post("/api/crypto/create-invoice", async (req, res) => {
+  try {
+    const { user_id, amount } = req.body;
+
+    console.log(`📝 Запрос на создание инвойса: user_id=${user_id}, amount=${amount}`);
+
+    if (!user_id || !amount) {
+      console.error("❌ Отсутствуют обязательные поля");
+      return res.status(400).json({ success: false, error: "Отсутствуют обязательные поля" });
+    }
+
+    if (typeof amount !== 'number' || amount < 1) {
+      console.error("❌ Некорректная сумма:", amount);
+      return res.status(400).json({ success: false, error: "Некорректная сумма пополнения" });
+    }
+
+    const result = await cryptoBotService.createInvoice(user_id, amount);
+
+    console.log(`📤 Результат создания инвойса:`, result);
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("❌ Ошибка при создании инвойса:", error);
+    res.status(500).json({ success: false, error: error.message || "Не удалось создать счет" });
+  }
+});
+
+// Вебхук для получения уведомлений от CryptoBot
+app.post("/api/crypto/webhook", async (req, res) => {
+  try {
+    const invoiceData = req.body;
+    console.log("CryptoBot webhook received:", invoiceData);
+
+    const result = await cryptoBotService.processPayment(invoiceData);
+
+    if (result.success) {
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ success: false, error: "Payment processing failed" });
+    }
+  } catch (error: any) {
+    console.error("Error processing webhook:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Установить вебхук для CryptoBot (только для админов)
+app.post("/api/crypto/set-webhook", async (req, res) => {
+  try {
+    const { user_id, webhook_url } = req.body;
+
+    // Проверка что пользователь админ
+    const user = await UserModel.getUserById(user_id);
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ success: false, error: "Доступ запрещён" });
+    }
+
+    const webhookUrl = webhook_url || `${process.env.BASE_URL || "https://bot-rl59.onrender.com"}/api/crypto/webhook`;
+    const result = await cryptoBotService.setWebhook(webhookUrl);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: "Вебхук успешно установлен",
+        webhook_url: webhookUrl
       });
+    } else {
+      res.status(400).json({ success: false, error: result.error || "Не удалось установить вебхук" });
+    }
+  } catch (error: any) {
+    console.error("Error setting webhook:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Удалить вебхук CryptoBot (только для админов)
+app.post("/api/crypto/delete-webhook", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    // Проверка что пользователь админ
+    const user = await UserModel.getUserById(user_id);
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ success: false, error: "Доступ запрещён" });
     }
 
-    // Initialize with mock data
-    document.getElementById('wallet-address').innerText = 'TWS7...x8Y2';
-    document.getElementById('user-balance').innerText = '1,250.00';
-  </script>
-</body>
-</html>
-  `);
+    const result = await cryptoBotService.deleteWebhook();
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: "Вебхук успешно удалён"
+      });
+    } else {
+      res.status(400).json({ success: false, error: result.error || "Не удалось удалить вебхук" });
+    }
+  } catch (error: any) {
+    console.error("Error deleting webhook:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// OLD CRYPTO API ENDPOINTS (TronWeb - deprecated)
+// ============================================
+
+// Получить адрес для пополнения
+app.post("/api/crypto/deposit-address", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const address = await cryptoService.getDepositAddress(user_id);
+    res.json({ success: true, address });
+  } catch (error: any) {
+    console.error("Error getting deposit address:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get deposit address" });
+  }
+});
+
+// Проверить депозит
+app.post("/api/crypto/check-deposit", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const result = await cryptoService.checkDeposit(user_id);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error("Error checking deposit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to check deposit" });
+  }
+});
+
+// Обработать депозит (зачислить на баланс)
+app.post("/api/crypto/process-deposit", async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+    const result = await cryptoService.processDeposit(user_id);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error processing deposit:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to process deposit" });
+  }
+});
+
+// Создать заявку на вывод
+app.post("/api/crypto/withdraw", async (req, res) => {
+  try {
+    const { user_id, address, amount } = req.body;
+    if (!user_id || !address || !amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await cryptoService.withdrawUSDT(user_id, address, parseFloat(amount));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating withdrawal:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create withdrawal" });
+  }
+});
+
+// ============================================
+// ADMIN API ENDPOINTS
+// ============================================
+
+// Проверить является ли пользователь админом
+app.get("/api/admin/check", async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const isAdmin = await AdminModel.isAdmin(parseInt(user_id as string));
+    const admin = await AdminModel.getAdminByUserId(parseInt(user_id as string));
+
+    res.json({
+      success: true,
+      isAdmin,
+      permissions: admin?.permissions || null
+    });
+  } catch (error: any) {
+    console.error("Error checking admin:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить список ожидающих выводов (для админов)
+app.get("/api/admin/pending-withdrawals", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_withdrawals");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Получаем pending withdrawals из базы
+    const result = await TransactionModel.getPendingWithdrawals();
+
+    res.json({ success: true, withdrawals: result });
+  } catch (error: any) {
+    console.error("Error getting pending withdrawals:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get withdrawals" });
+  }
+});
+
+// Отметить вывод как выполненный (админ уже отправил через @send)
+app.post("/api/admin/withdrawals/:id/complete", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { admin_id } = req.body;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(admin_id, "manage_withdrawals");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Получаем транзакцию
+    const transaction = await TransactionModel.getTransactionById(parseInt(id));
+
+    if (!transaction || transaction.type !== "withdrawal") {
+      return res.status(404).json({ success: false, error: "Transaction not found" });
+    }
+
+    if (transaction.status !== "pending") {
+      return res.status(400).json({ success: false, error: "Transaction already processed" });
+    }
+
+    // Обновляем статус на completed
+    await TransactionModel.updateTransactionStatus(
+      parseInt(id),
+      "completed",
+      null,
+      admin_id
+    );
+
+    // Уведомляем пользователя
+    if (telegramBot) {
+      const user = await UserModel.getUserById(transaction.user_id);
+      if (user) {
+        try {
+          await telegramBot.sendMessage(
+            user.telegram_id,
+            `✅ **Вывод выполнен!**\n\nСумма: ${transaction.amount} USDT\n\nСредства отправлены на ваш Telegram ID через @send бота.`,
+            { parse_mode: "Markdown" }
+          );
+        } catch (err) {
+          console.error("Не удалось отправить уведомление пользователю:", err);
+        }
+      }
+    }
+
+    res.json({ success: true, message: "Withdrawal marked as completed" });
+  } catch (error: any) {
+    console.error("Error completing withdrawal:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to complete withdrawal" });
+  }
+});
+
+// Получить статистику (для админов)
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "view_stats");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const totalUsers = await UserModel.getTotalUsers();
+    const usersWithDeposits = await UserModel.getUsersWithDeposits();
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        usersWithDeposits
+      }
+    });
+  } catch (error: any) {
+    console.error("Error getting stats:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить детальную статистику (для админов)
+app.get("/api/admin/stats/detailed", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    console.log("📊 /api/admin/stats/detailed: Запрос от admin_id =", admin_id);
+
+    if (!admin_id) {
+      console.error("❌ /api/admin/stats/detailed: Missing admin_id");
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    console.log("🔐 Проверяем права администратора для user_id =", admin_id);
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "view_stats");
+    if (!hasPermission) {
+      console.error("❌ /api/admin/stats/detailed: Access denied для user_id =", admin_id);
+      return res.status(403).json({ success: false, error: "Access denied: недостаточно прав для просмотра статистики" });
+    }
+
+    console.log("✅ Права администратора подтверждены");
+
+    // Общая статистика пользователей
+    console.log("📊 Получаем общую статистику пользователей...");
+    const totalUsersResult = await pool.query("SELECT COUNT(*) as count FROM users");
+    const totalUsers = parseInt(totalUsersResult.rows[0].count);
+    console.log("✅ Всего пользователей:", totalUsers);
+
+    const usersWithDepositsResult = await pool.query(
+      "SELECT COUNT(DISTINCT user_id) as count FROM transactions WHERE type = 'deposit' AND status = 'completed'"
+    );
+    const usersWithDeposits = parseInt(usersWithDepositsResult.rows[0].count);
+    console.log("✅ Пользователей с депозитами:", usersWithDeposits);
+
+    // Депозиты и выводы за месяц по дням
+    console.log("📊 Получаем транзакции за последние 30 дней...");
+    const transactionsPerDayResult = await pool.query(
+      `SELECT
+        created_at::date as date,
+        type,
+        COUNT(*) as count,
+        SUM(amount) as total_amount
+       FROM transactions
+       WHERE created_at >= NOW() - INTERVAL '30 days'
+       AND status = 'completed'
+       GROUP BY created_at::date, type
+       ORDER BY created_at::date DESC`
+    );
+
+    const transactionsPerDay = transactionsPerDayResult.rows.map(row => ({
+      date: row.date,
+      type: row.type,
+      count: parseInt(row.count),
+      total_amount: parseFloat(row.total_amount),
+    }));
+    console.log("✅ Получено транзакций за месяц:", transactionsPerDay.length);
+
+    // Топ пользователей по депозитам
+    console.log("📊 Получаем топ пользователей...");
+    const topUsersResult = await pool.query(
+      `SELECT
+        u.id,
+        u.username,
+        u.first_name,
+        u.created_at,
+        COALESCE(MAX(b.total_deposited), 0) as total_deposited,
+        COALESCE(MAX(b.total_withdrawn), 0) as total_withdrawn,
+        COALESCE(MAX(b.balance), 0) as balance,
+        COUNT(DISTINCT t.id) as total_transactions
+       FROM users u
+       LEFT JOIN balances b ON u.id = b.user_id
+       LEFT JOIN transactions t ON u.id = t.user_id
+       GROUP BY u.id, u.username, u.first_name, u.created_at
+       ORDER BY MAX(b.total_deposited) DESC NULLS LAST
+       LIMIT 50`
+    );
+
+    const topUsers = topUsersResult.rows.map(row => ({
+      id: row.id,
+      username: row.username,
+      first_name: row.first_name,
+      created_at: row.created_at,
+      total_deposited: parseFloat(row.total_deposited) || 0,
+      total_withdrawn: parseFloat(row.total_withdrawn) || 0,
+      balance: parseFloat(row.balance) || 0,
+      total_transactions: parseInt(row.total_transactions) || 0,
+    }));
+    console.log("✅ Получено топ пользователей:", topUsers.length);
+
+    // Статистика игр
+    console.log("📊 Получаем статистику игр...");
+    const gamesStatsResult = await pool.query(
+      `SELECT
+        g.id,
+        g.name,
+        g.type,
+        COUNT(gh.id) as total_plays,
+        SUM(CASE WHEN gh.is_win THEN 1 ELSE 0 END) as total_wins,
+        SUM(CASE WHEN gh.is_win THEN 0 ELSE 1 END) as total_losses,
+        SUM(gh.bet_amount) as total_bet,
+        SUM(gh.win_amount) as total_win,
+        ROUND(AVG(CASE WHEN gh.is_win THEN 100 ELSE 0 END), 2) as win_rate
+       FROM games g
+       LEFT JOIN game_history gh ON g.id = gh.game_id
+       GROUP BY g.id, g.name, g.type
+       ORDER BY total_plays DESC`
+    );
+
+    const gamesStats = gamesStatsResult.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      total_plays: parseInt(row.total_plays) || 0,
+      total_wins: parseInt(row.total_wins) || 0,
+      total_losses: parseInt(row.total_losses) || 0,
+      total_bet: parseFloat(row.total_bet) || 0,
+      total_win: parseFloat(row.total_win) || 0,
+      win_rate: parseFloat(row.win_rate) || 0,
+    }));
+    console.log("✅ Получена статистика по играм:", gamesStats.length);
+
+    // Общее количество игр
+    console.log("📊 Получаем общее количество игр...");
+    const totalGamesResult = await pool.query("SELECT COUNT(*) as count FROM game_history");
+    const totalGames = parseInt(totalGamesResult.rows[0]?.count || 0);
+    console.log("✅ Всего игр сыграно:", totalGames);
+
+    // Общая сумма депозитов
+    console.log("📊 Получаем общую сумму депозитов...");
+    const totalDepositsResult = await pool.query(
+      "SELECT SUM(amount) as total FROM transactions WHERE type = 'deposit' AND status = 'completed'"
+    );
+    const totalDeposits = parseFloat(totalDepositsResult.rows[0]?.total || 0);
+    console.log("✅ Общая сумма депозитов:", totalDeposits);
+
+    // Общая сумма выводов
+    console.log("📊 Получаем общую сумму выводов...");
+    const totalWithdrawalsResult = await pool.query(
+      "SELECT SUM(amount) as total FROM transactions WHERE type = 'withdrawal' AND status = 'completed'"
+    );
+    const totalWithdrawals = parseFloat(totalWithdrawalsResult.rows[0]?.total || 0);
+    console.log("✅ Общая сумма выводов:", totalWithdrawals);
+
+    // Активные пользователи сегодня
+    console.log("📊 Получаем активных пользователей сегодня...");
+    const activeUsersTodayResult = await pool.query(
+      "SELECT COUNT(DISTINCT user_id) as count FROM game_history WHERE played_at::date = CURRENT_DATE"
+    );
+    const activeUsersToday = parseInt(activeUsersTodayResult.rows[0]?.count || 0);
+    console.log("✅ Активных пользователей сегодня:", activeUsersToday);
+
+    console.log("✅ Все данные статистики получены успешно");
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        usersWithDeposits,
+        totalGames,
+        totalDeposits,
+        totalWithdrawals,
+        activeUsersToday,
+        transactionsPerDay,
+        topUsers,
+        gamesStats,
+      }
+    });
+  } catch (error: any) {
+    console.error("❌ КРИТИЧЕСКАЯ ОШИБКА в /api/admin/stats/detailed:");
+    console.error("❌ Тип ошибки:", error.constructor.name);
+    console.error("❌ Сообщение ошибки:", error.message);
+    console.error("❌ Stack trace:", error.stack);
+
+    // Дополнительные детали для SQL ошибок
+    if (error.code) {
+      console.error("❌ SQL код ошибки:", error.code);
+    }
+    if (error.detail) {
+      console.error("❌ SQL детали:", error.detail);
+    }
+    if (error.hint) {
+      console.error("❌ SQL подсказка:", error.hint);
+    }
+
+    // Формируем подробное сообщение для клиента
+    let errorMessage = error.message || "Неизвестная ошибка сервера";
+    if (error.code) {
+      errorMessage += ` (SQL код: ${error.code})`;
+    }
+    if (error.detail) {
+      errorMessage += `\nДетали: ${error.detail}`;
+    }
+
+    res.status(500).json({
+      success: false,
+      error: errorMessage,
+      errorType: error.constructor.name
+    });
+  }
+});
+
+// Получить детальную информацию о конкретном пользователе (для админов)
+app.get("/api/admin/user/:user_id", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+    const { user_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    // Проверяем права админа
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "view_stats");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const searchId = parseInt(user_id);
+
+    if (isNaN(searchId) || searchId <= 0) {
+      console.log(`❌ Некорректный ID: ${user_id}`);
+      return res.status(400).json({ success: false, error: "Invalid user ID" });
+    }
+
+    console.log(`🔍 Поиск пользователя по ID: ${searchId}`);
+
+    // Пробуем найти пользователя по database ID
+    let user = await UserModel.getUserById(searchId);
+    console.log(`📊 Поиск по database ID ${searchId}:`, user ? 'найден' : 'не найден');
+
+    // Если не найден, пробуем найти по telegram_id
+    if (!user) {
+      user = await UserModel.findByTelegramId(searchId);
+      console.log(`📊 Поиск по telegram_id ${searchId}:`, user ? 'найден' : 'не найден');
+    }
+
+    if (!user) {
+      console.log(`❌ Пользователь ${searchId} не найден ни по database ID, ни по telegram_id`);
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    console.log(`✅ Пользователь найден: ID=${user.id}, telegram_id=${user.telegram_id}, имя=${user.first_name}`);
+
+    // Баланс
+    const balance = await BalanceModel.getBalance(user.id);
+
+    // Транзакции
+    const transactions = await TransactionModel.getUserTransactions(user.id, 100);
+
+    // История игр
+    const gamesHistory = await GameModel.getUserGameHistory(user.id);
+
+    // Подсчёт статистики игр
+    const gamesCount = gamesHistory.length;
+    const winsCount = gamesHistory.filter((game: any) => game.is_win).length;
+    const totalBets = gamesHistory.reduce((sum: number, game: any) => sum + parseFloat(game.bet_amount || 0), 0);
+    const totalWins = gamesHistory.reduce((sum: number, game: any) => sum + parseFloat(game.win_amount || 0), 0);
+
+    res.json({
+      success: true,
+      user: {
+        ...user,
+        balance: balance ? parseFloat(balance.balance.toString()) : 0,
+        total_deposited: balance ? parseFloat(balance.total_deposited.toString()) : 0,
+        total_withdrawn: balance ? parseFloat(balance.total_withdrawn.toString()) : 0,
+      },
+      balance: balance ? parseFloat(balance.balance.toString()) : 0,
+      transactions,
+      gamesHistory,
+      stats: {
+        games_count: gamesCount,
+        wins_count: winsCount,
+        total_bets: totalBets,
+        total_wins: totalWins
+      }
+    });
+  } catch (error: any) {
+    console.error("Error getting user details:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Заблокировать/разблокировать пользователя (для админов)
+app.post("/api/admin/user/:user_id/block", async (req, res) => {
+  try {
+    const { admin_id, is_blocked } = req.body;
+    const { user_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await UserModel.updateUser(parseInt(user_id), { is_blocked });
+
+    res.json({
+      success: true,
+      message: is_blocked ? "User blocked" : "User unblocked"
+    });
+  } catch (error: any) {
+    console.error("Error blocking user:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Редактировать баланс пользователя (для админов)
+app.post("/api/admin/user/:user_id/edit-balance", async (req, res) => {
+  try {
+    const { admin_id, amount, operation } = req.body;
+    const { user_id } = req.params;
+
+    if (!admin_id || !amount || !operation) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const parsedAmount = parseFloat(amount);
+
+    if (operation === "add") {
+      await BalanceModel.addBalance(parseInt(user_id), parsedAmount);
+    } else if (operation === "subtract") {
+      await BalanceModel.subtractBalance(parseInt(user_id), parsedAmount);
+    } else if (operation === "set") {
+      // Установить точное значение баланса
+      const currentBalance = await BalanceModel.getBalance(parseInt(user_id));
+      if (currentBalance) {
+        const diff = parsedAmount - parseFloat(currentBalance.balance.toString());
+        if (diff > 0) {
+          await BalanceModel.addBalance(parseInt(user_id), diff);
+        } else if (diff < 0) {
+          await BalanceModel.subtractBalance(parseInt(user_id), Math.abs(diff));
+        }
+      }
+    }
+
+    const newBalance = await BalanceModel.getBalance(parseInt(user_id));
+
+    res.json({
+      success: true,
+      newBalance: newBalance ? parseFloat(newBalance.balance.toString()) : 0
+    });
+  } catch (error: any) {
+    console.error("Error editing balance:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// BROADCAST API ENDPOINTS
+// ============================================
+
+// Создать рассылку (для админов)
+app.post("/api/admin/broadcast/create", async (req, res) => {
+  try {
+    const { admin_id, message_text, media_url, media_type } = req.body;
+
+    if (!admin_id || !message_text) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const broadcast = await BroadcastModel.create(
+      parseInt(admin_id),
+      message_text,
+      media_url,
+      media_type
+    );
+
+    res.json({
+      success: true,
+      broadcast
+    });
+  } catch (error: any) {
+    console.error("Error creating broadcast:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Отправить рассылку (для админов)
+app.post("/api/admin/broadcast/:broadcast_id/send", async (req, res) => {
+  try {
+    const { admin_id } = req.body;
+    const { broadcast_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Подготавливаем рассылку
+    await BroadcastModel.sendBroadcast(parseInt(broadcast_id));
+
+    // Запускаем отправку в фоновом режиме
+    if (telegramBot) {
+      const broadcastService = new BroadcastService(telegramBot.getBot());
+      broadcastService.startBroadcast(parseInt(broadcast_id));
+    }
+
+    res.json({
+      success: true,
+      message: "Broadcast started"
+    });
+  } catch (error: any) {
+    console.error("Error sending broadcast:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить список рассылок (для админов)
+app.get("/api/admin/broadcasts", async (req, res) => {
+  try {
+    const { admin_id, limit, offset } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const broadcasts = await BroadcastModel.getAll(
+      limit ? parseInt(limit as string) : 50,
+      offset ? parseInt(offset as string) : 0
+    );
+
+    res.json({
+      success: true,
+      broadcasts
+    });
+  } catch (error: any) {
+    console.error("Error getting broadcasts:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Получить статистику рассылки (для админов)
+app.get("/api/admin/broadcast/:broadcast_id/stats", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+    const { broadcast_id } = req.params;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_users");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const stats = await BroadcastModel.getStats(parseInt(broadcast_id));
+    const broadcast = await BroadcastModel.getById(parseInt(broadcast_id));
+
+    res.json({
+      success: true,
+      broadcast,
+      stats
+    });
+  } catch (error: any) {
+    console.error("Error getting broadcast stats:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// SETTINGS API ENDPOINTS
+// ============================================
+
+// Получить все настройки (для админов)
+app.get("/api/admin/settings", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const result = await pool.query("SELECT * FROM settings ORDER BY key");
+
+    res.json({
+      success: true,
+      settings: result.rows
+    });
+  } catch (error: any) {
+    console.error("Error getting settings:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Обновить настройку (для админов)
+app.post("/api/admin/settings/:key", async (req, res) => {
+  try {
+    const { admin_id, value } = req.body;
+    const { key } = req.params;
+
+    if (!admin_id || value === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await pool.query(
+      `UPDATE settings SET value = $1, updated_at = NOW() WHERE key = $2`,
+      [value, key]
+    );
+
+    res.json({
+      success: true,
+      message: "Setting updated"
+    });
+  } catch (error: any) {
+    console.error("Error updating setting:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Обновить RTP игры (для админов)
+app.post("/api/admin/games/:game_id/rtp", async (req, res) => {
+  try {
+    const { admin_id, rtp } = req.body;
+    const { game_id } = req.params;
+
+    if (!admin_id || rtp === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const rtpValue = parseFloat(rtp);
+    if (rtpValue < 0 || rtpValue > 100) {
+      return res.status(400).json({ success: false, error: "RTP must be between 0 and 100" });
+    }
+
+    await pool.query(
+      `UPDATE games SET rtp = $1 WHERE id = $2`,
+      [rtpValue, parseInt(game_id)]
+    );
+
+    res.json({
+      success: true,
+      message: "RTP updated"
+    });
+  } catch (error: any) {
+    console.error("Error updating RTP:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Включить/выключить игру (для админов)
+app.post("/api/admin/games/:game_id/toggle", async (req, res) => {
+  try {
+    const { admin_id, is_active } = req.body;
+    const { game_id } = req.params;
+
+    if (!admin_id || is_active === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await pool.query(
+      `UPDATE games SET is_active = $1 WHERE id = $2`,
+      [is_active, parseInt(game_id)]
+    );
+
+    res.json({
+      success: true,
+      message: is_active ? "Game enabled" : "Game disabled"
+    });
+  } catch (error: any) {
+    console.error("Error toggling game:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========================================
+// ADMIN: Настройки дуэлей между игроками
+// ========================================
+
+// Получить настройки дуэлей
+app.get("/api/admin/duel-settings", async (req, res) => {
+  try {
+    const { admin_id } = req.query;
+
+    if (!admin_id) {
+      return res.status(400).json({ success: false, error: "Missing admin_id" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id as string), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const commissionQuery = await pool.query(
+      "SELECT value FROM settings WHERE key = 'duel_commission_rate'"
+    );
+    const guaranteedWinQuery = await pool.query(
+      "SELECT value FROM settings WHERE key = 'duel_guaranteed_win_user_id'"
+    );
+
+    res.json({
+      success: true,
+      commission_rate: parseFloat(commissionQuery.rows[0]?.value || '9.00'),
+      guaranteed_win_user_id: parseInt(guaranteedWinQuery.rows[0]?.value || '0')
+    });
+  } catch (error: any) {
+    console.error("Error fetching duel settings:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Обновить процент комиссии дуэлей
+app.post("/api/admin/duel-settings/commission", async (req, res) => {
+  try {
+    const { admin_id, commission_rate } = req.body;
+
+    if (!admin_id || commission_rate === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (commission_rate < 0 || commission_rate > 50) {
+      return res.status(400).json({ success: false, error: "Commission rate must be between 0 and 50" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    await pool.query(
+      `UPDATE settings SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE key = 'duel_commission_rate'`,
+      [commission_rate.toString()]
+    );
+
+    res.json({
+      success: true,
+      message: `Duel commission rate updated to ${commission_rate}%`
+    });
+  } catch (error: any) {
+    console.error("Error updating duel commission:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Установить гарантированного победителя дуэлей
+app.post("/api/admin/duel-settings/guaranteed-win", async (req, res) => {
+  try {
+    const { admin_id, user_id } = req.body;
+
+    if (!admin_id || user_id === undefined) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const hasPermission = await AdminModel.hasPermission(parseInt(admin_id), "manage_settings");
+    if (!hasPermission) {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    // Проверяем что пользователь существует (если не 0)
+    if (user_id !== 0) {
+      const user = await UserModel.getUserById(user_id);
+      if (!user) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+    }
+
+    await pool.query(
+      `UPDATE settings SET value = $1, updated_at = CURRENT_TIMESTAMP WHERE key = 'duel_guaranteed_win_user_id'`,
+      [user_id.toString()]
+    );
+
+    res.json({
+      success: true,
+      message: user_id === 0 ? "Guaranteed wins disabled" : `User ${user_id} will now win all duels`
+    });
+  } catch (error: any) {
+    console.error("Error updating guaranteed win setting:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// DUEL API ENDPOINTS
+// ============================================
+
+// Создать комнату для дуэли
+app.post("/api/duels/create", async (req, res) => {
+  try {
+    const { user_id, game_name, mode_name, bet_amount } = req.body;
+
+    if (!user_id || !game_name || !mode_name || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DuelService.createDuelRoom(user_id, game_name, mode_name, parseFloat(bet_amount));
+
+    // Отправляем уведомление создателю
+    if (result.success && telegramBot && result.room_code) {
+      const user = await UserModel.getUserById(user_id);
+      if (user) {
+        await telegramBot.sendMessage(
+          user.telegram_id,
+          `✅ Комната создана!\n\n🎮 Игра: ${game_name}\n🎯 Режим: ${mode_name}\n💰 Ставка: ${bet_amount} USDT\n\n🔑 Код комнаты: \`${result.room_code}\`\n\nОтправьте этот код оппоненту или ждите присоединения.`,
+          { parse_mode: "Markdown" }
+        );
+      }
+    }
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+// Присоединиться к комнате
+app.post("/api/duels/join", async (req, res) => {
+  try {
+    const { user_id, room_code } = req.body;
+
+    if (!user_id || !room_code) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await DuelService.joinDuelRoom(user_id, room_code);
+
+    // Отправляем уведомления обоим игрокам
+    if (result.success && result.duel && telegramBot) {
+      const creator = await UserModel.getUserById(result.duel.creator_id);
+      const opponent = await UserModel.getUserById(user_id);
+
+      if (creator) {
+        await telegramBot.sendMessage(
+          creator.telegram_id,
+          `🎮 Противник присоединился!\n\n👤 Игрок: ${opponent?.first_name || "Игрок"}\n💰 Ставка: ${result.duel.bet_amount} USDT\n\n🎯 Сделайте свой ход в Mini App!`
+        );
+      }
+
+      if (opponent) {
+        await telegramBot.sendMessage(
+          opponent.telegram_id,
+          `✅ Вы присоединились к дуэли!\n\n🎮 Игра: ${result.duel.mode_name}\n💰 Ставка: ${result.duel.bet_amount} USDT\n👤 Противник: ${creator?.first_name || "Игрок"}\n\n🎯 Сделайте свой ход в Mini App!`
+        );
+      }
+    }
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+// Получить информацию о дуэли
+app.get("/api/duels/:duel_id", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const duel = await DuelService.getDuel(parseInt(duel_id));
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Duel not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Получить дуэль по коду комнаты
+app.get("/api/duels/room/:room_code", async (req, res) => {
+  try {
+    const { room_code } = req.params;
+    const duel = await DuelService.getDuelByRoomCode(room_code);
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Room not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel by room code:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Сыграть в дуэли
+app.post("/api/duels/:duel_id/play", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id, result } = req.body;
+
+    if (!user_id || !result) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const playResult = await DuelService.playDuel(user_id, parseInt(duel_id), result);
+
+    // Если дуэль завершена, отправляем уведомления
+    if (playResult.success && playResult.winner && telegramBot) {
+      const duel = await DuelService.getDuel(parseInt(duel_id));
+      if (duel) {
+        const creator = await UserModel.getUserById(duel.creator_id);
+        const opponent = await UserModel.getUserById(duel.opponent_id!);
+        const prize = duel.bet_amount * 2 * 0.95;
+
+        if (playResult.winner === "draw") {
+          // Ничья
+          if (creator) {
+            await telegramBot.sendMessage(
+              creator.telegram_id,
+              `🤝 Дуэль завершена!\n\n🎯 Результат: Ничья\n💰 Возврат: ${duel.bet_amount} USDT`
+            );
+          }
+          if (opponent) {
+            await telegramBot.sendMessage(
+              opponent.telegram_id,
+              `🤝 Дуэль завершена!\n\n🎯 Результат: Ничья\n💰 Возврат: ${duel.bet_amount} USDT`
+            );
+          }
+        } else {
+          const isCreatorWinner = playResult.winner === "creator";
+          const winner = isCreatorWinner ? creator : opponent;
+          const loser = isCreatorWinner ? opponent : creator;
+
+          if (winner) {
+            await telegramBot.sendMessage(
+              winner.telegram_id,
+              `🎉 Победа в дуэли!\n\n💰 Выигрыш: +${prize.toFixed(2)} USDT\n🎯 Комиссия: 5%`
+            );
+          }
+          if (loser) {
+            await telegramBot.sendMessage(
+              loser.telegram_id,
+              `😔 Поражение в дуэли\n\n💸 Проигрыш: -${duel.bet_amount} USDT\n\nПопробуйте еще раз!`
+            );
+          }
+        }
+      }
+    }
+
+    res.json(playResult);
+  } catch (error: any) {
+    console.error("Error playing duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play duel" });
+  }
+});
+
+// Отменить дуэль
+app.post("/api/duels/:duel_id/cancel", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const result = await DuelService.cancelDuel(user_id, parseInt(duel_id));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
+  }
+});
+
+// Получить активные дуэли пользователя
+app.get("/api/duels/user/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const duels = await DuelService.getUserDuels(parseInt(user_id));
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting user duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get user duels" });
+  }
+});
+
+// ============================================
+// OTHER GAMES PVP DUELS API (Bowling, Football, Basketball)
+// ============================================
+
+// Создать PvP дуэль
+app.post("/api/other-duels/create", async (req, res) => {
+  try {
+    const { user_id, game_type, mode_name, bet_amount } = req.body;
+
+    if (!user_id || !game_type || !mode_name || !bet_amount) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    if (!['bowling', 'football', 'basketball'].includes(game_type)) {
+      return res.status(400).json({ success: false, error: "Invalid game type" });
+    }
+
+    const result = await OtherGamesDuelService.createDuelRoom(
+      user_id,
+      game_type as 'bowling' | 'football' | 'basketball',
+      mode_name,
+      parseFloat(bet_amount)
+    );
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error creating other game duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to create duel" });
+  }
+});
+
+// Присоединиться к PvP дуэли
+app.post("/api/other-duels/join", async (req, res) => {
+  try {
+    const { user_id, room_code } = req.body;
+
+    if (!user_id || !room_code) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const result = await OtherGamesDuelService.joinDuelRoom(user_id, room_code);
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error joining other game duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to join duel" });
+  }
+});
+
+// Сыграть в PvP дуэли
+app.post("/api/other-duels/:duel_id/play", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const result = await OtherGamesDuelService.playDuel(user_id, parseInt(duel_id));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error playing other game duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to play duel" });
+  }
+});
+
+// Получить информацию о дуэли
+app.get("/api/other-duels/:duel_id", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const duel = await OtherGamesDuelService.getDuel(parseInt(duel_id));
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Duel not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Получить дуэль по коду комнаты
+app.get("/api/other-duels/room/:room_code", async (req, res) => {
+  try {
+    const { room_code } = req.params;
+    const duel = await OtherGamesDuelService.getDuelByRoomCode(room_code);
+
+    if (!duel) {
+      return res.status(404).json({ success: false, error: "Room not found" });
+    }
+
+    res.json({ success: true, duel });
+  } catch (error: any) {
+    console.error("Error getting duel by room code:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duel" });
+  }
+});
+
+// Отменить дуэль
+app.post("/api/other-duels/:duel_id/cancel", async (req, res) => {
+  try {
+    const { duel_id } = req.params;
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: "Missing user_id" });
+    }
+
+    const result = await OtherGamesDuelService.cancelDuel(user_id, parseInt(duel_id));
+    res.json(result);
+  } catch (error: any) {
+    console.error("Error cancelling duel:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to cancel duel" });
+  }
+});
+
+// Получить доступные дуэли для игры
+app.get("/api/other-duels/available/:game_type", async (req, res) => {
+  try {
+    const { game_type } = req.params;
+
+    if (!['bowling', 'football', 'basketball'].includes(game_type)) {
+      return res.status(400).json({ success: false, error: "Invalid game type" });
+    }
+
+    const duels = await OtherGamesDuelService.getAvailableDuels(game_type as 'bowling' | 'football' | 'basketball');
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting available duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get duels" });
+  }
+});
+
+// Получить активные дуэли пользователя
+app.get("/api/other-duels/user/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const duels = await OtherGamesDuelService.getUserDuels(parseInt(user_id));
+    res.json({ success: true, duels });
+  } catch (error: any) {
+    console.error("Error getting user duels:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get user duels" });
+  }
+});
+
+// ============================================
+// USER STATS API ENDPOINTS
+// ============================================
+
+// Получить детальную статистику пользователя
+app.get("/api/user/:user_id/stats", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const userId = parseInt(user_id);
+
+    const user = await UserModel.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Вычисляем дни с регистрации
+    const daysWithBot = Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24));
+
+    // Получаем статистику из user_stats
+    const statsResult = await pool.query(
+      `SELECT
+        us.*,
+        g.name as favorite_game_name,
+        g.type as favorite_game_type
+       FROM user_stats us
+       LEFT JOIN games g ON us.favorite_game_id = g.id
+       WHERE us.user_id = $1`,
+      [userId]
+    );
+
+    let stats = {
+      total_games: 0,
+      total_wins: 0,
+      total_losses: 0,
+      total_bet_amount: 0,
+      total_win_amount: 0,
+      biggest_win: 0,
+      favorite_game_name: null,
+      favorite_game_type: null,
+    };
+
+    if (statsResult.rows.length > 0) {
+      const row = statsResult.rows[0];
+      stats = {
+        total_games: parseInt(row.total_games) || 0,
+        total_wins: parseInt(row.total_wins) || 0,
+        total_losses: parseInt(row.total_losses) || 0,
+        total_bet_amount: parseFloat(row.total_bet_amount) || 0,
+        total_win_amount: parseFloat(row.total_win_amount) || 0,
+        biggest_win: parseFloat(row.biggest_win) || 0,
+        favorite_game_name: row.favorite_game_name,
+        favorite_game_type: row.favorite_game_type,
+      };
+    }
+
+    // Получаем историю последних игр
+    const historyResult = await pool.query(
+      `SELECT
+        gh.*,
+        g.name as game_name,
+        g.type as game_type
+       FROM game_history gh
+       JOIN games g ON gh.game_id = g.id
+       WHERE gh.user_id = $1
+       ORDER BY gh.played_at DESC
+       LIMIT 10`,
+      [userId]
+    );
+
+    const history = historyResult.rows.map(row => ({
+      game_name: row.game_name,
+      game_type: row.game_type,
+      bet_amount: parseFloat(row.bet_amount),
+      win_amount: parseFloat(row.win_amount),
+      is_win: row.is_win,
+      result: row.result,
+      played_at: row.played_at,
+    }));
+
+    res.json({
+      success: true,
+      daysWithBot,
+      stats,
+      history,
+    });
+  } catch (error: any) {
+    console.error("Error getting user stats:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get user stats" });
+  }
+});
+
+// ============================================
+// REFERRAL API ENDPOINTS
+// ============================================
+
+// Получить реферальную статистику пользователя
+app.get("/api/referrals/:user_id", async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const userId = parseInt(user_id);
+
+    const user = await UserModel.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    const { ReferralModel } = await import("../models/Referral");
+    const stats = await ReferralModel.getReferralStats(userId);
+
+    // Получаем имя бота для ссылки
+    const botUsername = process.env.BOT_USERNAME || "jokerycasino_bot";
+    const referralLink = `https://t.me/${botUsername}?start=${user.telegram_id}`;
+
+    res.json({
+      success: true,
+      referralLink,
+      stats
+    });
+  } catch (error: any) {
+    console.error("Error getting referral stats:", error);
+    res.status(500).json({ success: false, error: error.message || "Failed to get referral stats" });
+  }
 });
 
 export function startServer(port: number) {

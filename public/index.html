@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+  <title>Casino App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+
+    <!-- Profile Screen -->
+    <div id="profile-screen" class="screen active">
+      <div class="profile">
+        <div id="avatar" class="avatar">?</div>
+        <h2 id="username">Загрузка...</h2>
+        <p id="handle" class="handle">@loading</p>
+      </div>
+
+      <div class="balance-card">
+        <div class="balance-label">БАЛАНС</div>
+        <div class="balance-amount">
+          <span id="balance">0.00</span>
+        </div>
+        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 18px;">USDT</div>
+
+        <!-- Action Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+          <button class="btn secondary" onclick="handleDeposit()" style="margin: 0;">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <polyline points="19 12 12 19 5 12"/>
+            </svg>
+            <span>Пополнить</span>
+          </button>
+          <button class="btn primary" onclick="handleWithdraw()" style="margin: 0;">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"/>
+              <polyline points="5 12 12 5 19 12"/>
+            </svg>
+            <span>Вывести</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- User Stats Card -->
+      <div class="balance-card" style="margin-top: 16px;">
+        <div class="balance-label">👥 Профиль игрока</div>
+        <div style="margin-top: 8px; font-size: 14px; color: var(--text-secondary);">
+          <span id="days-with-bot">Ты с Jokery уже 0 дней</span>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <div class="balance-label" style="font-size: 14px; margin-bottom: 8px;">🎰 Итоги за всё время</div>
+          <div class="stat-row">
+            <span>Топ-игра:</span>
+            <span id="top-game">-</span>
+          </div>
+          <div class="stat-row">
+            <span>Сыграно раундов:</span>
+            <span id="total-games">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Сумма всех ставок:</span>
+            <span id="total-bets">0.00$</span>
+          </div>
+          <div class="stat-row highlight">
+            <span>Самый крупный занос:</span>
+            <span id="biggest-win">0.00$</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Games Screen -->
+    <div id="games-screen" class="screen">
+      <!-- Top Banner -->
+      <div class="games-banner">
+        <div class="banner-content">
+          <div class="banner-logo">
+            <img src="/images/casino-banner.jpg" alt="Jokery Casino" class="banner-image">
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Games Section -->
+      <div class="games-section">
+        <h3 class="section-title">🔥 Популярные</h3>
+        <div class="games-scroll">
+          <button class="game-card" onclick="openDiceGame()">
+            <div class="game-card-icon">🎲</div>
+            <div class="game-card-name">Кости</div>
+            <div class="game-card-info">До x5.5</div>
+          </button>
+          <button class="game-card" onclick="openSlotsGame()">
+            <div class="game-card-icon">🎰</div>
+            <div class="game-card-name">Слоты</div>
+            <div class="game-card-info">До x70</div>
+          </button>
+          <button class="game-card" onclick="openRPSGame()">
+            <div class="game-card-icon">🪨</div>
+            <div class="game-card-name">Камень-Ножн-Бумага</div>
+            <div class="game-card-info">x2.76</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- New Games Section -->
+      <div class="games-section">
+        <h3 class="section-title">✨ Новинки</h3>
+        <div class="games-scroll">
+          <button class="game-card" onclick="openBowlingGame()">
+            <div class="game-card-icon">🎳</div>
+            <div class="game-card-name">Боулинг</div>
+            <div class="game-card-info">x1.84</div>
+          </button>
+          <button class="game-card" onclick="openDartsGame()">
+            <div class="game-card-icon">🎯</div>
+            <div class="game-card-name">Дартс</div>
+            <div class="game-card-info">x3.68</div>
+          </button>
+          <button class="game-card" onclick="openFootballGame()">
+            <div class="game-card-icon">⚽</div>
+            <div class="game-card-name">Футбол</div>
+            <div class="game-card-info">До x1.84</div>
+          </button>
+          <button class="game-card" onclick="openBasketballGame()">
+            <div class="game-card-icon">🏀</div>
+            <div class="game-card-name">Баскет</div>
+            <div class="game-card-info">x1.84</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Slots Section -->
+      <div class="games-section">
+        <h3 class="section-title">🎰 Слоты</h3>
+        <div class="games-scroll">
+          <button class="game-card disabled">
+            <div class="game-card-icon">💎</div>
+            <div class="game-card-name">Алмазы</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">🍒</div>
+            <div class="game-card-name">Фрукты</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+          <button class="game-card disabled">
+            <div class="game-card-icon">⭐</div>
+            <div class="game-card-name">Звёзды</div>
+            <div class="game-card-info">Скоро</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dice Game Screen - All-in-One Cards -->
+    <div id="dice-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="dice-balance-amount">0.00</span> USDT
+          </div>
+          <div id="dice-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🎲 Кости</h2>
+
+      <!-- Game Modes List (Scrollable) - Простые карточки -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Higher/Lower -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', 'higher-lower', '🎲 Больше / Меньше', 1.89)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎲 Больше / Меньше</h3>
+            <span class="dice-mode-coef">x1.89</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="higher-lower"></div>
+        </div>
+
+        <!-- Mode: Even/Odd -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', 'even-odd', '🎯 Четное / Нечетное', 1.9)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎯 Четное / Нечетное</h3>
+            <span class="dice-mode-coef">x1.9</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="even-odd"></div>
+        </div>
+
+        <!-- Mode: Exact Number -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', 'exact', '🎰 Точное число', 5.5)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎰 Точное число</h3>
+            <span class="dice-mode-coef">x5.5</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="exact"></div>
+        </div>
+
+        <!-- Mode: 2x2 -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', '2x2', '🎯 Больше/Меньше 2X2', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎯 Больше/Меньше 2X2</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="2x2"></div>
+        </div>
+
+        <!-- Mode: 3x3 -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', '3x3', '🔥 Больше/Меньше 3X3', 5.52)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🔥 Больше/Меньше 3X3</h3>
+            <span class="dice-mode-coef">x5.52</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="3x3"></div>
+        </div>
+
+        <!-- Mode: Sector -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', 'sector', '🎪 Сектор', 2.76)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎪 Сектор</h3>
+            <span class="dice-mode-coef">x2.76</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="sector"></div>
+        </div>
+
+        <!-- Mode: Sequence -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('dice', 'sequence', '📊 Подряд', 5.52)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">📊 Подряд</h3>
+            <span class="dice-mode-coef">x5.52</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="sequence"></div>
+        </div>
+
+        <!-- Mode: Duel PVP -->
+        <div class="dice-mode-card-simple" onclick="openDuelScreen()">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚔️ Дуэль (PVP)</h3>
+            <span class="dice-mode-coef" style="font-size: 14px; color: var(--text-secondary);">vs Игрок</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="duel"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Dice Duel Screen - PVP Duels List -->
+    <div id="dice-duel-screen" class="screen">
+      <!-- Header -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToDiceModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="dice-duel-balance-amount">0.00</span> USDT
+          </div>
+          <div id="dice-duel-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">⚔️ Дуэль Кубиков</h2>
+
+      <!-- Create Duel Section -->
+      <div class="duel-create-section" style="padding: 20px; background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 18px; margin-bottom: 20px; backdrop-filter: var(--blur); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+        <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">💎 Создать дуэль</h3>
+        <input
+          type="number"
+          id="duel-bet-input"
+          class="input"
+          placeholder="Сумма ставки (USDT)"
+          min="1"
+          step="0.01"
+          style="margin-bottom: 12px;"
+        />
+        <button class="btn primary" onclick="createDuel()" style="width: 100%; margin: 0;">
+          Создать дуэль
+        </button>
+      </div>
+
+      <!-- Active Duels List -->
+      <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">🎮 Активные дуэли</h3>
+      <div id="duels-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Duels will be loaded here -->
+        <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+          Загрузка дуэлей...
+        </div>
+      </div>
+    </div>
+
+    <!-- Dice Play Screen - Actual Game -->
+    <div id="dice-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToDiceModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="dice-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="dice-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="play-mode-title" style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🎲 Больше 3 (x1.89)</h3>
+
+        <!-- Dice Display with Telegram Animated Sticker -->
+        <div class="dice-display-main">
+          <!-- Lottie animation контейнер -->
+          <div id="dice-lottie-container" style="width: 200px; height: 200px; margin: 0 auto; display: none;"></div>
+          <!-- Fallback emoji -->
+          <div class="dice-emoji" id="dice-emoji" style="display: block;">🎲</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-dice-btn" onclick="playDiceGame()">
+          ИГРАТЬ
+        </button>
+
+        <!-- Win Display -->
+        <div id="dice-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="dice-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="dice-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Bowling Game Screen - All-in-One Cards -->
+    <div id="bowling-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="bowling-balance-amount">0.00</span> USDT
+          </div>
+          <div id="bowling-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🎳 Боулинг</h2>
+
+      <!-- Game Modes List -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Strike -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('bowling', 'strike', '🎳 Страйк', 1.84)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎳 Страйк</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="bowling-strike"></div>
+        </div>
+
+        <!-- Mode: Duel -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('bowling', 'duel', '⚔️ Дуэль Боулинга', 1.84)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚔️ Дуэль</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="bowling-duel"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bowling Play Screen - Actual Game -->
+    <div id="bowling-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToBowlingModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="bowling-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="bowling-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="bowling-play-mode-title" style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🎳 Страйк (x1.84)</h3>
+
+        <!-- Bowling Display with Emoji -->
+        <div class="dice-display-main">
+          <div class="dice-emoji" id="bowling-emoji">🎳</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="bowling-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-bowling-btn" onclick="playBowlingGame()">
+          ИГРАТЬ
+        </button>
+
+        <!-- Win Display -->
+        <div id="bowling-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="bowling-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="bowling-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="bowling-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="bowling-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Football Game Screen - All-in-One Cards -->
+    <div id="football-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="football-balance-amount">0.00</span> USDT
+          </div>
+          <div id="football-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">⚽ Футбол</h2>
+
+      <!-- Game Modes List -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Goal -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('football', 'goal', '⚽ Гол', 1.33)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚽ Гол</h3>
+            <span class="dice-mode-coef">x1.33</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="football-goal"></div>
+        </div>
+
+        <!-- Mode: Miss -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('football', 'miss', '❌ Мимо', 1.84)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">❌ Мимо</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="football-miss"></div>
+        </div>
+
+        <!-- Mode: Duel -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('football', 'duel', '⚔️ Дуэль Футбола', 1.84)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚔️ Дуэль</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="football-duel"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Football Play Screen - Actual Game -->
+    <div id="football-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToFootballModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="football-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="football-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="football-play-mode-title" style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">⚽ Гол (x1.33)</h3>
+
+        <!-- Football Display with Emoji -->
+        <div class="dice-display-main">
+          <div class="dice-emoji" id="football-emoji">⚽</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="football-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-football-btn" onclick="playFootballGame()">
+          ИГРАТЬ
+        </button>
+
+        <!-- Win Display -->
+        <div id="football-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="football-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="football-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="football-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="football-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Basketball Game Screen - All-in-One Cards -->
+    <div id="basketball-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="basketball-balance-amount">0.00</span> USDT
+          </div>
+          <div id="basketball-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🏀 Баскетбол</h2>
+
+      <!-- Game Modes List -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Goal -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('basketball', 'goal', '🏀 Попадание', 1.84)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🏀 Попадание</h3>
+            <span class="dice-mode-coef">x1.84</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="basketball-goal"></div>
+        </div>
+
+        <!-- Mode: Miss -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('basketball', 'miss', '❌ Промах', 1.33)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">❌ Промах</h3>
+            <span class="dice-mode-coef">x1.33</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="basketball-miss"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Basketball Play Screen - Actual Game -->
+    <div id="basketball-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToBasketballModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="basketball-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="basketball-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="basketball-play-mode-title" style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🏀 Попадание (x1.84)</h3>
+
+        <!-- Basketball Display with Emoji -->
+        <div class="dice-display-main">
+          <div class="dice-emoji" id="basketball-emoji">🏀</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="basketball-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-basketball-btn" onclick="playBasketballGame()">
+          ИГРАТЬ
+        </button>
+
+        <!-- Win Display -->
+        <div id="basketball-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="basketball-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="basketball-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="basketball-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="basketball-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Darts Game Screen - All-in-One Cards -->
+    <div id="darts-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="darts-balance-amount">0.00</span> USDT
+          </div>
+          <div id="darts-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🎯 Дартс</h2>
+
+      <!-- Game Modes List - Простые карточки как у кубика -->
+      <div class="dice-modes-scroll">
+
+        <!-- Mode: Red/Center -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'red', '🎯 Красное/Центр', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎯 Красное/Центр</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="darts-red"></div>
+        </div>
+
+        <!-- Mode: White -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'white', '⚪ Белое', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚪ Белое</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="darts-white"></div>
+        </div>
+
+        <!-- Mode: Center -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'center', '🔴 Середина', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🔴 Середина</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="darts-center"></div>
+        </div>
+
+        <!-- Mode: Miss -->
+        <div class="dice-mode-card-simple" onclick="openFullscreenMode('darts', 'miss', '❌ Мимо', 3.68)">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">❌ Мимо</h3>
+            <span class="dice-mode-coef">x3.68</span>
+          </div>
+          <div class="dice-mode-preview" data-mode="darts-miss"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Darts Play Screen - Actual Game -->
+    <div id="darts-play-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToDartsModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="darts-play-balance-amount">0.00</span> USDT
+          </div>
+          <div id="darts-play-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="darts-play-mode-title" style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🎯 Красное/Центр (x3.68)</h3>
+
+        <!-- Darts Display with Emoji -->
+        <div class="dice-display-main">
+          <div class="dice-emoji" id="darts-emoji">🎯</div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="darts-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-darts-btn" onclick="playDartsGame()">
+          ИГРАТЬ
+        </button>
+
+        <!-- Win Display -->
+        <div id="darts-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="darts-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="darts-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="darts-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="darts-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Slots Type Selection Screen -->
+    <div id="slots-type-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="slots-type-balance-amount">0.00</span> USDT
+          </div>
+          <div id="slots-type-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🎰 Выберите тип слота</h2>
+
+      <!-- Slots Type Cards -->
+      <div class="dice-modes-scroll">
+        <!-- Лимон -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('🍋')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🍋 Лимоны</h3>
+            <span class="dice-mode-coef">x5</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">🍋 🍋 🍋</div>
+        </div>
+
+        <!-- Виноград -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('🍇')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🍇 Виноград</h3>
+            <span class="dice-mode-coef">x10</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">🍇 🍇 🍇</div>
+        </div>
+
+        <!-- BAR -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('BAR')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">💎 BAR</h3>
+            <span class="dice-mode-coef">x30</span>
+          </div>
+          <div style="text-align: center; font-size: 36px; margin-top: 12px; font-weight: bold;">BAR BAR BAR</div>
+        </div>
+
+        <!-- 7 -->
+        <div class="dice-mode-card-simple" onclick="selectSlotType('7️⃣')">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">7️⃣ Семёрка</h3>
+            <span class="dice-mode-coef">x70</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">7️⃣ 7️⃣ 7️⃣</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slots Game Screen -->
+    <div id="slots-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="slots-balance-amount">0.00</span> USDT
+          </div>
+          <div id="slots-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 id="slots-mode-title" style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🎰 Слоты (до x70)</h3>
+
+        <!-- Slots Display -->
+        <div class="dice-display-main">
+          <!-- Lottie слот-машина (основание + три барабана) -->
+          <div id="slots-machine-container" style="position: relative; width: 100%; max-width: 400px; height: 420px; margin: 0 auto; display: block;">
+            <!-- Основание с ручкой (нижний элемент, анимка 2) -->
+            <div id="slots-base-container" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 380px; z-index: 1;"></div>
+
+            <!-- Центральный барабан с числами (анимка 1, по центру основания) -->
+            <div id="slots-drum-container" style="position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 260px; height: 260px; z-index: 2;"></div>
+
+            <!-- Три барабана (поверх барабана с числами, внутри него) -->
+            <div style="position: absolute; bottom: 135px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 10;">
+              <!-- Барабан 1 (левый) -->
+              <div id="slot-reel-1" style="width: 75px; height: 75px; position: relative;">
+                <div id="slot-spin-1" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
+                <div id="slot-symbol-1" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;"></div>
+              </div>
+
+              <!-- Барабан 2 (центр) -->
+              <div id="slot-reel-2" style="width: 75px; height: 75px; position: relative;">
+                <div id="slot-spin-2" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
+                <div id="slot-symbol-2" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;"></div>
+              </div>
+
+              <!-- Барабан 3 (правый) -->
+              <div id="slot-reel-3" style="width: 75px; height: 75px; position: relative;">
+                <div id="slot-spin-3" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
+                <div id="slot-symbol-3" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fallback emoji (если Lottie недоступны) -->
+          <div style="display: block;" id="slots-emoji-container">
+            <div style="display: flex; justify-content: center; gap: 10px; font-size: 48px;">
+              <span id="slot-1">7️⃣</span>
+              <span id="slot-2">7️⃣</span>
+              <span id="slot-3">7️⃣</span>
+            </div>
+            <div style="text-align: center; margin-top: 12px; font-size: 13px; color: var(--text-secondary);">
+              🍋 x5 | 🍇 x10 | BAR x30 | 7️⃣ x70
+            </div>
+          </div>
+        </div>
+
+        <!-- Bet Amount -->
+        <div class="dice-bet-input-section">
+          <input type="number" id="slots-bet-input" class="dice-bet-input" placeholder="10" min="0.1" step="0.1" value="10">
+          <span class="dice-bet-currency">$</span>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-slots-btn" onclick="playSlotsGame()">
+          КРУТИТЬ
+        </button>
+
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="slots-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="slots-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- RPS Mode Selection Screen -->
+    <div id="rps-mode-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToGames()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="rps-mode-balance-amount">0.00</span> USDT
+          </div>
+          <div id="rps-mode-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">🪨📄✂️ КНБ - Выбор режима</h2>
+
+      <!-- Mode Cards -->
+      <div class="dice-modes-scroll">
+        <!-- Solo Mode -->
+        <div class="dice-mode-card-simple" onclick="openRPSSoloGame()">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">🎮 Обычная игра</h3>
+            <span class="dice-mode-coef">x2.76</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">🪨 📄 ✂️</div>
+        </div>
+
+        <!-- Duel Mode -->
+        <div class="dice-mode-card-simple" onclick="openRPSDuelScreen()">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h3 style="margin: 0;">⚔️ Дуэль (PVP)</h3>
+            <span class="dice-mode-coef" style="font-size: 14px; color: var(--text-secondary);">vs Игрок</span>
+          </div>
+          <div style="text-align: center; font-size: 48px; margin-top: 12px;">⚔️</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RPS Duel Screen - PVP Duels List -->
+    <div id="rps-duel-screen" class="screen">
+      <!-- Header -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToRPSModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="rps-duel-balance-amount">0.00</span> USDT
+          </div>
+          <div id="rps-duel-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary); font-size: 20px;">⚔️ Дуэль КНБ</h2>
+
+      <!-- Create Duel Section -->
+      <div class="duel-create-section" style="padding: 20px; background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 18px; margin-bottom: 20px; backdrop-filter: var(--blur); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+        <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">💎 Создать дуэль</h3>
+        <input
+          type="number"
+          id="rps-duel-bet-input"
+          class="input"
+          placeholder="Сумма ставки (USDT)"
+          min="1"
+          step="0.01"
+          style="margin-bottom: 12px;"
+        />
+        <button class="btn primary" onclick="createRPSDuel()" style="width: 100%; margin: 0;">
+          Создать дуэль
+        </button>
+      </div>
+
+      <!-- Active Duels List -->
+      <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">🎮 Активные дуэли</h3>
+      <div id="rps-duels-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Duels will be loaded here -->
+        <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+          Загрузка дуэлей...
+        </div>
+      </div>
+    </div>
+
+    <!-- RPS Game Screen -->
+    <div id="rps-game-screen" class="screen">
+      <!-- Header with Balance and Avatar -->
+      <div class="dice-header">
+        <button class="back-btn-small" onclick="backToRPSModes()">← Назад</button>
+        <div class="dice-header-right">
+          <div class="dice-balance">
+            <span id="rps-balance-amount">0.00</span> USDT
+          </div>
+          <div id="rps-avatar" class="dice-avatar-small">?</div>
+        </div>
+      </div>
+
+      <!-- Game Play Area -->
+      <div class="dice-game-area">
+        <!-- Mode Title -->
+        <h3 style="text-align: center; color: var(--text-primary); margin-bottom: 16px; font-size: 18px;">🪨📄✂️ Камень-Ножницы-Бумага (x2.76)</h3>
+
+        <!-- RPS Display (новый дизайн) -->
+        <div class="fullscreen-game-display" style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-around; align-items: center; font-size: 48px; width: 100%;">
+            <div id="rps-user-choice">❓</div>
+            <div style="font-size: 24px;">VS</div>
+            <div id="rps-bot-choice">❓</div>
+          </div>
+        </div>
+
+        <!-- Layout для ставки и выбора -->
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+          <!-- Bet Amount -->
+          <div style="text-align: center;">
+            <input type="number" id="rps-bet-input" class="fullscreen-bet-input-compact" placeholder="10" min="0.1" step="0.1" value="10">
+            <span style="font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-left: 4px;">$</span>
+          </div>
+
+          <!-- Choice Buttons -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            <button class="dice-choice-btn" onclick="selectRPSChoice('rock')" id="rps-btn-rock">
+              🪨 Камень
+            </button>
+            <button class="dice-choice-btn" onclick="selectRPSChoice('paper')" id="rps-btn-paper">
+              📄 Бумага
+            </button>
+            <button class="dice-choice-btn" onclick="selectRPSChoice('scissors')" id="rps-btn-scissors">
+              ✂️ Ножницы
+            </button>
+          </div>
+        </div>
+
+        <!-- Play Button -->
+        <button class="dice-play-btn" id="play-rps-btn" onclick="playRPSGame()">
+          ИГРАТЬ
+        </button>
+
+        <!-- Win Display -->
+        <div id="rps-win-display" style="display: none; text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; animation: slideIn 0.5s ease;">
+          <div style="font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px;">
+            🎉 ВЫИГРЫШ! 🎉
+          </div>
+          <div id="rps-win-amount" style="font-size: 32px; font-weight: bold; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          <div id="rps-win-multiplier" style="font-size: 16px; color: #fff; margin-top: 4px; opacity: 0.9;"></div>
+        </div>
+      </div>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="rps-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+
+      <!-- Confetti Canvas for Win Animation -->
+      <canvas id="rps-confetti-canvas" class="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Referral Screen -->
+    <div id="referral-screen" class="screen">
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary);">👥 Партнёрская программа</h2>
+
+      <!-- Stats Cards -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div class="balance-card">
+          <div class="balance-label" style="font-size: 12px;">Приглашено</div>
+          <div class="balance-amount" style="font-size: 24px;"><span id="referral-count">0</span></div>
+        </div>
+        <div class="balance-card">
+          <div class="balance-label" style="font-size: 12px;">Заработано</div>
+          <div class="balance-amount" style="font-size: 24px; color: var(--emerald);"><span id="referral-earned">0.00</span>$</div>
+        </div>
+      </div>
+
+      <div class="balance-card" style="margin-bottom: 16px;">
+        <div style="font-size: 14px; color: var(--text-secondary); text-align: center;">
+          💰 Получай <span style="color: var(--text-primary); font-weight: 600;">5%</span> от каждого депозита реферала!
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <div style="font-size: 14px; margin-bottom: 8px; color: var(--text-secondary);">Твоя реферальная ссылка:</div>
+        <div id="referral-link" class="input" style="cursor: pointer; word-break: break-all; user-select: all;" onclick="copyReferralLink()">
+          Загрузка...
+        </div>
+        <button class="btn secondary" style="width: 100%; margin-top: 12px;" onclick="shareReferralLink()">
+          <span>📤 Поделиться ссылкой</span>
+        </button>
+      </div>
+
+      <!-- Referrals List -->
+      <div class="balance-card">
+        <div class="balance-label">📋 Твои рефералы</div>
+        <div id="referrals-list" style="margin-top: 12px;">
+          <div style="text-align: center; color: var(--text-secondary); padding: 20px 0;">
+            Пока никого не пригласил
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Screen -->
+    <div id="admin-screen" class="screen">
+      <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-primary);">⚙️ Админ-панель</h2>
+
+      <!-- Admin Tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="showAdminSection('stats')">📊 Статистика</button>
+        <button class="admin-tab" onclick="showAdminSection('users')">👥 Юзеры</button>
+        <button class="admin-tab" onclick="showAdminSection('control')">🎮 Контроль игр</button>
+        <button class="admin-tab" onclick="showAdminSection('broadcast')">📢 Рассылки</button>
+        <button class="admin-tab" onclick="showAdminSection('settings')">⚙️ Настройки</button>
+      </div>
+
+      <!-- Statistics Section -->
+      <div id="admin-stats-section" class="admin-section active">
+        <div class="balance-card" style="margin-bottom: 16px;">
+          <div class="balance-label">Статистика</div>
+          <div style="margin-top: 12px;">
+            <div class="stat-row">
+              <span>👥 Всего пользователей:</span>
+              <span id="stat-total-users">0</span>
+            </div>
+            <div class="stat-row">
+              <span>📈 Активных за 24ч:</span>
+              <span id="stat-active-users">0</span>
+            </div>
+            <div class="stat-row">
+              <span>💰 Общий депозит:</span>
+              <span id="stat-total-deposits">0 USDT</span>
+            </div>
+            <div class="stat-row">
+              <span>💸 Общий вывод:</span>
+              <span id="stat-total-withdrawals">0 USDT</span>
+            </div>
+            <div class="stat-row">
+              <span>🎰 Всего игр:</span>
+              <span id="stat-total-games">0</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn secondary" style="width: 100%;" onclick="loadAdminStats()">🔄 Обновить</button>
+      </div>
+
+      <!-- Users Section -->
+      <div id="admin-users-section" class="admin-section">
+        <div style="margin-bottom: 16px;">
+          <input type="number" id="user-id-input" class="input" placeholder="Telegram ID пользователя" style="width: 100%; margin-bottom: 8px;">
+          <button class="btn secondary" style="width: 100%;" onclick="loadUserInfo()">🔍 Найти</button>
+        </div>
+
+        <div id="user-info-block" style="display: none;">
+          <div class="balance-card" style="margin-bottom: 16px;">
+            <div class="balance-label">Информация о пользователе</div>
+            <div style="margin-top: 12px;">
+              <div class="stat-row">
+                <span>ID:</span>
+                <span id="user-info-id">-</span>
+              </div>
+              <div class="stat-row">
+                <span>Telegram ID:</span>
+                <span id="user-info-telegram-id">-</span>
+              </div>
+              <div class="stat-row">
+                <span>Имя:</span>
+                <span id="user-info-name">-</span>
+              </div>
+              <div class="stat-row">
+                <span>Username:</span>
+                <span id="user-info-username">-</span>
+              </div>
+              <div class="stat-row">
+                <span>Баланс:</span>
+                <span id="user-info-balance">0 USDT</span>
+              </div>
+              <div class="stat-row">
+                <span>Статус:</span>
+                <span id="user-info-blocked">Активен</span>
+              </div>
+              <div class="stat-row">
+                <span>Регистрация:</span>
+                <span id="user-info-created">-</span>
+              </div>
+              <div class="stat-row">
+                <span>Последняя активность:</span>
+                <span id="user-info-last-active">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="balance-card" style="margin-bottom: 16px;">
+            <div class="balance-label">Статистика игр</div>
+            <div style="margin-top: 12px;">
+              <div class="stat-row">
+                <span>Всего игр:</span>
+                <span id="user-info-games-count">0</span>
+              </div>
+              <div class="stat-row">
+                <span>Выигрышей:</span>
+                <span id="user-info-wins-count">0</span>
+              </div>
+              <div class="stat-row">
+                <span>Общая сумма ставок:</span>
+                <span id="user-info-total-bets">0 USDT</span>
+              </div>
+              <div class="stat-row">
+                <span>Общая сумма выигрышей:</span>
+                <span id="user-info-total-wins">0 USDT</span>
+              </div>
+              <div class="stat-row" style="border-top: 1px solid var(--glass-border); padding-top: 8px; margin-top: 8px;">
+                <span style="font-weight: 600;">Profit/Loss:</span>
+                <span id="user-info-profit" style="font-weight: 600;">0 USDT</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <div class="balance-label" style="margin-bottom: 12px;">Управление балансом</div>
+            <input type="number" id="balance-amount-input" class="input" placeholder="Сумма" style="width: 100%; margin-bottom: 8px;">
+            <div style="display: flex; gap: 8px;">
+              <button class="btn secondary" style="flex: 1;" onclick="editUserBalance('add')">➕ Добавить</button>
+              <button class="btn secondary" style="flex: 1;" onclick="editUserBalance('subtract')">➖ Убавить</button>
+              <button class="btn secondary" style="flex: 1;" onclick="editUserBalance('set')">= Установить</button>
+            </div>
+          </div>
+
+          <button class="btn primary" style="width: 100%;" id="block-user-btn" onclick="toggleBlockUser()">🚫 Заблокировать</button>
+        </div>
+      </div>
+
+      <!-- Game Control Section -->
+      <div id="admin-control-section" class="admin-section">
+        <div class="balance-card" style="margin-bottom: 16px;">
+          <div class="balance-label">🎮 Контроль результатов игр</div>
+          <div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            Управляй результатами для контроля прибыли казино. Когда "Форсирование" включено, казино может принудительно показывать нужные результаты.
+          </div>
+
+          <div class="stat-row" style="margin-bottom: 16px; padding: 12px; background: rgba(24, 226, 154, 0.1); border-radius: 8px;">
+            <span style="font-weight: 600;">Форсирование результатов:</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="force-results-enabled" onchange="toggleForceResults()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div id="force-settings" style="display: none;">
+            <div style="margin-bottom: 12px;">
+              <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">
+                Процент форсированных проигрышей (0-100%):
+              </div>
+              <input type="range" id="force-loss-rate" class="range-slider" min="0" max="100" value="30" oninput="updateForceLossDisplay(this.value)">
+              <div style="text-align: center; color: var(--text-primary); font-weight: 600; margin-top: 4px;">
+                <span id="force-loss-display">30</span>% игр будут проигрышами
+              </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+              <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">
+                Применить к играм:
+              </div>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-dice" checked> 🎲 Кубик
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-bowling" checked> 🎳 Боулинг
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-football" checked> ⚽ Футбол
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-basketball" checked> 🏀 Баскетбол
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-darts" checked> 🎯 Дартс
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-slots" checked> 🎰 Слоты
+              </label>
+              <label style="display: block; margin-bottom: 8px;">
+                <input type="checkbox" id="force-rps" checked> 🪨 КНБ
+              </label>
+            </div>
+
+            <button class="btn primary" style="width: 100%;" onclick="saveForceSettings()">💾 Сохранить настройки</button>
+          </div>
+        </div>
+
+        <div class="balance-card">
+          <div class="balance-label">📊 Анализ прибыли</div>
+          <div style="margin-top: 12px;">
+            <div class="stat-row">
+              <span>Ставки сегодня:</span>
+              <span id="profit-bets-today">0 USDT</span>
+            </div>
+            <div class="stat-row">
+              <span>Выплаты сегодня:</span>
+              <span id="profit-wins-today">0 USDT</span>
+            </div>
+            <div class="stat-row" style="border-top: 1px solid var(--glass-border); padding-top: 8px; margin-top: 8px;">
+              <span style="font-weight: 600;">Прибыль казино:</span>
+              <span id="profit-total-today" style="font-weight: 600; color: var(--emerald);">0 USDT</span>
+            </div>
+          </div>
+          <button class="btn secondary" style="width: 100%; margin-top: 12px;" onclick="loadProfitStats()">🔄 Обновить</button>
+        </div>
+      </div>
+
+      <!-- Broadcast Section -->
+      <div id="admin-broadcast-section" class="admin-section">
+        <div class="balance-card" style="margin-bottom: 16px;">
+          <div class="balance-label">Создать рассылку</div>
+          <div style="margin-top: 12px;">
+            <textarea id="broadcast-text" class="input" placeholder="Текст сообщения" style="width: 100%; min-height: 100px; margin-bottom: 8px; resize: vertical;"></textarea>
+            <input type="text" id="broadcast-media-url" class="input" placeholder="URL медиа (необязательно)" style="width: 100%; margin-bottom: 8px;">
+            <select id="broadcast-media-type" class="input" style="width: 100%; margin-bottom: 8px;">
+              <option value="">Без медиа</option>
+              <option value="photo">Фото</option>
+              <option value="video">Видео</option>
+            </select>
+            <button class="btn primary" style="width: 100%;" onclick="createBroadcast()">📤 Отправить рассылку</button>
+          </div>
+        </div>
+
+        <div class="balance-card">
+          <div class="balance-label">История рассылок</div>
+          <div id="broadcasts-list" style="margin-top: 12px;">
+            <div style="text-align: center; color: var(--text-secondary);">Загрузка...</div>
+          </div>
+        </div>
+        <button class="btn secondary" style="width: 100%; margin-top: 8px;" onclick="loadBroadcasts()">🔄 Обновить</button>
+      </div>
+
+      <!-- Settings Section -->
+      <div id="admin-settings-section" class="admin-section">
+        <div class="balance-card" style="margin-bottom: 16px;">
+          <div class="balance-label">RTP игр</div>
+          <div style="margin-top: 12px;">
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>🎲 Кости:</span>
+              <input type="number" id="rtp-dice" class="input" style="width: 80px;" value="92" min="50" max="100">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>🎰 Слоты:</span>
+              <input type="number" id="rtp-slots" class="input" style="width: 80px;" value="92" min="50" max="100">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>🪨 КНБ:</span>
+              <input type="number" id="rtp-rps" class="input" style="width: 80px;" value="92" min="50" max="100">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>🎯 Дартс:</span>
+              <input type="number" id="rtp-darts" class="input" style="width: 80px;" value="92" min="50" max="100">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>⚽ Футбол:</span>
+              <input type="number" id="rtp-football" class="input" style="width: 80px;" value="92" min="50" max="100">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>🏀 Баскетбол:</span>
+              <input type="number" id="rtp-basketball" class="input" style="width: 80px;" value="92" min="50" max="100">
+            </div>
+            <button class="btn primary" style="width: 100%; margin-top: 8px;" onclick="saveRTPSettings()">💾 Сохранить RTP</button>
+          </div>
+        </div>
+
+        <div class="balance-card">
+          <div class="balance-label">Глобальные настройки</div>
+          <div style="margin-top: 12px;">
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>Min депозит:</span>
+              <input type="number" id="setting-min-deposit" class="input" style="width: 100px;" value="1">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>Min вывод:</span>
+              <input type="number" id="setting-min-withdrawal" class="input" style="width: 100px;" value="10">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>Min ставка:</span>
+              <input type="number" id="setting-min-bet" class="input" style="width: 100px;" value="0.1">
+            </div>
+            <button class="btn primary" style="width: 100%; margin-top: 8px;" onclick="saveGlobalSettings()">💾 Сохранить настройки</button>
+          </div>
+        </div>
+
+        <div class="balance-card" style="margin-top: 16px;">
+          <div class="balance-label">Настройки PVP дуэлей</div>
+          <div style="margin-top: 12px;">
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>Комиссия казино (%):</span>
+              <input type="number" id="duel-commission-rate" class="input" style="width: 100px;" value="9" min="0" max="50" step="0.1">
+            </div>
+            <div class="stat-row" style="margin-bottom: 8px;">
+              <span>Гарантированный победитель (ID):</span>
+              <input type="number" id="duel-guaranteed-win-user-id" class="input" style="width: 100px;" value="0" min="0" placeholder="0 = выкл">
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
+              💡 Установите Telegram ID пользователя, который будет всегда выигрывать дуэли. 0 = отключено.
+            </div>
+            <button class="btn primary" style="width: 100%; margin-top: 12px;" onclick="saveDuelSettings()">💾 Сохранить настройки дуэлей</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Fullscreen Game Overlay -->
+  <div id="fullscreen-overlay" class="fullscreen-overlay">
+    <!-- Header with Balance and Avatar -->
+    <div class="fullscreen-header">
+      <button class="back-btn-small" onclick="closeFullscreenMode()">← Назад</button>
+      <div class="dice-header-right">
+        <div class="dice-balance">
+          <span id="fullscreen-balance-amount">0.00</span> USDT
+        </div>
+        <div id="fullscreen-avatar" class="dice-avatar-small">?</div>
+      </div>
+    </div>
+
+    <div class="fullscreen-content">
+      <!-- Game Display Area (как в слотах) -->
+      <div class="fullscreen-game-display">
+        <!-- Lottie Animation Container -->
+        <div id="fullscreen-lottie" class="fullscreen-lottie-container"></div>
+
+        <!-- Emoji Display (для отображения результата) -->
+        <div id="fullscreen-emoji-display" class="fullscreen-emoji-display" style="display: none;">
+          <span id="fullscreen-emoji-result" style="font-size: 64px;">🎲</span>
+        </div>
+      </div>
+
+      <!-- Layout для кнопок выбора и ставки -->
+      <div class="fullscreen-bet-and-choices">
+        <!-- Bet Input and Amount Display -->
+        <div class="fullscreen-bet-section-inline">
+          <div style="text-align: center;">
+            <input type="number" id="fullscreen-bet-input" class="fullscreen-bet-input-compact" placeholder="10" min="0.1" step="0.1" value="10">
+            <span style="font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-left: 4px;">$</span>
+          </div>
+        </div>
+
+        <!-- Choice Buttons Container (динамически заполняется) -->
+        <div id="fullscreen-choices" class="fullscreen-choices-compact"></div>
+      </div>
+
+      <!-- Play Button -->
+      <button id="fullscreen-play-btn" class="fullscreen-play-btn" onclick="playFromFullscreen()">
+        ИГРАТЬ
+      </button>
+
+      <!-- Wins History Section -->
+      <div class="dice-wins-section">
+        <h3 class="wins-title">Выигрыши</h3>
+        <div class="wins-list" id="fullscreen-wins-list">
+          <div class="wins-empty">Пока нет выигрышей</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confetti Canvas for Win Animation -->
+    <canvas id="fullscreen-confetti-canvas" class="confetti-canvas"></canvas>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <button class="tab active" onclick="handleNav(event, 'profile')">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="tab-label">Профиль</span>
+    </button>
+    <button class="tab" onclick="handleNav(event, 'games')">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+        <polyline points="17 2 12 7 7 2"/>
+      </svg>
+      <span class="tab-label">Игры</span>
+    </button>
+    <button class="tab" onclick="handleNav(event, 'referral')">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
+      <span class="tab-label">Пригласить</span>
+    </button>
+    <button class="tab" id="admin-tab" style="display: none;" onclick="handleNav(event, 'admin')">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+      </svg>
+      <span class="tab-label">Админ</span>
+    </button>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

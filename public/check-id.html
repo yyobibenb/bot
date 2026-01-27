@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Быстрая проверка ID</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 20px;
+      line-height: 1.8;
+    }
+    .box {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 4px solid #00ff00;
+    }
+    .error {
+      border-left-color: #ff0000;
+    }
+    .value {
+      color: #00ff00;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .label {
+      color: #888;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Быстрая проверка ID</h1>
+
+  <div class="box" id="url-box">
+    <div class="label">Полный URL:</div>
+    <div class="value" id="url"></div>
+  </div>
+
+  <div class="box" id="params-box">
+    <div class="label">URL параметры (window.location.search):</div>
+    <div class="value" id="params"></div>
+  </div>
+
+  <div class="box" id="tgid-box">
+    <div class="label">tg_id из URL:</div>
+    <div class="value" id="tgid"></div>
+  </div>
+
+  <div class="box" id="sdk-box">
+    <div class="label">Telegram SDK доступен:</div>
+    <div class="value" id="sdk"></div>
+  </div>
+
+  <div class="box" id="sdk-id-box">
+    <div class="label">ID из Telegram SDK:</div>
+    <div class="value" id="sdk-id"></div>
+  </div>
+
+  <div class="box" id="result-box">
+    <div class="label">Итоговый результат:</div>
+    <div class="value" id="result"></div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    console.log('=== БЫСТРАЯ ПРОВЕРКА ID ===');
+
+    // 1. Полный URL
+    const fullUrl = window.location.href;
+    document.getElementById('url').textContent = fullUrl;
+    console.log('1. Полный URL:', fullUrl);
+
+    // 2. URL параметры
+    const params = window.location.search;
+    document.getElementById('params').textContent = params || '❌ ПУСТО!';
+    console.log('2. URL параметры:', params);
+
+    // 3. tg_id из URL
+    const urlParams = new URLSearchParams(params);
+    const tgId = urlParams.get('tg_id');
+    document.getElementById('tgid').textContent = tgId || '❌ НЕТ!';
+    console.log('3. tg_id из URL:', tgId);
+
+    if (!tgId) {
+      document.getElementById('tgid-box').classList.add('error');
+    }
+
+    // 4. Telegram SDK
+    const hasSdk = !!(window.Telegram && window.Telegram.WebApp);
+    document.getElementById('sdk').textContent = hasSdk ? '✅ ДА' : '❌ НЕТ';
+    console.log('4. Telegram SDK доступен:', hasSdk);
+
+    // 5. ID из SDK
+    let sdkId = null;
+    if (hasSdk) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        sdkId = tg.initDataUnsafe.user.id;
+      }
+    }
+    document.getElementById('sdk-id').textContent = sdkId || '❌ НЕТ';
+    console.log('5. ID из Telegram SDK:', sdkId);
+
+    // 6. Итоговый результат
+    const finalId = tgId || sdkId;
+    const resultBox = document.getElementById('result-box');
+    const resultEl = document.getElementById('result');
+
+    if (finalId) {
+      resultEl.textContent = `✅ ID найден: ${finalId}`;
+      resultEl.style.color = '#00ff00';
+      console.log('✅ ИТОГ: ID найден:', finalId);
+
+      if (tgId) {
+        resultEl.textContent += ' (из URL)';
+        console.log('   Источник: URL параметр tg_id');
+      } else {
+        resultEl.textContent += ' (из Telegram SDK)';
+        console.log('   Источник: Telegram SDK');
+      }
+    } else {
+      resultBox.classList.add('error');
+      resultEl.textContent = '❌ ID НЕ НАЙДЕН!';
+      resultEl.style.color = '#ff0000';
+      console.log('❌ ИТОГ: ID НЕ НАЙДЕН!');
+      console.log('');
+      console.log('🔧 ЧТО ДЕЛАТЬ:');
+      console.log('1. Проверь что WEB_APP_URL установлен в .env');
+      console.log('2. Перезапусти бота');
+      console.log('3. Отправь /start заново в боте');
+      console.log('4. Нажми на НОВУЮ кнопку "🚀 Открыть Mini App"');
+    }
+
+    console.log('');
+    console.log('📋 ДОЛЖЕН БЫТЬ URL:');
+    console.log('   https://your-app.com?tg_id=123456789');
+    console.log('');
+    console.log('❌ НЕ ДОЛЖНО БЫТЬ:');
+    console.log('   https://your-app.com (без параметров)');
+    console.log('   https://your-app.com?user_id=... (старый формат)');
+  </script>
+</body>
+</html>

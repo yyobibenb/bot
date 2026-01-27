@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="300" viewBox="0 0 800 300">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#2C1810;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A0F08;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="300" fill="url(#bgGradient)"/>
+
+  <circle cx="100" cy="80" r="25" fill="#FFD700" opacity="0.3"/>
+  <circle cx="700" cy="220" r="30" fill="#FFA500" opacity="0.2"/>
+  <circle cx="650" cy="80" r="20" fill="#FFD700" opacity="0.25"/>
+
+  <path d="M 400 50 L 370 100 L 430 100 Z" fill="url(#goldGradient)"/>
+  <circle cx="370" cy="100" r="12" fill="#32CD32"/>
+  <circle cx="430" cy="100" r="12" fill="#FF4500"/>
+  <circle cx="400" cy="45" r="10" fill="#9370DB"/>
+
+  <text x="400" y="160" font-family="Arial Black, Arial, sans-serif" font-size="64" font-weight="bold" fill="url(#goldGradient)" text-anchor="middle" stroke="#8B4513" stroke-width="3">JOKERY</text>
+  <text x="400" y="210" font-family="Arial Black, Arial, sans-serif" font-size="56" font-weight="bold" fill="url(#goldGradient)" text-anchor="middle" stroke="#8B4513" stroke-width="3">CASINO</text>
+
+  <rect x="320" y="225" width="160" height="40" fill="url(#goldGradient)" rx="20"/>
+  <text x="400" y="253" font-family="Arial Black, Arial, sans-serif" font-size="26" font-weight="bold" fill="#8B4513" text-anchor="middle">★ WIN ★</text>
+
+  <rect x="140" y="200" width="35" height="50" fill="white" rx="4" opacity="0.9"/>
+  <text x="157" y="233" font-family="Arial" font-size="24" fill="red" text-anchor="middle">A♠</text>
+
+  <rect x="625" y="200" width="35" height="50" fill="white" rx="4" opacity="0.9"/>
+  <text x="642" y="233" font-family="Arial" font-size="24" fill="red" text-anchor="middle">A♦</text>
+</svg>

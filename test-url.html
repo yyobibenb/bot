@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Тест передачи данных через URL</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    .section {
+      background: #2a2a2a;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #00ff00;
+    }
+    h2 {
+      color: #ffaa00;
+    }
+    .key {
+      color: #ff00ff;
+    }
+    .value {
+      color: #00ffff;
+    }
+    button {
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 3px;
+    }
+    button:hover {
+      background: #00cc00;
+    }
+    pre {
+      background: #000;
+      padding: 10px;
+      border-radius: 3px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Тест передачи данных через URL</h1>
+
+  <div class="section">
+    <h2>📋 Текущий URL</h2>
+    <pre id="current-url"></pre>
+  </div>
+
+  <div class="section">
+    <h2>🔑 URL Параметры</h2>
+    <div id="url-params"></div>
+  </div>
+
+  <div class="section">
+    <h2>👤 Объект пользователя (как в приложении)</h2>
+    <pre id="user-object"></pre>
+  </div>
+
+  <div class="section">
+    <h2>🧪 Тестовые URL для проверки</h2>
+    <p>Кликни на кнопку чтобы загрузить страницу с тестовыми данными:</p>
+
+    <button onclick="testUrl1()">Тест 1: Полные данные</button>
+    <button onclick="testUrl2()">Тест 2: Минимальные данные</button>
+    <button onclick="testUrl3()">Тест 3: С аватаром</button>
+    <button onclick="testClear()">Очистить URL</button>
+  </div>
+
+  <script>
+    // Парсинг URL параметров (такая же функция как в app.js)
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        user_id: params.get('user_id'),
+        first_name: params.get('first_name'),
+        last_name: params.get('last_name'),
+        username: params.get('username'),
+        photo_url: params.get('photo_url'),
+        is_premium: params.get('is_premium') === 'true'
+      };
+    }
+
+    // Создание объекта пользователя (как в app.js)
+    function createUserObject(urlParams) {
+      if (!urlParams.user_id) return null;
+
+      return {
+        id: parseInt(urlParams.user_id),
+        first_name: urlParams.first_name || 'User',
+        last_name: urlParams.last_name || '',
+        username: urlParams.username || '',
+        photo_url: urlParams.photo_url || null,
+        is_premium: urlParams.is_premium || false
+      };
+    }
+
+    // Обновление UI
+    function updateDisplay() {
+      // Показываем текущий URL
+      document.getElementById('current-url').textContent = window.location.href;
+
+      // Парсим параметры
+      const urlParams = getUrlParams();
+
+      // Показываем параметры
+      let paramsHtml = '';
+      for (const [key, value] of Object.entries(urlParams)) {
+        const icon = value ? '✅' : '❌';
+        paramsHtml += `<div>${icon} <span class="key">${key}:</span> <span class="value">${value || 'null'}</span></div>`;
+      }
+      document.getElementById('url-params').innerHTML = paramsHtml;
+
+      // Создаем объект пользователя
+      const userObject = createUserObject(urlParams);
+
+      if (userObject) {
+        document.getElementById('user-object').textContent = JSON.stringify(userObject, null, 2);
+      } else {
+        document.getElementById('user-object').textContent = '❌ Нет данных - user_id не передан в URL';
+      }
+    }
+
+    // Тестовые URL
+    function testUrl1() {
+      window.location.search = '?user_id=123456789&first_name=John&last_name=Doe&username=johndoe&is_premium=true';
+    }
+
+    function testUrl2() {
+      window.location.search = '?user_id=987654321&first_name=Jane';
+    }
+
+    function testUrl3() {
+      const photoUrl = 'https://api.telegram.org/file/bot123:ABC/photos/file_1.jpg';
+      window.location.search = `?user_id=555555555&first_name=Bob&photo_url=${encodeURIComponent(photoUrl)}`;
+    }
+
+    function testClear() {
+      window.location.search = '';
+    }
+
+    // Запускаем при загрузке
+    updateDisplay();
+
+    // Логируем в консоль
+    console.log('🔍 URL параметры:', getUrlParams());
+    console.log('👤 Объект пользователя:', createUserObject(getUrlParams()));
+  </script>
+</body>
+</html>
