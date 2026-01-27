@@ -6796,3 +6796,61 @@ window.createDuel = createDuel;
 window.joinDuel = joinDuel;
 window.cancelDuel = cancelDuel;
 window.closeDuelResult = closeDuelResult;
+
+// Экспорт функций для открытия игр
+window.openDiceGame = openDiceGame;
+window.openSlotsGame = openSlotsGame;
+window.openRPSGame = openRPSGame;
+window.openBowlingGame = openBowlingGame;
+window.openDartsGame = openDartsGame;
+window.openFootballGame = openFootballGame;
+window.openBasketballGame = openBasketballGame;
+
+// Экспорт функций навигации
+window.backToGames = backToGames;
+window.backToDiceModes = backToDiceModes;
+window.backToBowlingModes = backToBowlingModes;
+window.backToFootballModes = backToFootballModes;
+window.backToBasketballModes = backToBasketballModes;
+window.backToDartsModes = backToDartsModes;
+window.backToRPSModes = backToRPSModes;
+window.backToSlotsTypeSelection = backToSlotsTypeSelection;
+window.handleNav = handleNav;
+
+// Экспорт функций игр
+window.playDiceGame = playDiceGame;
+window.playBowlingGame = playBowlingGame;
+window.playFootballGame = playFootballGame;
+window.playBasketballGame = playBasketballGame;
+window.playDartsGame = playDartsGame;
+window.playSlotsGame = playSlotsGame;
+window.playRPSGame = playRPSGame;
+
+// Экспорт функций выбора
+window.selectRPSChoice = selectRPSChoice;
+window.selectSlotType = selectSlotType;
+
+// Экспорт функций RPS
+window.openRPSSoloGame = openRPSSoloGame;
+window.openRPSDuelScreen = openRPSDuelScreen;
+window.createRPSDuel = createRPSDuel;
+
+// Экспорт функций депозита/вывода
+window.handleDeposit = handleDeposit;
+window.handleWithdraw = handleWithdraw;
+
+// Экспорт функций админ панели
+window.showAdminSection = showAdminSection;
+window.loadAdminStats = loadAdminStats;
+window.loadUserInfo = loadUserInfo;
+window.editUserBalance = editUserBalance;
+window.toggleBlockUser = toggleBlockUser;
+window.toggleForceResults = toggleForceResults;
+window.updateForceLossDisplay = updateForceLossDisplay;
+window.saveForceSettings = saveForceSettings;
+window.loadProfitStats = loadProfitStats;
+window.createBroadcast = createBroadcast;
+window.loadBroadcasts = loadBroadcasts;
+window.saveRTPSettings = saveRTPSettings;
+window.saveGlobalSettings = saveGlobalSettings;
+window.saveDuelSettings = saveDuelSettings;
