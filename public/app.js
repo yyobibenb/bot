@@ -5674,10 +5674,6 @@ function openFullscreenMode(game, mode, title, multiplier) {
   window.fullscreenState.multiplier = multiplier;
   window.fullscreenState.selectedChoice = null;
 
-  // Установить заголовок и multiplier
-  document.getElementById('fullscreen-title').textContent = title;
-  document.getElementById('fullscreen-multiplier').textContent = `x${multiplier}`;
-
   // Получить конфигурацию режима
   const config = gameModeConfig[game][mode];
 
