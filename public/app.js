@@ -3202,7 +3202,10 @@ function initSlotsAnimations() {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.reel1.symbols['🍋']
+        path: lottieAnimations.slots.reel1.symbols['🍋'],
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet'
+        }
       });
 
       // Барабан 2 - Виноград
@@ -3212,7 +3215,10 @@ function initSlotsAnimations() {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.reel2.symbols['🍇']
+        path: lottieAnimations.slots.reel2.symbols['🍇'],
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet'
+        }
       });
 
       // Барабан 3 - Лимон
@@ -3222,7 +3228,10 @@ function initSlotsAnimations() {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.reel3.symbols['🍋']
+        path: lottieAnimations.slots.reel3.symbols['🍋'],
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet'
+        }
       });
     }
 
@@ -3466,7 +3475,10 @@ async function playSlotsGame() {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.reel1.spin
+        path: lottieAnimations.slots.reel1.spin,
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet'
+        }
       });
     }
 
@@ -3476,7 +3488,10 @@ async function playSlotsGame() {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.reel2.spin
+        path: lottieAnimations.slots.reel2.spin,
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet'
+        }
       });
     }
 
@@ -3486,7 +3501,10 @@ async function playSlotsGame() {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: lottieAnimations.slots.reel3.spin
+        path: lottieAnimations.slots.reel3.spin,
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet'
+        }
       });
     }
 
@@ -3553,7 +3571,10 @@ async function playSlotsGame() {
               renderer: 'svg',
               loop: true,
               autoplay: true,
-              path: lottieAnimations.slots.reel1.symbols[symbol1]
+              path: lottieAnimations.slots.reel1.symbols[symbol1],
+              rendererSettings: {
+                preserveAspectRatio: 'xMidYMid meet'
+              }
             });
           } else {
             symbol1Container.innerHTML = `<div style="font-size: 80px; line-height: 80px; text-align: center;">${symbol1}</div>`;
@@ -3565,7 +3586,10 @@ async function playSlotsGame() {
               renderer: 'svg',
               loop: true,
               autoplay: true,
-              path: lottieAnimations.slots.reel2.symbols[symbol2]
+              path: lottieAnimations.slots.reel2.symbols[symbol2],
+              rendererSettings: {
+                preserveAspectRatio: 'xMidYMid meet'
+              }
             });
           } else {
             symbol2Container.innerHTML = `<div style="font-size: 80px; line-height: 80px; text-align: center;">${symbol2}</div>`;
@@ -3577,7 +3601,10 @@ async function playSlotsGame() {
               renderer: 'svg',
               loop: true,
               autoplay: true,
-              path: lottieAnimations.slots.reel3.symbols[symbol3]
+              path: lottieAnimations.slots.reel3.symbols[symbol3],
+              rendererSettings: {
+                preserveAspectRatio: 'xMidYMid meet'
+              }
             });
           } else {
             symbol3Container.innerHTML = `<div style="font-size: 80px; line-height: 80px; text-align: center;">${symbol3}</div>`;
