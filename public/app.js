@@ -3556,7 +3556,7 @@ async function playSlotsGame() {
               path: lottieAnimations.slots.reel1.symbols[symbol1]
             });
           } else {
-            symbol1Container.innerHTML = `<div style="font-size: 90px; line-height: 90px; text-align: center;">${symbol1}</div>`;
+            symbol1Container.innerHTML = `<div style="font-size: 120px; line-height: 120px; text-align: center;">${symbol1}</div>`;
           }
 
           if (lottieAnimations.slots.reel2.symbols[symbol2]) {
@@ -3568,7 +3568,7 @@ async function playSlotsGame() {
               path: lottieAnimations.slots.reel2.symbols[symbol2]
             });
           } else {
-            symbol2Container.innerHTML = `<div style="font-size: 90px; line-height: 90px; text-align: center;">${symbol2}</div>`;
+            symbol2Container.innerHTML = `<div style="font-size: 120px; line-height: 120px; text-align: center;">${symbol2}</div>`;
           }
 
           if (lottieAnimations.slots.reel3.symbols[symbol3]) {
@@ -3580,7 +3580,7 @@ async function playSlotsGame() {
               path: lottieAnimations.slots.reel3.symbols[symbol3]
             });
           } else {
-            symbol3Container.innerHTML = `<div style="font-size: 90px; line-height: 90px; text-align: center;">${symbol3}</div>`;
+            symbol3Container.innerHTML = `<div style="font-size: 120px; line-height: 120px; text-align: center;">${symbol3}</div>`;
           }
 
           console.log(`✅ Слоты: результат ${symbol1} ${symbol2} ${symbol3}`);
